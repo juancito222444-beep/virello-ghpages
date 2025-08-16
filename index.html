@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Virello Streetwear</title>
+  <meta name="description" content="Virello Streetwear — moda urbana peruana con sensibilidad europea.">
+  <link rel="icon" href="assets/images/favicon.png">
+  <style>
+    :root{--ink:#101010;--muted:#6b6b6b;--line:#e7e7e7;--bg:#ffffff}
+    *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    a{color:inherit}
+    .container{max-width:1180px;margin:0 auto;padding:0 18px}
+    .topbar{background:#111;color:#fff;text-align:center;font-size:12px;letter-spacing:.12em;padding:8px 10px}
+    .header{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--line);z-index:20}
+    .nav{display:flex;align-items:center;justify-content:space-between;height:66px}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .brand img{height:34px;width:auto}
+    .menu{display:flex;gap:22px}
+    .menu a{font-size:13px;text-decoration:none;letter-spacing:.14em;text-transform:uppercase;position:relative}
+    .menu a:after{content:'';position:absolute;left:50%;bottom:-6px;width:0;height:1px;background:#111;transition:.25s;transform:translateX(-50%)}
+    .menu a:hover:after{width:100%}
+    .actions{display:flex;gap:16px}
+    .hero{position:relative}
+    .hero-wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;padding:34px 0}
+    .hero h1{font-size:42px;line-height:1.12;margin:0}
+    .hero p{color:var(--muted)}
+    .hero .cta{display:flex;gap:10px;margin-top:14px}
+    .btn{display:inline-block;border:1px solid #111;padding:12px 18px;text-decoration:none;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+    .btn:hover{background:#111;color:#fff}
+    .btn-ghost{border-color:#cfcfcf}
+    .hero img{width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--line)}
+    h2.section-title{font-size:26px;margin:0 0 18px}
+    .grid{display:grid;gap:18px}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{border:1px solid var(--line);background:#fff}
+    .card-media img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;transition:transform .4s}
+    .card:hover .card-media img{transform:scale(1.03)}
+    .card-body{padding:12px}
+    .card-title{font-size:15px;margin:0}
+    .card-sub{font-size:12px;color:#555;margin-top:4px}
+    .price{font-weight:600}
+    .tiles{display:grid;gap:18px;grid-template-columns:repeat(3,minmax(0,1fr))}
+    .tile{position:relative;overflow:hidden;border:1px solid var(--line)}
+    .tile img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;transition:transform .4s}
+    .tile:hover img{transform:scale(1.03)}
+    .tile .overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5),transparent)}
+    .tile .cap{position:absolute;left:14px;bottom:14px;color:#fff}
+    .cap .k{font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+    .cap .t{font-size:20px}
+    .banner{border-block:1px solid var(--line);padding:56px 0;text-align:center}
+    .banner .copy{max-width:680px;margin:0 auto;color:var(--muted)}
+    footer{border-top:1px solid var(--line);font-size:12px;color:#555}
+    footer .cols{display:grid;gap:20px;grid-template-columns:repeat(4,minmax(0,1fr))}
+    footer a{text-decoration:none;color:inherit}
+    .muted{color:var(--muted)}
+    @media(max-width:980px){.hero-wrap{grid-template-columns:1fr}.tiles{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr 1fr}}
+    @media(max-width:640px){.tiles{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}.menu{display:none}}
+  </style>
+</head>
+<body>
+  <div class="topbar" id="topbar">ENVÍOS GRATIS DESDE S/ 249</div>
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="#"><img id="logo" src="assets/images/logo.svg" alt="Virello Streetwear"/><strong id="brand-name">Virello</strong></a>
+      <nav class="menu">
+        <a href="#productos">Productos</a>
+        <a href="#categorias">Categorías</a>
+        <a href="#about">Nosotros</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+      <div class="actions">
+        <a class="btn" href="#productos">Comprar</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div>
+        <h1 id="hero-title">Virello Streetwear</h1>
+        <p id="hero-sub">Moda urbana 2025 — Hecho en Perú</p>
+        <div class="cta">
+          <a class="btn" href="#productos">Comprar ahora</a>
+          <a class="btn btn-ghost" href="#categorias">Ver categorías</a>
+        </div>
+      </div>
+      <img id="hero-img" src="assets/images/banner.jpg" alt="Banner principal" loading="lazy">
+    </div>
+  </section>
+
+  <section class="container" style="padding:28px 0">
+    <h2 id="destacados-title" class="section-title">Productos destacados</h2>
+    <div id="productos" class="grid grid-3"></div>
+  </section>
+
+  <section id="categorias" class="container" style="padding:18px 0 36px">
+    <h2 class="section-title">Categorías</h2>
+    <div id="tiles" class="tiles"></div>
+  </section>
+
+  <section class="banner" id="about">
+    <div class="container">
+      <h2 class="section-title" id="about-title">Lujo urbano, hecho para durar</h2>
+      <p class="copy" id="about-copy">Materiales de calidad y diseño funcional con ADN urbano. Diseñado en Lima, inspirado en Europa.</p>
+    </div>
+  </section>
+
+  <section id="contacto" class="container" style="padding:36px 0 54px">
+    <h2 class="section-title">Contacto</h2>
+    <p class="muted">Síguenos en <a id="ig" href="#" target="_blank" rel="noopener">Instagram</a> y <a id="tt" href="#" target="_blank" rel="noopener">TikTok</a>.</p>
+    <p class="muted">Correo: <a id="mail" href="mailto:info@virello.pe">info@virello.pe</a></p>
+  </section>
+
+  <footer>
+    <div class="container" style="padding:24px 0">
+      <div class="cols">
+        <div>
+          <strong>Virello Streetwear</strong>
+          <div class="muted">© <span id="y"></span> — Todos los derechos reservados</div>
+        </div>
+        <div>
+          <div><strong>Ayuda</strong></div>
+          <a href="#">Envíos</a><br/><a href="#">Devoluciones</a><br/><a href="#">Guía de tallas</a>
+        </div>
+        <div>
+          <div><strong>Nosotros</strong></div>
+          <a href="#about">Historia</a><br/><a href="#about">Calidad</a><br/><a href="#about">Sostenibilidad</a>
+        </div>
+        <div>
+          <div><strong>Legal</strong></div>
+          <a href="#">Términos</a><br/><a href="#">Privacidad</a><br/><a href="#">Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  fetch('assets/content.json?_='+Date.now()).then(r=>r.json()).then(data=>{
+    if (data.topbar) document.getElementById('topbar').textContent = data.topbar;
+    if (data.brand){ 
+      document.getElementById('brand-name').textContent = data.brand.name || 'Virello';
+      if (data.brand.logo) document.getElementById('logo').src = data.brand.logo;
+    }
+    document.getElementById('hero-title').textContent = data.hero.titulo || 'Virello Streetwear';
+    document.getElementById('hero-sub').textContent   = data.hero.subtitulo || '';
+    if (data.hero.imagen) document.getElementById('hero-img').src = data.hero.imagen;
+
+    const grid = document.getElementById('productos');
+    grid.innerHTML = (data.productos||[]).map(p => `
+      <article class="card">
+        <div class="card-media"><img src="${p.imagen}" alt="${p.nombre}" loading="lazy"/></div>
+        <div class="card-body"><h3 class="card-title">${p.nombre}</h3><div class="card-sub"><span class="price">${p.precio}</span>${p.color ? ' · ' + p.color : ''}</div></div>
+      </article>`).join('');
+
+    const tiles = document.getElementById('tiles');
+    tiles.innerHTML = (data.categorias||[]).map(c => `
+      <a class="tile" href="${c.link || '#'}">
+        <img src="${c.imagen}" alt="${c.nombre}" loading="lazy"/>
+        <div class="overlay"></div><div class="cap"><div class="k">Comprar</div><div class="t">${c.nombre}</div></div>
+      </a>`).join('');
+
+    if (data.about){
+      document.getElementById('about-title').textContent = data.about.title || '';
+      document.getElementById('about-copy').textContent  = data.about.copy || '';
+    }
+    if (data.social){
+      if (data.social.instagram){ document.getElementById('ig').href = data.social.instagram; }
+      if (data.social.tiktok){ document.getElementById('tt').href = data.social.tiktok; }
+      if (data.social.email){ document.getElementById('mail').textContent = data.social.email; document.getElementById('mail').href = 'mailto:' + data.social.email; }
+    }
+  }).catch(err=>{
+    console.error(err);
+    document.body.insertAdjacentHTML('beforeend','<p style="color:red;text-align:center">No se pudo cargar assets/content.json</p>');
+  });
+  </script>
+</body>
+</html>

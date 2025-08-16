@@ -1,0 +1,58 @@
+{
+  "topbar": "ENVÍOS GRATIS DESDE S/ 249 — Cambia este texto en assets/content.json",
+  "brand": {
+    "name": "Virello",
+    "logo": "assets/images/logo.svg"
+  },
+  "hero": {
+    "titulo": "Virello Streetwear",
+    "subtitulo": "Moda urbana 2025 — Hecho en Perú",
+    "imagen": "assets/images/banner.jpg"
+  },
+  "productos": [
+    {
+      "nombre": "Polera Oversize Monograma",
+      "precio": "S/ 249",
+      "color": "Negro",
+      "imagen": "assets/images/polera1.jpg"
+    },
+    {
+      "nombre": "Cargo Pant Atelier",
+      "precio": "S/ 289",
+      "color": "Verde oliva",
+      "imagen": "assets/images/cargo1.jpg"
+    },
+    {
+      "nombre": "Chaqueta Varsity Lima",
+      "precio": "S/ 399",
+      "color": "Negro/Blanco",
+      "imagen": "assets/images/varsity1.jpg"
+    }
+  ],
+  "categorias": [
+    {
+      "nombre": "Sudaderas",
+      "imagen": "assets/images/cat-sudaderas.jpg",
+      "link": "#productos"
+    },
+    {
+      "nombre": "Pantalones",
+      "imagen": "assets/images/cat-pantalones.jpg",
+      "link": "#productos"
+    },
+    {
+      "nombre": "Chaquetas",
+      "imagen": "assets/images/cat-chaquetas.jpg",
+      "link": "#productos"
+    }
+  ],
+  "about": {
+    "title": "Lujo urbano, hecho para durar",
+    "copy": "Materiales de calidad y diseño funcional con ADN urbano. Diseñado en Lima, inspirado en Europa."
+  },
+  "social": {
+    "instagram": "#",
+    "tiktok": "#",
+    "email": "info@virello.pe"
+  }
+}
