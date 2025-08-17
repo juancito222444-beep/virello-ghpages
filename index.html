@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Virello Streetwear</title>
   <meta name="description" content="Virello Streetwear — moda urbana con sensibilidad europea.">
-  <link rel="icon" href="assets/images/logo.svg">
+  <link rel="icon" href="/assets/images/logo.svg">
   <style>
     :root{--ink:#101010;--muted:#6b6b6b;--line:#e7e7e7;--bg:#ffffff}
     *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
@@ -63,7 +63,7 @@
 
   <header class="header">
     <div class="container nav">
-      <a class="brand" href="#"><img id="logo" src="assets/images/logo.svg" alt="Virello"/><strong id="brand-name">Virello</strong></a>
+      <a class="brand" href="#"><img id="logo" src="/assets/images/logo.svg" alt="Virello"/><strong id="brand-name">Virello</strong></a>
       <nav class="menu">
         <a href="#productos">Productos</a>
         <a href="#categorias">Categorías</a>
@@ -84,7 +84,7 @@
           <a class="btn btn-ghost" href="#categorias">Ver categorías</a>
         </div>
       </div>
-      <img id="hero-img" src="assets/images/banner.jpg" alt="Banner principal" loading="lazy">
+      <img id="hero-img" src="/assets/images/banner.jpg" alt="Banner principal" loading="lazy">
     </div>
   </section>
 
@@ -135,46 +135,40 @@
   </footer>
 
   <script>
-  /* ============================================================
-     EDITA SOLO ESTE BLOQUE "DATA"
-     - Cambia precios/fotos/videos en products
-     - Cambia banner en hero
-     - Cambia categorías en categories
-     - Cambia redes/correo en social
-  ============================================================ */
+  /* ================== EDITA SOLO ESTE BLOQUE "DATA" ================== */
   const DATA = {
     topbar: "🚚 Envíos gratis desde S/ 249",
-    brand: { name: "Virello", logo: "assets/images/logo.svg" },
+    brand: { name: "Virello", logo: "/assets/images/logo.svg" },
     hero: {
       title: "Nueva Colección 2025",
       subtitle: "Moda urbana hecha en Perú",
-      image: "assets/images/banner.jpg"
+      image: "/assets/images/banner.jpg"
     },
     products: [
       {
         name: "Polera Oversize Monograma",
         price: "S/ 129",
         color: "Negro",
-        image: "assets/images/polera1.jpg"
+        image: "/assets/images/polera1.jpg"
         // video: "https://www.youtube.com/embed/VIDEO_ID"
       },
       {
         name: "Chaqueta Varsity Lima",
         price: "S/ 199",
         color: "Rojo",
-        image: "assets/images/varsity1.jpg"
+        image: "/assets/images/varsity1.jpg"
       },
       {
         name: "Pantalón Cargo Atelier",
         price: "S/ 149",
         color: "Beige",
-        image: "assets/images/cargo1.jpg"
+        image: "/assets/images/cargo1.jpg"
       }
     ],
     categories: [
-      { name: "Poleras",    image: "assets/images/cat-sudaderas.jpg",  link: "#productos" },
-      { name: "Chaquetas",  image: "assets/images/cat-chaquetas.jpg",  link: "#productos" },
-      { name: "Pantalones", image: "assets/images/cat-pantalones.jpg", link: "#productos" }
+      { name: "Poleras",    image: "/assets/images/cat-sudaderas.jpg",  link: "#productos" },
+      { name: "Chaquetas",  image: "/assets/images/cat-chaquetas.jpg",  link: "#productos" },
+      { name: "Pantalones", image: "/assets/images/cat-pantalones.jpg", link: "#productos" }
     ],
     about: {
       title: "Lujo urbano, hecho para durar",
@@ -186,9 +180,9 @@
       email: "info@virello.pe"
     }
   };
-  /* ================== FIN DEL BLOQUE EDITABLE ================= */
+  /* ================= FIN BLOQUE EDITABLE ================= */
 
-  // Utilidades
+  // Utils
   const $ = (id) => document.getElementById(id);
   const imgPh = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000"><rect width="100%" height="100%" fill="%23eee"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" fill="%23999" font-size="24">Imagen</text></svg>';
   const withFallback = (img) => img && img.addEventListener('error', ()=> img.src = imgPh, {once:true});
@@ -206,7 +200,7 @@
   if (DATA.hero?.image) $('hero-img').src = DATA.hero.image, withFallback($('hero-img'));
 
   // Productos
-  const grid = $('productos');
+  const grid = document.getElementById('productos');
   grid.innerHTML = (DATA.products||[]).map((p,i) => `
     <article class="card">
       <div class="card-media">
@@ -222,7 +216,7 @@
   grid.querySelectorAll('img').forEach(withFallback);
 
   // Categorías
-  const tiles = $('tiles');
+  const tiles = document.getElementById('tiles');
   tiles.innerHTML = (DATA.categories||[]).map((c,i) => `
     <a class="tile" href="${c.link || '#'}">
       <img src="${c.image || ''}" alt="${c.name || ('Categoría '+(i+1))}" loading="lazy"/>
