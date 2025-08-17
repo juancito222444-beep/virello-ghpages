@@ -4,8 +4,8 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Virello Streetwear</title>
-  <meta name="description" content="Virello Streetwear — moda urbana peruana con sensibilidad europea.">
-  <link rel="icon" href="assets/images/favicon.png">
+  <meta name="description" content="Virello Streetwear — moda urbana con sensibilidad europea.">
+  <link rel="icon" href="assets/images/logo.svg">
   <style>
     :root{--ink:#101010;--muted:#6b6b6b;--line:#e7e7e7;--bg:#ffffff}
     *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
@@ -26,7 +26,7 @@
     .hero h1{font-size:42px;line-height:1.12;margin:0}
     .hero p{color:var(--muted)}
     .hero .cta{display:flex;gap:10px;margin-top:14px}
-    .btn{display:inline-block;border:1px solid #111;padding:12px 18px;text-decoration:none;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+    .btn{display:inline-block;border:1px solid #111;padding:12px 18px;text-decoration:none;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
     .btn:hover{background:#111;color:#fff}
     .btn-ghost{border-color:#cfcfcf}
     .hero img{width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--line)}
@@ -59,19 +59,18 @@
   </style>
 </head>
 <body>
-  <div class="topbar" id="topbar">ENVÍOS GRATIS DESDE S/ 249</div>
+  <div class="topbar" id="topbar">🚚 Envíos gratis desde S/ 249</div>
+
   <header class="header">
     <div class="container nav">
-      <a class="brand" href="#"><img id="logo" src="assets/images/logo.svg" alt="Virello Streetwear"/><strong id="brand-name">Virello</strong></a>
+      <a class="brand" href="#"><img id="logo" src="assets/images/logo.svg" alt="Virello"/><strong id="brand-name">Virello</strong></a>
       <nav class="menu">
         <a href="#productos">Productos</a>
         <a href="#categorias">Categorías</a>
         <a href="#about">Nosotros</a>
         <a href="#contacto">Contacto</a>
       </nav>
-      <div class="actions">
-        <a class="btn" href="#productos">Comprar</a>
-      </div>
+      <div class="actions"><a class="btn" href="#productos">Comprar</a></div>
     </div>
   </header>
 
@@ -90,7 +89,7 @@
   </section>
 
   <section class="container" style="padding:28px 0">
-    <h2 id="destacados-title" class="section-title">Productos destacados</h2>
+    <h2 class="section-title">Productos destacados</h2>
     <div id="productos" class="grid grid-3"></div>
   </section>
 
@@ -136,7 +135,13 @@
   </footer>
 
   <script>
-  // 👇 Aquí cambias productos, precios, fotos, videos, categorías, etc.
+  /* ============================================================
+     EDITA SOLO ESTE BLOQUE "DATA"
+     - Cambia precios/fotos/videos en products
+     - Cambia banner en hero
+     - Cambia categorías en categories
+     - Cambia redes/correo en social
+  ============================================================ */
   const DATA = {
     topbar: "🚚 Envíos gratis desde S/ 249",
     brand: { name: "Virello", logo: "assets/images/logo.svg" },
@@ -145,93 +150,95 @@
       subtitle: "Moda urbana hecha en Perú",
       image: "assets/images/banner.jpg"
     },
-
     products: [
       {
-        name: "Polera Oversize Monograma",   // 👈 Nombre
-        price: "S/ 129",                     // 👈 Precio
-        color: "Negro",                      // 👈 Color
-        image: "assets/images/polera1.jpg",  // 👈 Foto
-        // video: "https://www.youtube.com/embed/VIDEO_ID"  // 👈 Video opcional
+        name: "Polera Oversize Monograma",
+        price: "S/ 129",
+        color: "Negro",
+        image: "assets/images/polera1.jpg"
+        // video: "https://www.youtube.com/embed/VIDEO_ID"
       },
       {
-        name: "Chaqueta Varsity Premium",
+        name: "Chaqueta Varsity Lima",
         price: "S/ 199",
         color: "Rojo",
         image: "assets/images/varsity1.jpg"
       },
       {
-        name: "Pantalón Cargo Urbano",
+        name: "Pantalón Cargo Atelier",
         price: "S/ 149",
         color: "Beige",
         image: "assets/images/cargo1.jpg"
       }
     ],
-
     categories: [
-      { name: "Poleras", image: "assets/images/cat-sudaderas.jpg", link: "#productos" },
-      { name: "Chaquetas", image: "assets/images/cat-chaquetas.jpg", link: "#productos" },
+      { name: "Poleras",    image: "assets/images/cat-sudaderas.jpg",  link: "#productos" },
+      { name: "Chaquetas",  image: "assets/images/cat-chaquetas.jpg",  link: "#productos" },
       { name: "Pantalones", image: "assets/images/cat-pantalones.jpg", link: "#productos" }
     ],
-
     about: {
       title: "Lujo urbano, hecho para durar",
       copy: "Materiales de calidad y diseño funcional con ADN urbano. Diseñado en Lima, inspirado en Europa."
     },
-
     social: {
       instagram: "https://instagram.com/virello",
       tiktok: "https://tiktok.com/@virello",
       email: "info@virello.pe"
     }
   };
+  /* ================== FIN DEL BLOQUE EDITABLE ================= */
 
-  // Render dinámico
-  document.getElementById('y').textContent = new Date().getFullYear();
-  document.getElementById('topbar').textContent = DATA.topbar;
-  document.getElementById('brand-name').textContent = DATA.brand.name;
-  document.getElementById('logo').src = DATA.brand.logo;
-  document.getElementById('hero-title').textContent = DATA.hero.title;
-  document.getElementById('hero-sub').textContent = DATA.hero.subtitle;
-  document.getElementById('hero-img').src = DATA.hero.image;
+  // Utilidades
+  const $ = (id) => document.getElementById(id);
+  const imgPh = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000"><rect width="100%" height="100%" fill="%23eee"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" fill="%23999" font-size="24">Imagen</text></svg>';
+  const withFallback = (img) => img && img.addEventListener('error', ()=> img.src = imgPh, {once:true});
+  const money = (v) => (typeof v === 'number') ? ('S/ ' + v.toFixed(2)) : (v ?? '');
+
+  // Render
+  $('y').textContent = new Date().getFullYear();
+  if (DATA.topbar) $('topbar').textContent = DATA.topbar;
+
+  $('brand-name').textContent = DATA.brand?.name || 'Virello';
+  if (DATA.brand?.logo) $('logo').src = DATA.brand.logo, withFallback($('logo'));
+
+  $('hero-title').textContent = DATA.hero?.title || 'Virello Streetwear';
+  $('hero-sub').textContent   = DATA.hero?.subtitle || '';
+  if (DATA.hero?.image) $('hero-img').src = DATA.hero.image, withFallback($('hero-img'));
 
   // Productos
-  const grid = document.getElementById('productos');
-  grid.innerHTML = DATA.products.map(p => `
+  const grid = $('productos');
+  grid.innerHTML = (DATA.products||[]).map((p,i) => `
     <article class="card">
       <div class="card-media">
-        <img src="${p.image}" alt="${p.name}" loading="lazy"/>
+        ${p.video ? `<button class="btn" style="position:absolute;margin:8px" onclick="window.open('${p.video}','_blank')">Ver video</button>` : ''}
+        <img src="${p.image || ''}" alt="${p.name || ('Producto '+(i+1))}" loading="lazy"/>
       </div>
       <div class="card-body">
-        <h3 class="card-title">${p.name}</h3>
-        <div class="card-sub">
-          <span class="price">${p.price}</span>${p.color ? ' · ' + p.color : ''}
-        </div>
-        ${p.video ? `<iframe width="100%" height="200" src="${p.video}" frameborder="0" allowfullscreen></iframe>` : ""}
+        <h3 class="card-title">${p.name || ('Producto '+(i+1))}</h3>
+        <div class="card-sub"><span class="price">${money(p.price)}</span>${p.color ? ' · ' + p.color : ''}</div>
       </div>
-    </article>`).join('');
+    </article>
+  `).join('');
+  grid.querySelectorAll('img').forEach(withFallback);
 
   // Categorías
-  const tiles = document.getElementById('tiles');
-  tiles.innerHTML = DATA.categories.map(c => `
-    <a class="tile" href="${c.link}">
-      <img src="${c.image}" alt="${c.name}" loading="lazy"/>
+  const tiles = $('tiles');
+  tiles.innerHTML = (DATA.categories||[]).map((c,i) => `
+    <a class="tile" href="${c.link || '#'}">
+      <img src="${c.image || ''}" alt="${c.name || ('Categoría '+(i+1))}" loading="lazy"/>
       <div class="overlay"></div>
-      <div class="cap">
-        <div class="k">Comprar</div>
-        <div class="t">${c.name}</div>
-      </div>
-    </a>`).join('');
+      <div class="cap"><div class="k">Comprar</div><div class="t">${c.name || ('Categoría '+(i+1))}</div></div>
+    </a>
+  `).join('');
+  tiles.querySelectorAll('img').forEach(withFallback);
 
-  // About
-  document.getElementById('about-title').textContent = DATA.about.title;
-  document.getElementById('about-copy').textContent = DATA.about.copy;
-
-  // Social
-  document.getElementById('ig').href = DATA.social.instagram;
-  document.getElementById('tt').href = DATA.social.tiktok;
-  document.getElementById('mail').textContent = DATA.social.email;
-  document.getElementById('mail').href = "mailto:" + DATA.social.email;
+  // About & Social
+  if (DATA.about){ $('about-title').textContent = DATA.about.title || ''; $('about-copy').textContent = DATA.about.copy || ''; }
+  if (DATA.social){
+    if (DATA.social.instagram) $('ig').href = DATA.social.instagram;
+    if (DATA.social.tiktok) $('tt').href = DATA.social.tiktok;
+    if (DATA.social.email) { $('mail').textContent = DATA.social.email; $('mail').href = 'mailto:' + DATA.social.email; }
+  }
   </script>
 </body>
 </html>
