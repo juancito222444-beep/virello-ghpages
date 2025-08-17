@@ -136,44 +136,102 @@
   </footer>
 
   <script>
+  // 👇 Aquí cambias productos, precios, fotos, videos, categorías, etc.
+  const DATA = {
+    topbar: "🚚 Envíos gratis desde S/ 249",
+    brand: { name: "Virello", logo: "assets/images/logo.svg" },
+    hero: {
+      title: "Nueva Colección 2025",
+      subtitle: "Moda urbana hecha en Perú",
+      image: "assets/images/banner.jpg"
+    },
+
+    products: [
+      {
+        name: "Polera Oversize Monograma",   // 👈 Nombre
+        price: "S/ 129",                     // 👈 Precio
+        color: "Negro",                      // 👈 Color
+        image: "assets/images/polera1.jpg",  // 👈 Foto
+        // video: "https://www.youtube.com/embed/VIDEO_ID"  // 👈 Video opcional
+      },
+      {
+        name: "Chaqueta Varsity Premium",
+        price: "S/ 199",
+        color: "Rojo",
+        image: "assets/images/varsity1.jpg"
+      },
+      {
+        name: "Pantalón Cargo Urbano",
+        price: "S/ 149",
+        color: "Beige",
+        image: "assets/images/cargo1.jpg"
+      }
+    ],
+
+    categories: [
+      { name: "Poleras", image: "assets/images/cat-sudaderas.jpg", link: "#productos" },
+      { name: "Chaquetas", image: "assets/images/cat-chaquetas.jpg", link: "#productos" },
+      { name: "Pantalones", image: "assets/images/cat-pantalones.jpg", link: "#productos" }
+    ],
+
+    about: {
+      title: "Lujo urbano, hecho para durar",
+      copy: "Materiales de calidad y diseño funcional con ADN urbano. Diseñado en Lima, inspirado en Europa."
+    },
+
+    social: {
+      instagram: "https://instagram.com/virello",
+      tiktok: "https://tiktok.com/@virello",
+      email: "info@virello.pe"
+    }
+  };
+
+  // Render dinámico
   document.getElementById('y').textContent = new Date().getFullYear();
-  fetch('assets/content.json?_='+Date.now()).then(r=>r.json()).then(data=>{
-    if (data.topbar) document.getElementById('topbar').textContent = data.topbar;
-    if (data.brand){ 
-      document.getElementById('brand-name').textContent = data.brand.name || 'Virello';
-      if (data.brand.logo) document.getElementById('logo').src = data.brand.logo;
-    }
-    document.getElementById('hero-title').textContent = data.hero.titulo || 'Virello Streetwear';
-    document.getElementById('hero-sub').textContent   = data.hero.subtitulo || '';
-    if (data.hero.imagen) document.getElementById('hero-img').src = data.hero.imagen;
+  document.getElementById('topbar').textContent = DATA.topbar;
+  document.getElementById('brand-name').textContent = DATA.brand.name;
+  document.getElementById('logo').src = DATA.brand.logo;
+  document.getElementById('hero-title').textContent = DATA.hero.title;
+  document.getElementById('hero-sub').textContent = DATA.hero.subtitle;
+  document.getElementById('hero-img').src = DATA.hero.image;
 
-    const grid = document.getElementById('productos');
-    grid.innerHTML = (data.productos||[]).map(p => `
-      <article class="card">
-        <div class="card-media"><img src="${p.imagen}" alt="${p.nombre}" loading="lazy"/></div>
-        <div class="card-body"><h3 class="card-title">${p.nombre}</h3><div class="card-sub"><span class="price">${p.precio}</span>${p.color ? ' · ' + p.color : ''}</div></div>
-      </article>`).join('');
+  // Productos
+  const grid = document.getElementById('productos');
+  grid.innerHTML = DATA.products.map(p => `
+    <article class="card">
+      <div class="card-media">
+        <img src="${p.image}" alt="${p.name}" loading="lazy"/>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title">${p.name}</h3>
+        <div class="card-sub">
+          <span class="price">${p.price}</span>${p.color ? ' · ' + p.color : ''}
+        </div>
+        ${p.video ? `<iframe width="100%" height="200" src="${p.video}" frameborder="0" allowfullscreen></iframe>` : ""}
+      </div>
+    </article>`).join('');
 
-    const tiles = document.getElementById('tiles');
-    tiles.innerHTML = (data.categorias||[]).map(c => `
-      <a class="tile" href="${c.link || '#'}">
-        <img src="${c.imagen}" alt="${c.nombre}" loading="lazy"/>
-        <div class="overlay"></div><div class="cap"><div class="k">Comprar</div><div class="t">${c.nombre}</div></div>
-      </a>`).join('');
+  // Categorías
+  const tiles = document.getElementById('tiles');
+  tiles.innerHTML = DATA.categories.map(c => `
+    <a class="tile" href="${c.link}">
+      <img src="${c.image}" alt="${c.name}" loading="lazy"/>
+      <div class="overlay"></div>
+      <div class="cap">
+        <div class="k">Comprar</div>
+        <div class="t">${c.name}</div>
+      </div>
+    </a>`).join('');
 
-    if (data.about){
-      document.getElementById('about-title').textContent = data.about.title || '';
-      document.getElementById('about-copy').textContent  = data.about.copy || '';
-    }
-    if (data.social){
-      if (data.social.instagram){ document.getElementById('ig').href = data.social.instagram; }
-      if (data.social.tiktok){ document.getElementById('tt').href = data.social.tiktok; }
-      if (data.social.email){ document.getElementById('mail').textContent = data.social.email; document.getElementById('mail').href = 'mailto:' + data.social.email; }
-    }
-  }).catch(err=>{
-    console.error(err);
-    document.body.insertAdjacentHTML('beforeend','<p style="color:red;text-align:center">No se pudo cargar assets/content.json</p>');
-  });
+  // About
+  document.getElementById('about-title').textContent = DATA.about.title;
+  document.getElementById('about-copy').textContent = DATA.about.copy;
+
+  // Social
+  document.getElementById('ig').href = DATA.social.instagram;
+  document.getElementById('tt').href = DATA.social.tiktok;
+  document.getElementById('mail').textContent = DATA.social.email;
+  document.getElementById('mail').href = "mailto:" + DATA.social.email;
   </script>
 </body>
 </html>
