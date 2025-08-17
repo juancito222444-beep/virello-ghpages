@@ -4,42 +4,50 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Virello Streetwear</title>
-  <meta name="description" content="Virello Streetwear — moda urbana con sensibilidad europea.">
-  <link rel="icon" href="/assets/images/logo.svg">
+  <meta name="description" content="Virello Streetwear — moda urbana hecha en Perú con sensibilidad europea.">
+  <link rel="icon" href="data:image/svg+xml;utf8,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+    <rect width='64' height='64' rx='10' fill='%23111'/>
+    <text x='50%' y='57%' dominant-baseline='middle' text-anchor='middle'
+      font-family='Arial' font-size='34' fill='white'>V</text>
+  </svg>">
+
   <style>
-    :root{--ink:#101010;--muted:#6b6b6b;--line:#e7e7e7;--bg:#ffffff}
-    *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    :root{--ink:#111;--muted:#6b6b6b;--line:#e7e7e7;--bg:#fff}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
     a{color:inherit}
     .container{max-width:1180px;margin:0 auto;padding:0 18px}
     .topbar{background:#111;color:#fff;text-align:center;font-size:12px;letter-spacing:.12em;padding:8px 10px}
     .header{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--line);z-index:20}
     .nav{display:flex;align-items:center;justify-content:space-between;height:66px}
     .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-    .brand img{height:34px;width:auto}
+    .brand img{height:34px;width:auto;border-radius:6px}
     .menu{display:flex;gap:22px}
     .menu a{font-size:13px;text-decoration:none;letter-spacing:.14em;text-transform:uppercase;position:relative}
     .menu a:after{content:'';position:absolute;left:50%;bottom:-6px;width:0;height:1px;background:#111;transition:.25s;transform:translateX(-50%)}
     .menu a:hover:after{width:100%}
-    .actions{display:flex;gap:16px}
+    .actions{display:flex;gap:12px}
+    .btn{display:inline-block;border:1px solid #111;padding:12px 18px;text-decoration:none;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+    .btn:hover{background:#111;color:#fff}
+    .btn-ghost{border-color:#cfcfcf}
     .hero{position:relative}
     .hero-wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;padding:34px 0}
     .hero h1{font-size:42px;line-height:1.12;margin:0}
     .hero p{color:var(--muted)}
-    .hero .cta{display:flex;gap:10px;margin-top:14px}
-    .btn{display:inline-block;border:1px solid #111;padding:12px 18px;text-decoration:none;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
-    .btn:hover{background:#111;color:#fff}
-    .btn-ghost{border-color:#cfcfcf}
     .hero img{width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--line)}
     h2.section-title{font-size:26px;margin:0 0 18px}
     .grid{display:grid;gap:18px}
     .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
     .card{border:1px solid var(--line);background:#fff}
-    .card-media img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;transition:transform .4s}
+    .card-media{position:relative}
+    .card-media img,.card-media iframe{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+    .card-media img{transition:transform .4s}
     .card:hover .card-media img{transform:scale(1.03)}
     .card-body{padding:12px}
     .card-title{font-size:15px;margin:0}
     .card-sub{font-size:12px;color:#555;margin-top:4px}
-    .price{font-weight:600}
+    .price{font-weight:700}
     .tiles{display:grid;gap:18px;grid-template-columns:repeat(3,minmax(0,1fr))}
     .tile{position:relative;overflow:hidden;border:1px solid var(--line)}
     .tile img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;transition:transform .4s}
@@ -59,58 +67,201 @@
   </style>
 </head>
 <body>
-  <div class="topbar" id="topbar">🚚 Envíos gratis desde S/ 249</div>
+  <div class="topbar">🚚 Envíos gratis desde S/ 249</div>
 
+  <!-- ====== HEADER ====== -->
   <header class="header">
     <div class="container nav">
-      <a class="brand" href="#"><img id="logo" src="/assets/images/logo.svg" alt="Virello"/><strong id="brand-name">Virello</strong></a>
+      <a class="brand" href="#">
+        <!-- LOGO DE REFERENCIA (SVG embebido). Reemplaza por tu ruta o URL si quieres -->
+        <img alt="Virello" src="data:image/svg+xml;utf8,
+          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+            <rect width='64' height='64' rx='12' fill='%23111'/>
+            <text x='50%' y='57%' dominant-baseline='middle' text-anchor='middle'
+              font-family='Arial' font-size='34' fill='white'>V</text>
+          </svg>"/>
+        <strong>Virello</strong>
+      </a>
       <nav class="menu">
         <a href="#productos">Productos</a>
         <a href="#categorias">Categorías</a>
         <a href="#about">Nosotros</a>
         <a href="#contacto">Contacto</a>
       </nav>
-      <div class="actions"><a class="btn" href="#productos">Comprar</a></div>
+      <div class="actions">
+        <a class="btn" href="#productos">Comprar</a>
+      </div>
     </div>
   </header>
 
+  <!-- ====== HERO (EDITA textos e imagen) ====== -->
+  <!-- Cambia la imagen: reemplaza el data:image por tu URL o ruta (ej: assets/images/banner.jpg) -->
   <section class="hero">
     <div class="container hero-wrap">
       <div>
-        <h1 id="hero-title">Virello Streetwear</h1>
-        <p id="hero-sub">Moda urbana 2025 — Hecho en Perú</p>
+        <h1>Virello Streetwear</h1>
+        <p>Moda urbana 2025 — Hecho en Perú</p>
         <div class="cta">
           <a class="btn" href="#productos">Comprar ahora</a>
           <a class="btn btn-ghost" href="#categorias">Ver categorías</a>
         </div>
       </div>
-      <img id="hero-img" src="/assets/images/banner.jpg" alt="Banner principal" loading="lazy">
+      <img alt="Banner principal" loading="lazy"
+           src="data:image/svg+xml;utf8,
+           <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'>
+             <defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
+               <stop offset='0' stop-color='%23222'/><stop offset='1' stop-color='%23555'/>
+             </linearGradient></defs>
+             <rect width='1600' height='900' fill='url(#g)'/>
+             <text x='50%' y='50%' fill='white' font-family='Arial' font-size='72'
+               dominant-baseline='middle' text-anchor='middle'>Banner (reemplaza por tu imagen)</text>
+           </svg>">
     </div>
   </section>
 
-  <section class="container" style="padding:28px 0">
+  <!-- ====== PRODUCTOS (EDITA nombres, precios, fotos y videos) ====== -->
+  <section id="productos" class="container" style="padding:28px 0">
     <h2 class="section-title">Productos destacados</h2>
-    <div id="productos" class="grid grid-3"></div>
+    <div class="grid grid-3">
+
+      <!-- PRODUCTO 1: cambia nombre, precio, color y foto -->
+      <article class="card">
+        <div class="card-media">
+          <!-- Reemplaza el src por tu ruta/URL (ej: assets/images/polera1.jpg) -->
+          <img alt="Polera oversize" loading="lazy"
+               src="data:image/svg+xml;utf8,
+               <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1000'>
+                 <rect width='100%' height='100%' fill='%23e6e6e6'/>
+                 <text x='50%' y='50%' fill='%23999' font-family='Arial' font-size='32'
+                   dominant-baseline='middle' text-anchor='middle'>Polera (reemplaza por tu foto)</text>
+               </svg>"/>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Polera Oversize Monograma</h3>
+          <div class="card-sub"><span class="price">S/ 129</span> · Negro</div>
+        </div>
+      </article>
+
+      <!-- PRODUCTO 2 -->
+      <article class="card">
+        <div class="card-media">
+          <img alt="Chaqueta varsity" loading="lazy"
+               src="data:image/svg+xml;utf8,
+               <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1000'>
+                 <rect width='100%' height='100%' fill='%23e6e6e6'/>
+                 <text x='50%' y='50%' fill='%23999' font-family='Arial' font-size='32'
+                   dominant-baseline='middle' text-anchor='middle'>Varsity (reemplaza por tu foto)</text>
+               </svg>"/>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Chaqueta Varsity Lima</h3>
+          <div class="card-sub"><span class="price">S/ 199</span> · Rojo</div>
+        </div>
+      </article>
+
+      <!-- PRODUCTO 3 -->
+      <article class="card">
+        <div class="card-media">
+          <img alt="Pantalón cargo" loading="lazy"
+               src="data:image/svg+xml;utf8,
+               <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1000'>
+                 <rect width='100%' height='100%' fill='%23e6e6e6'/>
+                 <text x='50%' y='50%' fill='%23999' font-family='Arial' font-size='32'
+                   dominant-baseline='middle' text-anchor='middle'>Cargo (reemplaza por tu foto)</text>
+               </svg>"/>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Pantalón Cargo Atelier</h3>
+          <div class="card-sub"><span class="price">S/ 149</span> · Beige</div>
+        </div>
+      </article>
+
+      <!-- PRODUCTO 4 (VIDEO): reemplaza VIDEO_ID por el ID de YouTube -->
+      <article class="card">
+        <div class="card-media">
+          <iframe width="100%" height="250"
+                  src="https://www.youtube.com/embed/VIDEO_ID"
+                  title="Video Promocional"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowfullscreen></iframe>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Video Promocional</h3>
+          <div class="card-sub"><span class="price">Colección 2025</span></div>
+        </div>
+      </article>
+
+      <!-- DUPLICA ESTE BLOQUE PARA MÁS PRODUCTOS
+      <article class="card">
+        <div class="card-media">
+          <img alt="Nombre del producto" loading="lazy" src="URL_O_RUTA_DE_TU_IMAGEN"/>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Nombre del producto</h3>
+          <div class="card-sub"><span class="price">S/ 000</span> · Color</div>
+        </div>
+      </article>
+      -->
+    </div>
   </section>
 
+  <!-- ====== CATEGORÍAS (puedes cambiar imágenes y textos) ====== -->
   <section id="categorias" class="container" style="padding:18px 0 36px">
     <h2 class="section-title">Categorías</h2>
-    <div id="tiles" class="tiles"></div>
-  </section>
-
-  <section class="banner" id="about">
-    <div class="container">
-      <h2 class="section-title" id="about-title">Lujo urbano, hecho para durar</h2>
-      <p class="copy" id="about-copy">Materiales de calidad y diseño funcional con ADN urbano. Diseñado en Lima, inspirado en Europa.</p>
+    <div class="tiles">
+      <a class="tile" href="#productos">
+        <img alt="Poleras" loading="lazy"
+             src="data:image/svg+xml;utf8,
+             <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1000'>
+               <rect width='100%' height='100%' fill='%23222'/>
+               <text x='50%' y='50%' fill='white' font-family='Arial' font-size='36'
+                 dominant-baseline='middle' text-anchor='middle'>Poleras</text>
+             </svg>"/>
+        <div class="overlay"></div>
+        <div class="cap"><div class="k">Comprar</div><div class="t">Poleras</div></div>
+      </a>
+      <a class="tile" href="#productos">
+        <img alt="Chaquetas" loading="lazy"
+             src="data:image/svg+xml;utf8,
+             <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1000'>
+               <rect width='100%' height='100%' fill='%232a2a2a'/>
+               <text x='50%' y='50%' fill='white' font-family='Arial' font-size='36'
+                 dominant-baseline='middle' text-anchor='middle'>Chaquetas</text>
+             </svg>"/>
+        <div class="overlay"></div>
+        <div class="cap"><div class="k">Comprar</div><div class="t">Chaquetas</div></div>
+      </a>
+      <a class="tile" href="#productos">
+        <img alt="Pantalones" loading="lazy"
+             src="data:image/svg+xml;utf8,
+             <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1000'>
+               <rect width='100%' height='100%' fill='%23333'/>
+               <text x='50%' y='50%' fill='white' font-family='Arial' font-size='36'
+                 dominant-baseline='middle' text-anchor='middle'>Pantalones</text>
+             </svg>"/>
+        <div class="overlay"></div>
+        <div class="cap"><div class="k">Comprar</div><div class="t">Pantalones</div></div>
+      </a>
     </div>
   </section>
 
-  <section id="contacto" class="container" style="padding:36px 0 54px">
-    <h2 class="section-title">Contacto</h2>
-    <p class="muted">Síguenos en <a id="ig" href="#" target="_blank" rel="noopener">Instagram</a> y <a id="tt" href="#" target="_blank" rel="noopener">TikTok</a>.</p>
-    <p class="muted">Correo: <a id="mail" href="mailto:info@virello.pe">info@virello.pe</a></p>
+  <!-- ====== ABOUT (textos) ====== -->
+  <section class="banner" id="about">
+    <div class="container">
+      <h2 class="section-title">Lujo urbano, hecho para durar</h2>
+      <p class="copy">Materiales de calidad y diseño funcional con ADN urbano. Diseñado en Lima, inspirado en Europa.</p>
+    </div>
   </section>
 
+  <!-- ====== CONTACTO (redes y correo) ====== -->
+  <section id="contacto" class="container" style="padding:36px 0 54px">
+    <h2 class="section-title">Contacto</h2>
+    <p class="muted">Síguenos en <a href="https://instagram.com/virello" target="_blank" rel="noopener">Instagram</a> y <a href="https://tiktok.com/@virello" target="_blank" rel="noopener">TikTok</a>.</p>
+    <p class="muted">Correo: <a href="mailto:info@virello.pe">info@virello.pe</a></p>
+  </section>
+
+  <!-- ====== FOOTER ====== -->
   <footer>
     <div class="container" style="padding:24px 0">
       <div class="cols">
@@ -135,104 +286,8 @@
   </footer>
 
   <script>
-  /* ================== EDITA SOLO ESTE BLOQUE "DATA" ================== */
-  const DATA = {
-    topbar: "🚚 Envíos gratis desde S/ 249",
-    brand: { name: "Virello", logo: "/assets/images/logo.svg" },
-    hero: {
-      title: "Nueva Colección 2025",
-      subtitle: "Moda urbana hecha en Perú",
-      image: "/assets/images/banner.jpg"
-    },
-    products: [
-      {
-        name: "Polera Oversize Monograma",
-        price: "S/ 129",
-        color: "Negro",
-        image: "/assets/images/polera1.jpg"
-        // video: "https://www.youtube.com/embed/VIDEO_ID"
-      },
-      {
-        name: "Chaqueta Varsity Lima",
-        price: "S/ 199",
-        color: "Rojo",
-        image: "/assets/images/varsity1.jpg"
-      },
-      {
-        name: "Pantalón Cargo Atelier",
-        price: "S/ 149",
-        color: "Beige",
-        image: "/assets/images/cargo1.jpg"
-      }
-    ],
-    categories: [
-      { name: "Poleras",    image: "/assets/images/cat-sudaderas.jpg",  link: "#productos" },
-      { name: "Chaquetas",  image: "/assets/images/cat-chaquetas.jpg",  link: "#productos" },
-      { name: "Pantalones", image: "/assets/images/cat-pantalones.jpg", link: "#productos" }
-    ],
-    about: {
-      title: "Lujo urbano, hecho para durar",
-      copy: "Materiales de calidad y diseño funcional con ADN urbano. Diseñado en Lima, inspirado en Europa."
-    },
-    social: {
-      instagram: "https://instagram.com/virello",
-      tiktok: "https://tiktok.com/@virello",
-      email: "info@virello.pe"
-    }
-  };
-  /* ================= FIN BLOQUE EDITABLE ================= */
-
-  // Utils
-  const $ = (id) => document.getElementById(id);
-  const imgPh = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000"><rect width="100%" height="100%" fill="%23eee"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" fill="%23999" font-size="24">Imagen</text></svg>';
-  const withFallback = (img) => img && img.addEventListener('error', ()=> img.src = imgPh, {once:true});
-  const money = (v) => (typeof v === 'number') ? ('S/ ' + v.toFixed(2)) : (v ?? '');
-
-  // Render
-  $('y').textContent = new Date().getFullYear();
-  if (DATA.topbar) $('topbar').textContent = DATA.topbar;
-
-  $('brand-name').textContent = DATA.brand?.name || 'Virello';
-  if (DATA.brand?.logo) $('logo').src = DATA.brand.logo, withFallback($('logo'));
-
-  $('hero-title').textContent = DATA.hero?.title || 'Virello Streetwear';
-  $('hero-sub').textContent   = DATA.hero?.subtitle || '';
-  if (DATA.hero?.image) $('hero-img').src = DATA.hero.image, withFallback($('hero-img'));
-
-  // Productos
-  const grid = document.getElementById('productos');
-  grid.innerHTML = (DATA.products||[]).map((p,i) => `
-    <article class="card">
-      <div class="card-media">
-        ${p.video ? `<button class="btn" style="position:absolute;margin:8px" onclick="window.open('${p.video}','_blank')">Ver video</button>` : ''}
-        <img src="${p.image || ''}" alt="${p.name || ('Producto '+(i+1))}" loading="lazy"/>
-      </div>
-      <div class="card-body">
-        <h3 class="card-title">${p.name || ('Producto '+(i+1))}</h3>
-        <div class="card-sub"><span class="price">${money(p.price)}</span>${p.color ? ' · ' + p.color : ''}</div>
-      </div>
-    </article>
-  `).join('');
-  grid.querySelectorAll('img').forEach(withFallback);
-
-  // Categorías
-  const tiles = document.getElementById('tiles');
-  tiles.innerHTML = (DATA.categories||[]).map((c,i) => `
-    <a class="tile" href="${c.link || '#'}">
-      <img src="${c.image || ''}" alt="${c.name || ('Categoría '+(i+1))}" loading="lazy"/>
-      <div class="overlay"></div>
-      <div class="cap"><div class="k">Comprar</div><div class="t">${c.name || ('Categoría '+(i+1))}</div></div>
-    </a>
-  `).join('');
-  tiles.querySelectorAll('img').forEach(withFallback);
-
-  // About & Social
-  if (DATA.about){ $('about-title').textContent = DATA.about.title || ''; $('about-copy').textContent = DATA.about.copy || ''; }
-  if (DATA.social){
-    if (DATA.social.instagram) $('ig').href = DATA.social.instagram;
-    if (DATA.social.tiktok) $('tt').href = DATA.social.tiktok;
-    if (DATA.social.email) { $('mail').textContent = DATA.social.email; $('mail').href = 'mailto:' + DATA.social.email; }
-  }
+    // Año dinámico en footer
+    document.getElementById('y').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
