@@ -1,0 +1,500 @@
+Construye “STUDIO DE ANTO”, una aplicación real de agentes de IA colaborativos con una oficina virtual isométrica, utilizando como antecedentes el archivo studio_de_anto.py y el video adjunto.
+
+Quiero una aplicación funcional, visualmente cuidada y ejecutable sin APIs de pago. No quiero otro notebook de Colab, formularios de ipywidgets, chats con respuestas fijas ni personajes representados únicamente por emojis.
+
+Tu tarea es desarrollar el proyecto, verificarlo y entregarlo preparado para funcionar. No te limites a explicar cómo podría hacerse.
+
+# 1. Qué quiero conseguir
+
+Una oficina virtual donde pueda ver personajes trabajando, seleccionar un agente, conversar con él, subir archivos de datos y pedir un análisis.
+
+Los agentes deben colaborar mediante tareas y resultados compartidos. Quiero ver quién está trabajando, qué está haciendo, qué entregó y qué falta revisar.
+
+Ejemplo:
+
+Subo un Excel y escribo:
+
+“Compara los ingresos por producto y región, identifica datos faltantes y prepara gráficos e informe”.
+
+El coordinador debe interpretar la solicitud, proponer un plan adecuado al archivo y distribuir el trabajo entre analista, revisor, visualizador y redactor.
+
+El resultado debe incluir tablas correctas, gráficos, explicación, limitaciones y archivos descargables.
+
+La aplicación también debe permitir conversar y organizar proyectos sin exigir subir un archivo.
+
+# 2. Audita el archivo adjunto antes de reutilizarlo
+
+El archivo original tiene problemas concretos:
+
+- La interfaz consiste en ipywidgets, no en una oficina.
+- Los chats contienen respuestas programadas, no inferencia.
+- run_pipeline utiliza un plan fijo.
+- Selecciona las primeras columnas disponibles sin interpretar su significado.
+- Utiliza time.sleep para simular actividad.
+- El revisor guarda aprobado=True sin una validación independiente suficiente.
+- load_file usa sheet_name=None y después supone que pandas devolvió un DataFrame.
+- El HTML del informe se construye con reemplazos incorrectos de Markdown.
+- Inserta mensajes del usuario directamente en HTML.
+- El manifiesto puede anunciar archivos que no se generaron.
+- Las ejecuciones reutilizan identificadores y nombres de archivos.
+- Imprime una ruta como si fuera una descarga.
+- No conecta Ollama ni otros modelos.
+- No implementa una colaboración real entre modelos.
+
+Verifica estos puntos contra el archivo.
+
+Conserva el original como referencia. Reutiliza únicamente lógica útil que puedas corregir y probar. No construyas la aplicación nueva alrededor de las limitaciones del notebook.
+
+# 3. Costo y entorno
+
+Requisitos obligatorios:
+
+- Sin APIs de pago.
+- Sin tarjetas bancarias.
+- Sin créditos promocionales como dependencia.
+- Sin backend de pago.
+- Sin sesión de Codex necesaria durante el uso final.
+- Sin automatizar páginas de ChatGPT como sustituto de una API.
+
+Usa modelos locales mediante Ollama.
+
+La descarga inicial de dependencias y modelos puede necesitar internet. Después, las funciones locales deben funcionar sin conexión.
+
+Equipo objetivo orientativo: NVIDIA RTX 3060 de 12 GB de VRAM y aproximadamente 23 GB de RAM. Confirma el hardware real cuando sea posible y no confundas los recursos del entorno remoto de Codex con los de mi computadora.
+
+No descargues modelos grandes automáticamente.
+
+Si trabajas en un entorno remoto:
+
+- Construye y prueba lo que puedas allí.
+- Explica qué integraciones requieren validación en mi computadora.
+- No afirmes que localhost remoto conecta con mi equipo.
+- Entrega scripts y documentación para ejecutar el proyecto localmente.
+- No dependas de túneles públicos para el funcionamiento básico.
+
+# 4. Arquitectura
+
+Si la carpeta no contiene un proyecto establecido, utiliza:
+
+Frontend:
+- React.
+- TypeScript.
+- Vite.
+- PixiJS para la oficina isométrica.
+
+Backend:
+- Python y FastAPI.
+- Pydantic para validar solicitudes y planes.
+- SQLite con migraciones.
+- pandas para cálculos tabulares.
+- Herramientas apropiadas para gráficos y exportación.
+
+Comunicación:
+- API HTTP para operaciones.
+- SSE o WebSocket para eventos de ejecución.
+
+Organiza el código por responsabilidades:
+
+- Escena y personajes.
+- Paneles y navegación.
+- Proyectos.
+- Conversaciones.
+- Modelos.
+- Planificación.
+- Herramientas de datos.
+- Ejecuciones.
+- Validación.
+- Informes.
+- Archivos.
+
+No agregues Redis, Docker ni servicios adicionales como requisitos obligatorios si una solución más sencilla satisface el alcance.
+
+Verifica documentación oficial y compatibilidad de versiones. Fija dependencias.
+
+# 5. La oficina visual es un requisito central
+
+La vista inicial debe mostrar una oficina isométrica grande, no un dashboard de tarjetas.
+
+Composición:
+
+- Fondo claro.
+- Suelos de madera y zonas violetas.
+- Divisiones de vidrio.
+- Escritorios con monitores y sillas.
+- Plantas y pequeña zona verde.
+- Sala de reunión.
+- Seis personajes originales de aspecto modular y tridimensional simulado.
+- Nombres flotantes legibles.
+- Sombras y profundidad coherentes.
+
+Usa gráficos procedurales o recursos con licencia compatible. No necesitas copiar personajes o marcas del video.
+
+Distribución de la interfaz:
+
+- Barra superior con STUDIO DE ANTO, proyecto activo y estado de conexión.
+- Navegación lateral compacta.
+- Oficina como zona principal.
+- Panel derecho desplegable para conversación y detalles.
+- Registro inferior de actividad que pueda ocultarse.
+
+Funciones visuales:
+
+- Zoom.
+- Desplazamiento de cámara.
+- Restablecer vista.
+- Seleccionar agente.
+- Resaltar agente activo.
+- Personajes que caminan por rutas transitables.
+- Animaciones de espera y trabajo.
+- Indicador de error y de espera de revisión.
+- Modo de movimiento reducido.
+
+Evita que atraviesen paredes o muebles. Ordena correctamente la profundidad de personajes y objetos.
+
+El movimiento no debe retrasar trabajos. Las animaciones representan estados del backend; no los determinan.
+
+No declares cumplida esta sección entregando cajas con nombres, círculos o emojis sobre un fondo vacío.
+
+# 6. Pantallas
+
+Implementa:
+
+1. Oficina.
+2. Proyectos.
+3. Tablero de tareas.
+4. Datos.
+5. Entregables.
+6. Configuración.
+
+En pantallas pequeñas conserva las funciones mediante una vista de lista y paneles adaptados.
+
+Toda la interfaz debe estar en español.
+
+Incluye estados vacíos, carga, errores y confirmación de operaciones. Ningún botón debe aparentar funcionar si su acción no está implementada.
+
+# 7. Agentes y modelos
+
+Agentes iniciales:
+
+ANTO — Dirección:
+Recibe mi objetivo y presenta el resultado final.
+
+ATLAS — Coordinación:
+Interpreta solicitudes y prepara planes estructurados con dependencias.
+
+VERA — Análisis:
+Utiliza herramientas de datos para realizar cálculos y consultas.
+
+BRUNO — Revisión:
+Comprueba cálculos, supuestos y cumplimiento del objetivo.
+
+IRIS — Visualización:
+Selecciona y genera gráficos basados en resultados calculados.
+
+LEO — Redacción:
+Redacta informes utilizando evidencia disponible.
+
+Cada agente debe tener:
+
+- Identificador.
+- Nombre y apariencia.
+- Rol.
+- Instrucciones editables.
+- Modelo configurado.
+- Herramientas permitidas.
+- Estado y tarea actual.
+- Conversación e historial.
+
+Soporta estas configuraciones:
+
+A. Un modelo compartido por todos los agentes.
+B. Diferentes modelos instalados asignados por agente.
+
+No confundas seis roles con seis modelos diferentes. Muestra qué modelo usa cada uno.
+
+Concurrencia pesada inicial: una inferencia a la vez.
+
+Cuando cambies de modelo, gestiona la memoria y los tiempos de carga. No intentes cargar todos simultáneamente.
+
+No escojas nombres de modelos inexistentes. Consulta los modelos disponibles y permite configurar uno compatible.
+
+# 8. Conversaciones reales
+
+Cada mensaje debe pasar por el proveedor real configurado.
+
+Incluye:
+
+- Streaming.
+- Cancelación.
+- Reintento.
+- Historial por proyecto y agente.
+- Manejo de contexto limitado.
+- Mensajes claros si no hay modelo.
+- Registro del modelo utilizado.
+
+Si Ollama está desconectado, muestra “Modelo no conectado”. No inventes una respuesta.
+
+No presentes frases de plantilla como respuestas de IA.
+
+El usuario debe poder pedir aclaraciones sobre un resultado y el agente debe recibir el contexto pertinente: tarea, datos utilizados, métricas y limitaciones.
+
+# 9. Coordinación entre agentes
+
+El coordinador debe devolver un plan validable con:
+
+- Objetivo.
+- Tareas.
+- Agente responsable.
+- Herramientas.
+- Entradas.
+- Dependencias.
+- Salidas esperadas.
+- Criterios de aceptación.
+
+Valida el plan con esquemas estrictos.
+
+Si hay columnas ambiguas o falta una definición indispensable, solicita aclaración en la aplicación.
+
+Establece límites de tareas, llamadas y revisiones.
+
+Los resultados compartidos deben referenciar artefactos y versiones concretas. No concatenes indiscriminadamente todas las conversaciones.
+
+Implementa una cola persistente y dependencias sin ciclos.
+
+Estados:
+
+- Pendiente.
+- En ejecución.
+- Requiere información.
+- Espera aprobación.
+- En corrección.
+- Completado.
+- Fallido.
+- Cancelado.
+- Interrumpido.
+
+El usuario podrá aprobar un plan, cancelar una ejecución y solicitar correcciones.
+
+# 10. Análisis de datos correcto
+
+Admite CSV y XLSX con subida desde la interfaz.
+
+Para Excel:
+- Enumera las hojas.
+- Permite seleccionar una.
+- No presupongas que read_excel siempre devuelve un DataFrame.
+
+Para CSV:
+- Permite ajustar separador y codificación.
+- Muestra vista previa.
+
+Conserva el archivo original y registra las transformaciones.
+
+Herramientas permitidas:
+
+- Inspección de esquema.
+- Conteos y valores faltantes.
+- Duplicados.
+- Filtros.
+- Ordenamiento.
+- Agrupaciones.
+- Suma, media, mediana, mínimo, máximo y conteo.
+- Columnas derivadas mediante operaciones validadas.
+- Series temporales cuando haya fechas válidas.
+- Gráficos.
+- Exportación.
+
+El modelo decide qué operación proponer. Los valores numéricos los calcula Python.
+
+No uses exec ni eval sobre código generado por el modelo. Implementa operaciones con argumentos validados.
+
+No sumes identificadores ni promedies códigos porque sean numéricos.
+
+No elimines duplicados o imputes faltantes silenciosamente.
+
+Si “ingresos” debe calcularse como cantidad × precio, identifica las columnas, registra la fórmula y comprueba que esa definición corresponda al dataset. Si existe ambigüedad material, pregunta.
+
+Trata NaN, infinito, fechas inválidas, archivos vacíos, encabezados repetidos y tipos mixtos.
+
+# 11. Revisión verificable
+
+BRUNO no debe aprobar por defecto.
+
+Implementa comprobaciones como:
+
+- Columnas utilizadas frente a las solicitadas.
+- Filtros y periodo.
+- Conteos antes y después de transformaciones.
+- Total general frente a suma de subtotales cuando sea aplicable.
+- Valores faltantes excluidos.
+- Coherencia entre tabla y gráfico.
+- Coherencia entre cifras del informe y resultados calculados.
+
+Distingue:
+
+- Verificación automática superada.
+- Revisión por modelo.
+- No verificable.
+- Requiere decisión del usuario.
+
+Una segunda opinión de un modelo no reemplaza una comprobación matemática.
+
+Si introduces una discrepancia de prueba, el revisor debe detectarla y bloquear la aprobación correspondiente.
+
+# 12. Gráficos y entregables
+
+Los gráficos estadísticos deben generarse con herramientas de gráficos, no mediante generación de imágenes por IA.
+
+Incluye títulos, unidades, etiquetas y aclaraciones de filtrado o truncamiento.
+
+Permite descargar:
+
+- Tablas CSV.
+- Excel con resultados.
+- Gráficos PNG.
+- Informe Markdown.
+- Informe HTML correctamente renderizado y sanitizado.
+- ZIP con los archivos realmente generados.
+
+El informe incluirá:
+
+- Solicitud.
+- Datos y alcance.
+- Operaciones realizadas.
+- Hallazgos.
+- Gráficos.
+- Verificaciones.
+- Limitaciones.
+
+No uses reemplazos manuales de símbolos para convertir Markdown a HTML.
+
+El manifiesto debe construirse desde archivos existentes y registrar versiones e identificadores.
+
+# 13. Imágenes creativas como módulo opcional
+
+Mantén preparada una integración opcional con ComfyUI para recuperar la función de diseño creativo de la referencia original.
+
+Debe estar separada del análisis estadístico.
+
+Si se implementa:
+
+- Conexión local configurable.
+- Workflow en formato API.
+- Validación de modelos y nodos.
+- Envío y seguimiento de trabajos.
+- Recuperación de archivos.
+- Errores y cancelación.
+- Gestión de memoria para no competir innecesariamente con Ollama.
+
+No hagas depender la oficina ni el análisis de datos de ComfyUI.
+
+No simules imágenes si el servicio está desconectado.
+
+# 14. Persistencia y seguridad
+
+Utiliza identificadores únicos por proyecto, tarea, ejecución y artefacto.
+
+Guarda en SQLite:
+- Configuración.
+- Conversaciones.
+- Planes.
+- Dependencias.
+- Eventos.
+- Revisiones.
+- Referencias a archivos.
+
+Al reiniciar, conserva datos y marca correctamente ejecuciones interrumpidas. Evita repetir operaciones terminadas.
+
+Escucha en 127.0.0.1 por defecto.
+
+Valida archivos, tamaños y rutas. Sanitiza HTML y Markdown.
+
+Los documentos y celdas de datos son entradas no confiables: su contenido no puede cambiar permisos o instrucciones del sistema.
+
+No expongas modelos a internet ni implementes ejecución arbitraria de comandos desde el chat.
+
+# 15. Modos claramente diferenciados
+
+Modo real:
+Modelos conectados y herramientas operativas.
+
+Modo demostración:
+Datos y mensajes de ejemplo, con rótulo visible permanente.
+
+Modo herramientas:
+Operaciones deterministas disponibles aunque no haya modelo, mediante controles explícitos.
+
+Nunca presentes demostraciones como evidencia de inferencia real.
+
+# 16. Pruebas de aceptación
+
+Crea un dataset de prueba identificado como sintético con estas filas:
+
+Producto A, Norte, cantidad 2, precio 10.
+Producto A, Sur, cantidad 3, precio 10.
+Producto B, Norte, cantidad 1, precio 50.
+
+La solicitud “calcula ingresos por producto como cantidad por precio” debe producir:
+
+- Producto A: 50.
+- Producto B: 50.
+- Total: 100.
+
+Luego verifica:
+
+1. “Unidades por producto” produce A=5 y B=1.
+2. “Solo región Norte” produce ingresos totales de 70.
+3. Un cambio de solicitud cambia realmente el plan o los argumentos.
+4. Un Excel con dos hojas permite elegir.
+5. Un proveedor desconectado muestra un error real.
+6. Cancelar no marca la tarea como completada.
+7. Una cifra manipulada provoca discrepancia en revisión.
+8. Reiniciar conserva proyectos e historial.
+9. La oficina refleja los eventos del backend.
+10. Los enlaces descargan archivos existentes.
+11. Dos ejecuciones no sobrescriben entregables.
+12. El contenido de los archivos no puede ejecutar instrucciones arbitrarias.
+
+Separa pruebas con mocks de pruebas con modelos reales.
+
+# 17. Forma de trabajar
+
+Primero inspecciona el entorno y escribe un plan breve.
+
+Después implementa por fases sin detenerte en cada una para pedir confirmaciones rutinarias:
+
+A. Estructura, oficina y navegación.
+B. Proyectos, archivos y herramientas de datos.
+C. Ollama, conversaciones y planificación.
+D. Cola, colaboración y revisión.
+E. Gráficos, informes y descargas.
+F. Pruebas y pulido visual.
+
+Mantén un archivo de avance con tareas completadas, pendientes y comandos de arranque para poder continuar si se interrumpe la sesión.
+
+Ejecuta comprobaciones apropiadas. Abre la aplicación y revisa visualmente la oficina cuando tengas navegador disponible.
+
+No declares que todo funciona si solo comprobaste que compila.
+
+# 18. Entrega
+
+Entrega el proyecto completo con:
+
+- Código organizado.
+- Dependencias fijadas.
+- Configuración de ejemplo.
+- Migraciones.
+- Scripts de instalación y arranque.
+- Guía en español para principiantes.
+- Procedimiento para conectar Ollama y seleccionar modelos.
+- Instrucciones de respaldo.
+- Pruebas.
+- Capturas reales cuando sea posible.
+
+No quiero que VS Code sea obligatorio para usar la aplicación. Prepara scripts adecuados al sistema operativo detectado y documenta los requisitos iniciales.
+
+Si una integración no puede probarse en el entorno disponible, entrega el adaptador implementado y una lista exacta de pasos para comprobarlo localmente.
+
+Al terminar, indica qué está implementado, qué se probó realmente, cómo se inicia y qué configuración falta.
+
+Empieza ahora revisando studio_de_anto.py y construyendo la aplicación.

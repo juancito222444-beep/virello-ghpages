@@ -1,0 +1,12 @@
+.venv/
+.npm-cache/
+local-data/
+__pycache__/
+.pytest_cache/
+frontend/node_modules/
+frontend/tsconfig.tsbuildinfo
+models/
+tools/
+*.gguf
+*.safetensors
+.env
