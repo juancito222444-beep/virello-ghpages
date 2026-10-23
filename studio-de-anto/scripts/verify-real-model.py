@@ -3,13 +3,17 @@
 
 Use .venv/bin/python scripts/verify-real-model.py for inference preflight only.
 Add --run to create a labeled synthetic project and execute its revenue plan.
+CPU inference can take several minutes per plan, including model repairs.
+--request-timeout bounds each model request; --timeout bounds the approved run.
 """
 import argparse
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
 import sys
+import threading
 import time
 from urllib.parse import urlparse
 
@@ -103,10 +107,26 @@ class Acceptance:
         if not passed: raise AcceptanceError(name)
 
     def request(self,method,path,**kwargs):
-        response=self.client.request(method,path,**kwargs)
+        with self.waiting(path if method=='POST' and path in ('/api/plans','/api/models/test') else None):
+            response=self.client.request(method,path,**kwargs)
         if response.status_code<200 or response.status_code>=300:
             raise AcceptanceError(f'{method} {path}: HTTP {response.status_code}: {response.text[:1200]}')
         return response
+
+    @contextmanager
+    def waiting(self,path):
+        if path is None:
+            yield
+            return
+        stop=threading.Event();started=time.monotonic()
+        def report():
+            while not stop.wait(30):
+                elapsed=round(time.monotonic()-started)
+                print(f'[{now()}] Esperando {path}: {elapsed}s; el modelo en CPU puede necesitar varios minutos.',file=sys.stderr,flush=True)
+        reporter=threading.Thread(target=report,daemon=True);reporter.start()
+        try: yield
+        finally:
+            stop.set();reporter.join(timeout=1)
 
     def preflight(self):
         self.progress('Comprobando catálogo y configuración; no se descargan modelos.')
@@ -183,7 +203,7 @@ class Acceptance:
         self.request('POST',f'/api/runs/{rid}/approve',timeout=10)
         self.running=True
         deadline=time.monotonic()+self.args.timeout
-        previous=None
+        previous=None;last_progress=0
         while True:
             remaining=deadline-time.monotonic()
             if remaining<=0:
@@ -191,9 +211,10 @@ class Acceptance:
                 raise AcceptanceError(f'La ejecución excedió {self.args.timeout:g} segundos; se solicitó cancelación')
             run=self.request('GET',f'/api/runs/{rid}',timeout=min(10,remaining)).json()
             status=run.get('status')
-            if status!=previous:
+            if status!=previous or time.monotonic()-last_progress>=30:
                 self.progress('Estado de la ejecución sintética: '+str(status))
                 previous=status
+                last_progress=time.monotonic()
             self.evidence['run']={'id':rid,'status':status,'last_checked_at':now()}
             if status in ('Completado','Fallido','Cancelado','Interrumpido'):
                 self.running=False
@@ -269,7 +290,7 @@ def main(argv=None):
     parser.add_argument('--base-url',default='http://127.0.0.1:8765',help='API de STUDIO ya iniciada en esta máquina')
     parser.add_argument('--run',action='store_true',help='Crear un proyecto sintético, generar tres planes y ejecutar solo ingresos')
     parser.add_argument('--timeout',type=seconds,default=600,help='Máximo de segundos para la ejecución aprobada (600)')
-    parser.add_argument('--request-timeout',type=seconds,default=300,help='Máximo de espera por petición al modelo (300)')
+    parser.add_argument('--request-timeout',type=seconds,default=900,help='Máximo de espera por petición al modelo, incluidas sus reparaciones (900)')
     parser.add_argument('--poll-interval',type=seconds,default=2,help='Intervalo de consulta, como máximo 10 segundos (2)')
     parser.add_argument('--output',type=Path,default=ROOT/'local-data/model-acceptance.json',help='Archivo de evidencia JSON')
     args=parser.parse_args(argv)

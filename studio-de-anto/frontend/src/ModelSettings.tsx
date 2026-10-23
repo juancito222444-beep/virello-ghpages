@@ -41,7 +41,7 @@ export default function ModelSettings(p:Props){
  }
  const visibleProbe=probe&&probe.signature===signature(draft)&&probe.agent===probeAgent?probe.value:null;
  return <section className="content-card settings-card"><fieldset className="settings-fields" disabled={busy} style={{border:0,padding:0,margin:0,minWidth:0}}>
-  <div className="section-title"><div><div className="eyebrow">CONEXIONES REALES · SIN MODELOS DESCARGADOS AUTOMÁTICAMENTE</div><h2>APIs y modelos</h2></div><span className="pill">Una inferencia a la vez</span></div>
+  <div className="section-title"><div><div className="eyebrow">CONEXIONES REALES · MODELOS LOCALES</div><h2>APIs y modelos</h2></div><span className="pill">Una inferencia a la vez</span></div>
   <div className="provider-options" role="group" aria-label="Proveedor de modelos">
    <button className={draft.provider==='ollama'?'provider-option selected':'provider-option'} onClick={()=>change({...draft,provider:'ollama'})}><span className="provider-symbol"><PlugZap size={23}/></span><strong>Ollama · recomendado</strong><small>API nativa local · streaming · planes JSON</small><span className="provider-chip">SIN API DE PAGO</span></button>
    <button className={draft.provider==='openai_local'?'provider-option selected':'provider-option'} onClick={()=>change({...draft,provider:'openai_local'})}><span className="provider-symbol"><ShieldCheck size={23}/></span><strong>API local compatible</strong><small>LM Studio / llama.cpp · formato OpenAI</small><span className="provider-chip">EJECUTADO EN TU EQUIPO</span></button>

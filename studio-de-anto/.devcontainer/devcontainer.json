@@ -8,6 +8,10 @@
       "version": "22"
     }
   },
+  "containerEnv": {
+    "STUDIO_BOOTSTRAP_MODEL": "1",
+    "STUDIO_MODEL": "qwen2.5:3b"
+  },
   "forwardPorts": [
     8765
   ],
@@ -20,7 +24,7 @@
     }
   },
   "postCreateCommand": "bash scripts/install.sh",
-  "postStartCommand": "bash scripts/start-cloud.sh --background",
+  "postStartCommand": "bash scripts/start-cloud.sh --background && .venv/bin/python scripts/setup-model.py --test",
   "shutdownAction": "stopContainer",
   "remoteUser": "vscode",
   "otherPortsAttributes": {

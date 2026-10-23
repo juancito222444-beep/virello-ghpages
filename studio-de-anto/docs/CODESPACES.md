@@ -15,7 +15,7 @@ No se ha creado un Codespace: la integración accede al repositorio, pero GitHub
 
 Si prefieres un repositorio nuevo desde el ZIP, incorpora el contenido de `studio-de-anto/` como raíz de ese repositorio, incluidos sus archivos ocultos y `.devcontainer/`. En ese caso omite el `cd studio-de-anto` adicional. No subas modelos, conversaciones, bases SQLite ni datos privados.
 
-La primera creación descarga Python 3.12, Node 22, `zstd` y dependencias. `postCreateCommand` ejecuta `scripts/install.sh`; `postStartCommand` prepara el servidor de modelo si ya está instalado y arranca la aplicación. El arranque habitual no descarga pesos.
+La primera creación descarga Python 3.12, Node 22, `zstd` y dependencias. Para dejar el modelo listo en esta entrega, el devcontainer declara `STUDIO_BOOTSTRAP_MODEL=1` y `STUDIO_MODEL=qwen2.5:3b`: `postCreateCommand` instala también Ollama y el modelo compacto. `postStartCommand` arranca la aplicación y comprueba una inferencia real. Los reinicios reutilizan los pesos; el arranque habitual no descarga otros modelos. Si prefieres instalar solo la aplicación, cambia esa variable a `0` antes de crear el contenedor.
 
 ## Observar y usar la oficina
 
@@ -50,7 +50,7 @@ La regla de acceso admite únicamente hosts locales y el hostname exacto del pue
 
 Ollama y un servidor compatible deben ejecutarse en la misma máquina que el backend para las conexiones locales incluidas. Ollama en tu PC no se conecta automáticamente al Codespace. La oficina, los archivos y las herramientas deterministas funcionan sin modelo.
 
-Para dejar Qwen 2.5 de 3B instalado y comprobar su inferencia, con la aplicación ya activa:
+La configuración de Codespaces de esta entrega ya solicita Qwen 2.5 de 3B. Para repetir su preparación o resolver una instalación incompleta, con la aplicación ya activa:
 
 ```bash
 .venv/bin/python scripts/setup-model.py --download --test

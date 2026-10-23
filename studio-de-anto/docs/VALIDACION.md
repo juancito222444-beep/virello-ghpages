@@ -93,3 +93,13 @@ Después, desde frontend, ejecuta `ANTO_TEST_URL=http://127.0.0.1:8766 CHROMIUM_
 La integración de pasillos conserva órdenes cuando el destino está reservado. Los trayectos que se superponen esperan turno; los separados pueden reservarse en paralelo. Se corrigieron sillas que cerraban la circulación, la pérdida de órdenes durante reservas y el movimiento dependiente de frames antes de la prueba final superada.
 
 La instalación final mediante `bash scripts/install.sh` terminó correctamente desde los lockfiles y recompiló el cliente. El borrador de inicio del entorno de Codex fue actualizado; no se publicó automáticamente ni equivale a publicación en GitHub.
+
+## Comprobaciones finales de esta ampliación
+
+- Suite completa actual: **153 pruebas pytest superadas**, 15 avisos de deprecación de dependencias; datos aislados por `tests/conftest.py` antes de importar el backend.
+- Diez pruebas de navegación superadas. La escena no cambió en esta ampliación de modelos; conserva la validación WebGL indicada arriba.
+- TypeScript y Vite: compilación de producción superada. Bundle principal de unos 777 kB (212 kB comprimidos); Vite advierte de su tamaño, sin error de compilación.
+- Bootstrap de modelo: tamaños/digests, límite de descarga, rechazo de redirecciones locales, configuración idempotente, preservación de personalizaciones y evidencia vinculada al proveedor/modelo/endpoint.
+- Planificación: contrato visible para el modelo, campos obligatorios, dos reparaciones como máximo, columna derivada explícita, snapshot de configuración constante y diagnóstico exacto de dependencias inexistentes o cíclicas.
+- Primer intento de aceptación real: inferencia breve superada, planificación agotó el límite antiguo de 300 segundos. Una prueba diagnóstica mostró una fórmula omitida y dependencias ausentes; se corrigió la guía del modelo y se amplió el límite por petición a 900 segundos. El estado definitivo de colaboración se registra aparte; estas correcciones no equivalen por sí mismas a una aceptación superada.
+- GitHub: rama de entrega subida y [PR #1 en borrador](https://github.com/juancito222444-beep/virello-ghpages/pull/1), sin fusionar en `main`. El `index.html` de Virello conserva su checksum. La integración devuelve HTTP403 al consultar máquinas y permisos de Codespaces; no se creó un entorno real allí.

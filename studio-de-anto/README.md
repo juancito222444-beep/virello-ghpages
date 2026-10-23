@@ -4,7 +4,7 @@ Una oficina 3D interactiva con seis personajes articulados, APIs locales de IA y
 
 ![Captura real de la oficina 3D](oficina-3d-escritorio.png)
 
-**¿Quieres ejecutarlo en la nube de GitHub?** Sigue [la guía de Codespaces](docs/CODESPACES.md). El proyecto incorpora `.devcontainer`; GitHub Pages no ejecuta el backend Python ni el modelo.
+**¿Quieres ejecutarlo en la nube de GitHub?** Abre [la rama de STUDIO](https://github.com/juancito222444-beep/virello-ghpages/tree/codex/studio-de-anto-modelo-real) y sigue [la guía de Codespaces](docs/CODESPACES.md). El devcontainer de esta entrega prepara también el modelo compacto y prueba su inferencia. GitHub Pages no ejecuta el backend Python ni el modelo.
 
 ## Primera instalación
 
@@ -108,7 +108,7 @@ Las pruebas sintéticas y del proveedor mock están separadas en `tests/test_acc
 
 Consulta [el inventario completo](docs/QUE_FALTA.md), que separa implementación y comprobaciones reales.
 
-Prioridades: probar un proveedor/modelo real; crear y validar el Codespace en GitHub; auditar el Python y video originales cuando se reciban; ampliar revisión semántica, series temporales, reanudación selectiva y ComfyUI. La aplicación no incluye GPT de OpenAI ni reentrenamiento autónomo.
+El modelo real ya está conectado. La planificación y colaboración se someten a la aceptación sintética descrita en [VALIDACION](docs/VALIDACION.md). Queda crear y validar el Codespace desde tu cuenta, porque la integración no dispone de permisos suficientes; auditar el Python y video originales cuando se reciban; y ampliar revisión semántica, series temporales, reanudación selectiva y ComfyUI. La aplicación no incluye GPT de OpenAI ni reentrenamiento autónomo.
 
 ## Referencias
 
