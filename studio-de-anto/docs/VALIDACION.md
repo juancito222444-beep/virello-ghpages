@@ -8,9 +8,11 @@ La nueva comprobación Docker descargó la imagen base y alcanzó el paso de ins
 
 ## Entrega actual: APIs en la nube
 
+Corrección de Gemini: conexión nativa `streamGenerateContent`, catálogo filtrado por `generateContent`, IDs normalizados y prueba breve de Flash con razonamiento desactivado y presupuesto suficiente para devolver texto. El diagnóstico expone solo presencia/formato/nombre del secreto y distingue clave inválida, permisos y cuota. Se corrigió además el `postAttachCommand` del devcontainer raíz para entrar en `studio-de-anto/`. Suite completa: 182 PASS; build TypeScript/Vite PASS. Las respuestas de Gemini en las pruebas son mocks HTTP explícitos, incluida conversación de dos turnos y el endpoint de prueba. No se accedió al Codespace ni a la clave real del usuario: la respuesta real de su cuenta debe comprobarse allí con **Conectar y probar respuesta**.
+
 El usuario confirmó la apertura del estudio en Codespaces. Esta entrega usa Gemini/Groq por HTTPS con claves solo en variables de entorno del servidor. El arranque no inicia Ollama y la instalación no descarga modelos. Las pruebas históricas de Qwen/Ollama que siguen no certifican estas APIs.
 
-Validación actual: **172 pruebas pytest superadas**, TypeScript/Vite compilados y humo Chromium de interfaz Gemini/Groq, error por clave ausente, ausencia de respuesta inventada, diseño móvil y cero errores JavaScript. No se ejecutaron inferencias ni descargas locales en esta comprobación.
+Validación actual: **182 pruebas pytest superadas**, TypeScript/Vite compilados y humo Chromium de interfaz Gemini/Groq, error por clave ausente, ausencia de respuesta inventada, diseño móvil y cero errores JavaScript. No se ejecutaron inferencias ni descargas locales en esta comprobación.
 
 Se añadió conversación general con continuidad, estados de espera y botón Continuar. Los contratos de nube se prueban con HTTP mocks: destinos fijos, autenticación, ausencia de claves en respuestas/SQLite, errores de permisos/cuota y conservación de instrucciones al migrar. **No se ha probado inferencia real en Gemini/Groq: no se recibió una clave utilizable en este entorno.** Debe probarse desde Configuración en el Codespace después de añadir el secreto.
 

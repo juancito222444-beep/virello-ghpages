@@ -36,10 +36,10 @@ async function request(path,body,method){const response=await fetch(base+'/api'+
  if(await page.locator('.message').count())throw Error('Se mezcló el historial de ANTO con VERA');
  await page.getByRole('button',{name:'Configuración',exact:true}).click();
  await page.getByRole('button',{name:'Google Gemini',exact:false}).click();
- await page.getByRole('button',{name:'Guardar y comprobar API',exact:true}).click();
- await page.locator('.settings-connection').getByText('Falta el secreto STUDIO_GEMINI_API_KEY',{exact:false}).waitFor();
- await page.getByRole('button',{name:'Guardar y probar respuesta',exact:true}).click();
- await page.getByRole('alert').getByText('Falta el secreto STUDIO_GEMINI_API_KEY',{exact:false}).waitFor();
+ await page.getByRole('button',{name:'Actualizar catálogo',exact:true}).click();
+ await page.locator('.settings-connection').getByText('El servidor no recibe la clave de Google Gemini',{exact:false}).waitFor();
+ await page.getByRole('button',{name:'Conectar y probar respuesta',exact:true}).click();
+ await page.getByRole('alert').getByText('El servidor no recibe la clave de Google Gemini',{exact:false}).waitFor();
  if(await page.getByText('Respuesta recibida del proveedor',{exact:true}).count())throw Error('Se fingió una respuesta sin clave de nube');
  if(errors.length)throw Error(errors.join('\n'));
  console.log('PASS MOCK: streaming, guardar/recuperar/borrar corrección, contexto enviado, cambio de agente aislado, continuación y clave de nube ausente sin respuesta inventada. Sin inferencia real.');await browser.close();

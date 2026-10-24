@@ -6,7 +6,7 @@ from contextvars import ContextVar
 from contextlib import contextmanager
 
 import httpx
-from . import store, cloud
+from . import store, cloud, gemini
 
 LOCK = asyncio.Lock()
 _REQUEST_SNAPSHOT = ContextVar('studio_inference_snapshot', default=None)
@@ -77,7 +77,18 @@ def _http_error(exc, kind, structured=False):
     label = PROVIDERS[kind]
     if kind in cloud.PROVIDERS:
         status=exc.response.status_code if isinstance(exc,httpx.HTTPStatusError) else None
-        if status in (401,403): return f'{label} rechazó la clave o sus permisos. Revisa el secreto de Codespaces (HTTP {status}).'
+        reason=None
+        if isinstance(exc,httpx.HTTPStatusError):
+            try:
+                error=exc.response.json().get('error',{})
+                details=error.get('details',[]) if isinstance(error,dict) else []
+                reason=next((d.get('reason') for d in details if isinstance(d,dict) and d.get('reason') in {'API_KEY_INVALID','API_KEY_EXPIRED','API_KEY_SERVICE_BLOCKED','API_KEY_HTTP_REFERRER_BLOCKED','API_KEY_IP_ADDRESS_BLOCKED','SERVICE_DISABLED'}),None)
+            except (ValueError,TypeError,AttributeError): pass
+        if reason in {'API_KEY_INVALID','API_KEY_EXPIRED'}:
+            return f'{label}: el servidor recibió el secreto, pero el proveedor indica que la clave no es válida o expiró. Revisa su valor en Codespaces.'
+        if reason in {'API_KEY_SERVICE_BLOCKED','API_KEY_HTTP_REFERRER_BLOCKED','API_KEY_IP_ADDRESS_BLOCKED','SERVICE_DISABLED'}:
+            return f'{label}: la clave está detectada, pero sus restricciones o la API del proyecto bloquean esta conexión desde el servidor. Revisa los permisos en Google Cloud.'
+        if status in (401,403): return f'{label}: el secreto está detectado, pero el proveedor rechazó la clave o sus permisos (HTTP {status}). Revisa su valor y restricciones.'
         if status==429: return f'{label}: cuota o límite temporal alcanzado (HTTP 429). Espera o selecciona otro proveedor con cuota disponible.'
         if status==404: return f'{label}: modelo no disponible. Actualiza el catálogo y selecciona un modelo anunciado.'
         if status: return f'{label} respondió HTTP {status}. Revisa el modelo y la disponibilidad del proveedor.'
@@ -107,10 +118,24 @@ async def available():
     url = endpoint(kind)
     result = {'provider': kind, 'endpoint': url, 'connected': False, 'models': [],
               'inference_verified': False, 'check': 'discovery_only'}
+    if kind in cloud.PROVIDERS:
+        result['credential']=cloud.credential_status(kind)
     path = '/api/tags' if kind == 'ollama' else '/models'
     try:
         headers=cloud.headers(kind) if kind in cloud.PROVIDERS else {}
         async with _api_client(kind,10 if kind in cloud.PROVIDERS else 3) as client:
+            if kind=='gemini':
+                # Use the native model capabilities, not an unfiltered compatible catalog.
+                names=[];page=None
+                for _ in range(3):
+                    response=await client.get(gemini.BASE+'/models',headers={'x-goog-api-key':headers['Authorization'][7:]},params={'pageSize':1000,**({'pageToken':page} if page else {})})
+                    response.raise_for_status()
+                    data=response.json();names.extend(gemini.catalog(data))
+                    page=data.get('nextPageToken')
+                    if not page:break
+                result.update(connected=True,models=list(dict.fromkeys(names)))
+                if not names:result['error']='Gemini aceptó la clave, pero no anuncia modelos de conversación para esta cuenta.'
+                return result
             response = await client.get(url + path, headers=headers)
             response.raise_for_status()
             data = response.json()
@@ -270,13 +295,19 @@ async def stream(agent, messages, schema=None, token_limit=None):
         # Portable JSON mode; the complete plan is still validated server-side.
         body['response_format']={'type':'json_object'}
         body['messages'].append({'role':'user','content':'Devuelve solo JSON válido según este esquema: '+json.dumps(schema,ensure_ascii=False)})
+    if kind=='gemini':
+        name=gemini.model_id(configured['model'])
+        url=gemini.BASE
+        path='/models/'+name+':streamGenerateContent?alt=sse'
+        headers={'x-goog-api-key':headers['Authorization'][7:]}
+        body=gemini.payload(name,body['messages'],token_limit,schema)
     # Cancellation propagates through the HTTP stream and releases the sole inference slot.
     async with LOCK:
         try:
             async with _api_client(kind,httpx.Timeout(180, connect=10)) as client:
                 async with client.stream('POST', url + path, json=body, headers=headers) as response:
                     response.raise_for_status()
-                    iterator = _ollama_tokens(response) if kind == 'ollama' else _openai_tokens(response)
+                    iterator = gemini.tokens(response,_sse_data) if kind=='gemini' else _ollama_tokens(response) if kind == 'ollama' else _openai_tokens(response)
                     received = False
                     async for token in iterator:
                         received = True

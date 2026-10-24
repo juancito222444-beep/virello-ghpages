@@ -38,6 +38,6 @@
       "description": "Clave Groq: alternativa AI en la nube (opcional)"
     }
   },
-  "postAttachCommand": "bash scripts/start-cloud.sh --background",
+  "postAttachCommand": "cd studio-de-anto && bash scripts/start-cloud.sh --background",
   "waitFor": "postStartCommand"
 }

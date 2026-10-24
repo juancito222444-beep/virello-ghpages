@@ -19,3 +19,11 @@ Oficina Three.js con personajes articulados y movimiento; proyectos/historial; c
 Revisión semántica completa de narraciones, series temporales avanzadas, reanudación selectiva, ComfyUI, voz, edición de mobiliario y varios usuarios. El Python/video originales no fueron recibidos. La oficina continúa siendo un diorama 3D estilizado con personajes originales, sin recursos oficiales de LEGO.
 
 Los resultados anteriores de Qwen/Ollama son evidencia histórica y no corresponden al proveedor activo. Consulta [VALIDACION.md](VALIDACION.md).
+
+## Prioridad para las próximas mejoras
+
+1. Confirmar una respuesta real con Gemini en el Codespace del usuario y sus cuotas/permisos.
+2. Mejorar recuerdo de proyectos largos y selección del contexto, conservando correcciones revisables.
+3. Reanudar tareas interrumpidas y ampliar transformaciones de datos, manteniendo la aprobación de operaciones.
+4. Optimizar carga y rendimiento 3D en móviles; ampliar animaciones y recursos visuales originales.
+5. Añadir autenticación y permisos antes de colaboración multiusuario o exposición pública. Voz y ComfyUI siguen siendo opcionales.

@@ -26,3 +26,5 @@ Capturas reales: `oficina-3d-escritorio.png`, `oficina-3d-movil.png`, `personaje
 El modelo real y la aceptación sintética por API ya funcionan en esta máquina CPU. El recorrido terminó el 23 de octubre de 2026 a las 19:11, America/Lima, en 14min52s; `docs/VALIDACION.md` detalla su alcance. Se verificaron los argumentos de ingresos, unidades y Norte; únicamente ingresos se aprobó y ejecutó. Las narraciones no están certificadas. La creación del Codespace está pendiente porque GitHub devuelve HTTP403 a la integración al consultar máquinas y permisos. La API oficial de GPT no se anuncia como gratuita. Virello permanece intacto.
 
 Pendientes: `docs/QUE_FALTA.md`. Referencia original íntegra: `docs/ESPECIFICACION_ORIGINAL.txt`; no se recibieron studio_de_anto.py ni el video.
+
+Corrección Gemini: API nativa, detección de secretos y errores, modelos de conversación y prueba de respuesta con presupuesto de salida suficiente. 182 pruebas y compilación superadas; conexión real de la cuenta pendiente de comprobación en su Codespace.
