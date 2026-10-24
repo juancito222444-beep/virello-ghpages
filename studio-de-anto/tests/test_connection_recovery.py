@@ -124,3 +124,50 @@ def test_proxy_dependency_error_never_exposes_exception_details(monkeypatch):
     with pytest.raises(ValueError,match='proxy') as caught:
         models._api_client('gemini',10)
     assert marker not in str(caught.value)
+
+
+@pytest.mark.parametrize('status,reason,expected',[
+    (400,'API_KEY_INVALID','no es válida o expiró'),
+    (403,'API_KEY_SERVICE_BLOCKED','restricciones'),
+    (429,None,'cuota'),
+    (404,None,'modelo no disponible'),
+])
+def test_streaming_provider_rejection_keeps_key_and_shows_real_cause(monkeypatch,status,reason,expected):
+    import json
+    def handler(request):
+        if request.method=='GET':
+            return httpx.Response(200,json={'models':[{'name':'models/gemini-2.5-flash-lite','supportedGenerationMethods':['generateContent']}]})
+        payload={'error':{'message':KEY,'details':[{'reason':reason}] if reason else []}}
+        # Unlike content=/json=, a stream starts unread, as a real network error
+        # does inside client.stream(). response.json() must not run before read.
+        return httpx.Response(status,stream=httpx.ByteStream(json.dumps(payload).encode()))
+    monkeypatch.setattr(models,'_api_client',lambda kind,timeout:httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+    with TestClient(app,raise_server_exceptions=False) as client:
+        credential_store.save('gemini','previous-key')
+        before=client.get('/api/settings').json()
+        response=client.post('/api/credentials',json={'provider':'gemini','api_key':KEY})
+        assert response.status_code==422
+        assert expected in response.json()['detail']
+        assert KEY not in response.text and 'ServerError' not in response.text
+        assert credential_store.read_all()=={'gemini':'previous-key'}
+        assert client.get('/api/settings').json()==before
+
+
+def test_error_formatter_handles_an_unread_error_response():
+    request=httpx.Request('POST',cloud.PROVIDERS['gemini']['url']+'/models/example:streamGenerateContent')
+    response=httpx.Response(429,request=request,stream=httpx.ByteStream(b'provider-error'))
+    with pytest.raises(httpx.HTTPStatusError) as caught:response.raise_for_status()
+    assert 'cuota' in models._http_error(caught.value,'gemini')
+
+
+@pytest.mark.parametrize('body',[b'Internal Server Error',b'{broken',b'null',b'{"error":{"details":null}}'])
+def test_streamed_malformed_provider_error_preserves_quota_message(monkeypatch,body):
+    def handler(request):
+        if request.method=='GET':
+            return httpx.Response(200,json={'models':[{'name':'models/gemini-2.5-flash-lite','supportedGenerationMethods':['generateContent']}]})
+        return httpx.Response(429,stream=httpx.ByteStream(body))
+    monkeypatch.setattr(models,'_api_client',lambda kind,timeout:httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+    with TestClient(app,raise_server_exceptions=False) as client:
+        response=client.post('/api/credentials',json={'provider':'gemini','api_key':KEY})
+        assert response.status_code==422 and 'cuota' in response.json()['detail']
+        assert not credential_store.path().exists() and KEY not in response.text

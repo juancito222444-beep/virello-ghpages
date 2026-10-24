@@ -97,7 +97,7 @@ def _http_error(exc, kind, structured=False):
                 error=exc.response.json().get('error',{})
                 details=error.get('details',[]) if isinstance(error,dict) else []
                 reason=next((d.get('reason') for d in details if isinstance(d,dict) and d.get('reason') in {'API_KEY_INVALID','API_KEY_EXPIRED','API_KEY_SERVICE_BLOCKED','API_KEY_HTTP_REFERRER_BLOCKED','API_KEY_IP_ADDRESS_BLOCKED','SERVICE_DISABLED'}),None)
-            except (ValueError,TypeError,AttributeError): pass
+            except (ValueError,TypeError,AttributeError,httpx.StreamError): pass
         if reason in {'API_KEY_INVALID','API_KEY_EXPIRED'}:
             return f'{label}: el servidor recibió el secreto, pero el proveedor indica que la clave no es válida o expiró. Revisa su valor en Codespaces.'
         if reason in {'API_KEY_SERVICE_BLOCKED','API_KEY_HTTP_REFERRER_BLOCKED','API_KEY_IP_ADDRESS_BLOCKED','SERVICE_DISABLED'}:
@@ -325,6 +325,11 @@ async def stream(agent, messages, schema=None, token_limit=None):
         try:
             async with _api_client(kind,httpx.Timeout(180, connect=10)) as client:
                 async with client.stream('POST', url + path, json=body, headers=headers) as response:
+                    # Error responses are also streamed. Read while the context
+                    # is open so the error formatter can inspect Gemini's JSON
+                    # without ResponseNotRead replacing the provider's failure.
+                    if not response.is_success:
+                        await response.aread()
                     response.raise_for_status()
                     iterator = gemini.tokens(response,_sse_data) if kind=='gemini' else _ollama_tokens(response) if kind == 'ollama' else _openai_tokens(response)
                     received = False
