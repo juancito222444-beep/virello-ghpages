@@ -9,6 +9,12 @@ import httpx
 from . import store, cloud, gemini
 
 LOCK = asyncio.Lock()
+
+
+class ModelUnavailable(ValueError):
+    """An advertised cloud model rejected generation with HTTP 404."""
+
+
 _REQUEST_SNAPSHOT = ContextVar('studio_inference_snapshot', default=None)
 AGENTS = [
     {'id':'anto','name':'ANTO','role':'Dirección','color':'#b58aee','instructions':'Ayuda a definir objetivos y presenta resultados con sus limitaciones.','tools':['reason']},
@@ -152,7 +158,7 @@ async def available(kind=None):
                     data=response.json();names.extend(gemini.catalog(data))
                     page=data.get('nextPageToken')
                     if not page:break
-                result.update(connected=True,models=list(dict.fromkeys(names)))
+                result.update(connected=True,models=sorted(set(names),key=gemini.model_priority))
                 if not names:result['error']='Gemini aceptó la clave, pero no anuncia modelos de conversación para esta cuenta.'
                 return result
             response = await client.get(url + path, headers=headers)
@@ -171,6 +177,8 @@ async def available(kind=None):
         return result
     except httpx.HTTPError as exc:
         result['error'] = _http_error(exc, kind)
+        if kind in cloud.PROVIDERS and isinstance(exc,httpx.HTTPStatusError) and exc.response.status_code==404:
+            result['error']=f'{PROVIDERS[kind]}: no se pudo consultar el catálogo de modelos (HTTP 404). Vuelve a intentar cuando el proveedor esté disponible.'
     except (ValueError, AttributeError) as exc:
         result['error'] = str(exc) if kind in cloud.PROVIDERS else 'La API local devolvió un catálogo inválido. Comprueba proveedor y dirección.'
     return result
@@ -339,7 +347,8 @@ async def stream(agent, messages, schema=None, token_limit=None):
                     if not received:
                         raise ValueError('El modelo terminó sin contenido. No se registra una respuesta inventada.')
         except httpx.HTTPError as exc:
-            raise ValueError(_http_error(exc, kind, structured=schema is not None)) from exc
+            error_type=ModelUnavailable if kind in cloud.PROVIDERS and isinstance(exc,httpx.HTTPStatusError) and exc.response.status_code==404 else ValueError
+            raise error_type(_http_error(exc, kind, structured=schema is not None)) from exc
         except (json.JSONDecodeError, TypeError, AttributeError) as exc:
             raise ValueError('La API local devolvió un streaming inválido. Comprueba que corresponde al proveedor seleccionado.') from exc
 

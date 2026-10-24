@@ -126,13 +126,29 @@ async def prepare_connection(body:CloudConnect):
         if body.provider=='gemini':name=name.removeprefix('models/')
         configured.append({**agent,'model':name if name in catalog else fallback})
     chosen=next(a for a in configured if a['id']==body.agent)
-    selected={'agent':chosen,'provider':body.provider,'endpoint':models.endpoint(body.provider)}
     import time
     started=time.perf_counter()
-    with models.use_snapshot(selected):
-        text=await models.complete(body.agent,[{'role':'user','content':'Responde únicamente: Conexión correcta.'}],token_limit=32 if body.provider=='gemini' else 512)
-    status.update(inference_verified=True,verified_model=chosen['model'])
-    return {'configured':configured,'status':status,'proof':{'verified':True,'response':text[:500],'model':chosen['model'],'latency_ms':round((time.perf_counter()-started)*1000)}}
+    # A model may still be advertised after its generation route is retired.
+    # Try only announced candidates, bound requests and never retry permissions,
+    # quota, network errors or incomplete generation on another model.
+    alternatives=catalog
+    if body.provider=='gemini' and 'flash' in chosen['model']:
+        alternatives=[name for name in catalog if 'flash' in name]
+    candidates=list(dict.fromkeys([chosen['model'],*alternatives]))[:3]
+    rejected=set()
+    for name in candidates:
+        selected={'agent':{**chosen,'model':name},'provider':body.provider,'endpoint':models.endpoint(body.provider)}
+        try:
+            with models.use_snapshot(selected):
+                text=await models.complete(body.agent,[{'role':'user','content':'Responde únicamente: Conexión correcta.'}],token_limit=32 if body.provider=='gemini' else 512)
+        except models.ModelUnavailable as exc:
+            rejected.add(name)
+            if name==candidates[-1]:
+                raise ValueError(str(exc)+' Modelos comprobados: '+', '.join(candidates)+'. No se guardaron cambios.') from None
+            continue
+        configured=[{**agent,'model':name if agent['model'] in rejected else agent['model']} for agent in configured]
+        status.update(inference_verified=True,verified_model=name,models=[model for model in catalog if model not in rejected])
+        return {'configured':configured,'status':status,'proof':{'verified':True,'response':text[:500],'model':name,'latency_ms':round((time.perf_counter()-started)*1000)}}
 
 
 def commit_connection(body,result):

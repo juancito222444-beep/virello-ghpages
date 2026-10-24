@@ -12,6 +12,15 @@ from backend.app import app
 KEY='recovery-protocol-key-marker'
 
 
+def test_gemini_catalog_prefers_recent_stable_flash_lite_over_old_aliases():
+    from backend import gemini
+    names=['gemini-2.0-flash-lite','gemini-2.5-flash-lite','gemini-3.1-flash-lite',
+           'gemini-4.0-flash-lite-preview','gemini-3.0-flash','gemini-3.0-pro']
+    catalog=gemini.catalog({'models':[{'name':'models/'+name,'supportedGenerationMethods':['generateContent']} for name in names]})
+    assert catalog[:3]==['gemini-3.1-flash-lite','gemini-2.5-flash-lite','gemini-2.0-flash-lite']
+    assert catalog.index('gemini-3.0-flash')<catalog.index('gemini-3.0-pro')
+
+
 @pytest.fixture(autouse=True)
 def isolated(tmp_path,monkeypatch):
     monkeypatch.setattr(store,'ROOT',tmp_path)

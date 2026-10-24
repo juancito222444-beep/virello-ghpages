@@ -10,6 +10,16 @@ def model_id(value):
     return value
 
 
+def model_priority(name):
+    # Prefer economical, stable text models and newer advertised generations.
+    # IDs still come exclusively from the provider's catalog.
+    version=re.match(r'gemini-(\d+)(?:\.(\d+))?',name)
+    generation=tuple(-int(part or 0) for part in version.groups()) if version else (0,0)
+    return (0 if 'flash-lite' in name else 1 if 'flash' in name else 2,
+            int(any(tag in name for tag in ('preview','experimental','-exp'))),
+            generation,name)
+
+
 def catalog(data):
     records=data.get('models')
     if not isinstance(records,list): raise ValueError('Gemini devolvió un catálogo inválido.')
@@ -22,7 +32,7 @@ def catalog(data):
         if any(s in name.lower() for s in ('embedding','image','tts','native-audio','live','robotics')): continue
         names.append(name)
     # Put economical text models first; selecting one remains the user's choice.
-    return sorted(set(names),key=lambda n:(0 if 'flash-lite' in n else 1 if 'flash' in n else 2,n))
+    return sorted(set(names),key=model_priority)
 
 
 def payload(model,messages,token_limit=None,schema=None):

@@ -52,6 +52,8 @@ Después recarga la aplicación y reintenta el mensaje. Si el proveedor rechaza 
 
 ## Conectar en un paso
 
+Si un modelo anunciado devuelve404 al generar, la conexión prueba hasta tres modelos distintos del catálogo y confirma únicamente una respuesta completa. Prioriza versiones estables recientes de Flash Lite; si el elegido es Flash, sus alternativas automáticas también son Flash. No reintenta otros modelos ante clave/permisos/cuota/red ni cambia de proveedor. Se conservan las instrucciones y otras selecciones válidas; los agentes asignados a modelos rechazados pasan al modelo comprobado. Si ninguno responde, no reemplaza la clave ni la configuración anterior y muestra los nombres intentados.
+
 Junto al cuadro donde escribes aparece **Conectar Gemini**. Usa el secreto ya configurado, comprueba el catálogo y prueba una respuesta. Conserva los modelos disponibles y las instrucciones; si un modelo guardado ya no existe, usa uno del catálogo. No cambia cuotas ni crea claves. Si falla, el motivo permanece junto al chat y el botón permite volver a comprobar después de resolverlo. Los ajustes de cada agente quedan en **Ajustes avanzados del equipo**.
 
 ## Error interno al guardar la clave

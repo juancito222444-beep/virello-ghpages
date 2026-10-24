@@ -1,5 +1,7 @@
 # STUDIO DE ANTO · versión1.1
 
+Conexión de modelos retirada/indisponible:238pytest PASS. Hasta tres modelos anunciados ante404 de generación, preferencia por Flash Lite estable reciente, sin reintentos ante cuota/permisos/red ni cambios de proveedor. Se guarda solo tras respuesta completa y se mantienen claves/instrucciones anteriores al fallar. Verificación de cuenta real aún pendiente.
+
 Incidencia `ServerError · models.py:97` reproducida y corregida: lectura de errores HTTP de streaming antes de interpretarlos, sin ocultar el rechazo de Gemini. Nueve regresiones nuevas con streams HTTP MOCK no consumidos; conexión real de la cuenta aún pendiente.
 
 Corrección actual:218pytest superadas; recuperación de agentes con ajustes antiguos inválidos, errores seguros de certificados/proxy, verificación previa de SQLite, cierre de conexiones y diagnóstico seguro visible sin buscar registros. Código preparado para actualizar desde el navegador del Codespace; su terminal remota sigue denegada por GitHub403. Gemini real del usuario continúa sin verificar.
