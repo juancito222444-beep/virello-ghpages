@@ -1,5 +1,7 @@
 # STUDIO DE ANTO · versión1.1
 
+Corrección actual:218pytest superadas; recuperación de agentes con ajustes antiguos inválidos, errores seguros de certificados/proxy, verificación previa de SQLite, cierre de conexiones y diagnóstico seguro visible sin buscar registros. Código preparado para actualizar desde el navegador del Codespace; su terminal remota sigue denegada por GitHub403. Gemini real del usuario continúa sin verificar.
+
 Entrega actual: Gemini/Groq en la nube, sin arrancar ni descargar modelos locales. Chat general, continuidad y progreso de respuesta implementados. Falta probar una respuesta real con la clave del usuario configurada como secreto de Codespaces. Las verificaciones locales que siguen pertenecen a la entrega anterior.
 
 - [x] Oficina Three.js, personajes articulados, cámara y acciones visuales.

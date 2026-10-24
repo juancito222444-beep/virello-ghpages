@@ -1,4 +1,4 @@
-import asyncio, contextlib, json, os, zipfile, logging, traceback, uuid
+import asyncio, contextlib, json, os, zipfile, logging, traceback, uuid, sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
@@ -32,18 +32,39 @@ def health():
     return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid()}
 
 
-def internal_error(request,exc):
+def internal_error(request,exc,detail=None,error_code='INTERNAL_ERROR',status=500):
     from fastapi.responses import JSONResponse
     reference=uuid.uuid4().hex[:12]
     route=getattr(request.scope.get('route'),'path','/api')
     # Log location/type only: exception strings and request bodies can contain keys.
-    frames=' > '.join(f'{Path(f.filename).name}:{f.lineno} {f.name}' for f in traceback.extract_tb(exc.__traceback__))
+    trace=traceback.extract_tb(exc.__traceback__)
+    frames=' > '.join(f'{Path(f.filename).name}:{f.lineno} {f.name}' for f in trace)
     logging.getLogger('studio.api').error('API error ref=%s route=%s type=%s frames=%s',reference,route,type(exc).__name__,frames)
-    return JSONResponse({'detail':'Error interno del servidor. Referencia: '+reference+'.','error_code':'INTERNAL_ERROR','reference':reference},status_code=500,headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Request-ID':reference})
+    # Only code locations, never exception messages, paths, locals or requests.
+    # Including this in the response lets support diagnose failures without
+    # requiring the owner to find a terminal log in their remote Codespace.
+    location=next((f'{Path(f.filename).name}:{f.lineno}' for f in reversed(trace)
+                   if Path(f.filename).parent==Path(__file__).parent),None)
+    kind=type(exc).__name__ if type(exc).__module__ in ('builtins','sqlite3') else 'ServerError'
+    diagnostic=kind+((' · '+location) if location else '')
+    message=(detail or 'Error interno del servidor.')+' Referencia: '+reference+'. Diagnóstico: '+diagnostic+'.'
+    return JSONResponse({'detail':message,'error_code':error_code,'reference':reference,'diagnostic':diagnostic},status_code=status,headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Request-ID':reference})
 
 @app.exception_handler(Exception)
 async def unexpected_error(request,exc):
     return internal_error(request,exc)
+
+@app.exception_handler(sqlite3.Error)
+async def database_error(request,exc):
+    code=getattr(exc,'sqlite_errorcode',0)&255
+    messages={
+        sqlite3.SQLITE_BUSY:'El almacenamiento está ocupado. Espera unos segundos y vuelve a intentar.',
+        sqlite3.SQLITE_LOCKED:'El almacenamiento está ocupado. Espera unos segundos y vuelve a intentar.',
+        sqlite3.SQLITE_READONLY:'El servidor no puede guardar cambios porque su base de datos está en modo de solo lectura. Revisa los permisos del almacenamiento del Codespace.',
+        sqlite3.SQLITE_FULL:'El servidor no tiene espacio para guardar cambios. Libera espacio en el Codespace.',
+        sqlite3.SQLITE_CANTOPEN:'El servidor no puede abrir su base de datos. Revisa los permisos del almacenamiento del Codespace.',
+    }
+    return internal_error(request,exc,messages.get(code,'No se pudo acceder al almacenamiento del estudio. Tus datos no se han borrado.'),'DATABASE_UNAVAILABLE',503)
 
 @app.middleware('http')
 async def local_only(request,call_next):
@@ -125,6 +146,7 @@ def commit_connection(body,result):
 @app.post('/api/connect')
 async def connect_cloud(body:CloudConnect):
     async with SETUP_LOCK:
+        store.check_writable()
         return commit_connection(body,await prepare_connection(body))
 
 
@@ -160,6 +182,7 @@ async def save_credential(body:CredentialInput):
             try:
                 cloud.headers(body.provider)
                 credential_store.check_writable()
+                store.check_writable()
                 result=await prepare_connection(connection)
             except ValueError as exc:
                 raise ValueError(cloud.redact(exc)) from None

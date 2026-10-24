@@ -1,6 +1,7 @@
 """Failures must be JSON and must never expose submitted API credentials."""
 import errno
 import json
+import sqlite3
 from pathlib import Path
 import httpx
 import pytest
@@ -69,6 +70,7 @@ def test_unexpected_error_is_json_with_reference_without_key_in_logs(monkeypatch
     assert KEY not in response.text and KEY not in caplog.text
     assert 'RuntimeError' in caplog.text and data['reference'] in caplog.text
     assert response.headers['Cache-Control']=='no-store'
+    assert 'RuntimeError' in data['diagnostic'] and data['diagnostic'] in data['detail']
 
 
 def test_owned_readonly_data_folder_is_repaired_for_key_save(tmp_path):
@@ -105,3 +107,53 @@ def test_storage_preflight_failure_never_calls_provider(monkeypatch):
         response=client.post('/api/credentials',json={'provider':'gemini','api_key':KEY})
     assert response.status_code==422 and 'permisos' in response.json()['detail']
     assert not seen and KEY not in response.text
+
+
+def test_readonly_database_fails_before_api_and_keeps_previous_key(monkeypatch):
+    seen=[]
+    def no_network(*args):
+        seen.append(True)
+        raise AssertionError('Read-only database must fail before using API quota')
+    original_connect=sqlite3.connect
+    with TestClient(app,raise_server_exceptions=False) as client:
+        credential_store.save('gemini','previous-key')
+        before=client.get('/api/settings').json()
+        def readonly(*args,**kwargs):
+            return original_connect('file:'+str(store.ROOT/'studio.sqlite')+'?mode=ro',uri=True)
+        monkeypatch.setattr(store.sqlite3,'connect',readonly)
+        monkeypatch.setattr(models,'_api_client',no_network)
+        response=client.post('/api/credentials',json={'provider':'gemini','api_key':KEY})
+        assert response.status_code==503
+        assert 'solo lectura' in response.json()['detail']
+        assert response.json()['error_code']=='DATABASE_UNAVAILABLE'
+        assert client.get('/api/settings').json()==before
+        assert credential_store.read_all()=={'gemini':'previous-key'}
+    assert not seen and KEY not in response.text
+
+
+def test_failed_database_commit_restores_key_and_reports_storage_error(monkeypatch,caplog):
+    import backend.app as api
+    provider(monkeypatch)
+    with TestClient(app,raise_server_exceptions=False) as client:
+        credential_store.save('gemini','previous-key')
+        before=client.get('/api/settings').json()
+        def failure(*args):raise sqlite3.OperationalError(KEY)
+        monkeypatch.setattr(api,'commit_connection',failure)
+        response=client.post('/api/credentials',json={'provider':'gemini','api_key':KEY})
+        assert response.status_code==503 and 'almacenamiento' in response.json()['detail']
+        assert credential_store.read_all()=={'gemini':'previous-key'}
+        assert client.get('/api/settings').json()==before
+    assert KEY not in response.text and KEY not in caplog.text
+
+
+def test_database_connections_close_and_rollback_on_failure():
+    store.init()
+    with store.db() as connection:
+        assert connection.execute('SELECT count(*) FROM settings').fetchone()[0]==0
+    with pytest.raises(sqlite3.ProgrammingError):connection.execute('SELECT 1')
+    with pytest.raises(RuntimeError):
+        with store.db() as failed:
+            failed.execute('INSERT INTO settings VALUES(?,?)',('test','true'))
+            raise RuntimeError('test rollback')
+    assert store.setting('test',None) is None
+    with pytest.raises(sqlite3.ProgrammingError):failed.execute('SELECT 1')

@@ -1,4 +1,5 @@
 import json, os, sqlite3, uuid
+from contextlib import contextmanager
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -7,12 +8,26 @@ ROOT.mkdir(parents=True, exist_ok=True)
 
 def uid(): return uuid.uuid4().hex
 def now(): return datetime.now(timezone.utc).isoformat()
+@contextmanager
 def db():
     c = sqlite3.connect(ROOT / 'studio.sqlite', timeout=30)
-    c.row_factory = sqlite3.Row
-    c.execute('PRAGMA foreign_keys=ON')
-    c.execute('PRAGMA journal_mode=WAL')
-    return c
+    try:
+        c.row_factory = sqlite3.Row
+        c.execute('PRAGMA foreign_keys=ON')
+        c.execute('PRAGMA journal_mode=WAL')
+        with c:
+            yield c
+    finally:
+        c.close()
+
+
+def check_writable():
+    # Check SQLite as well as the private key folder before spending API quota.
+    # The transaction writes no data and always releases its reservation.
+    with db() as c:
+        c.execute('BEGIN IMMEDIATE')
+        c.execute('UPDATE settings SET value=value WHERE 0')
+        c.rollback()
 
 def init():
     with db() as c:

@@ -22,7 +22,21 @@ PROVIDERS = {'ollama': 'Ollama', 'openai_local': 'API local compatible (LM Studi
 
 
 def agents():
-    saved=store.setting('agents', [{**a, 'model': ''} for a in AGENTS])
+    try:
+        saved=store.setting('agents', [])
+    except json.JSONDecodeError:
+        saved=[]
+    # Older or damaged settings must not prevent connecting a provider. Recover
+    # the six known roles in memory without overwriting the persisted settings.
+    recovered={a['id']:{**a,'model':''} for a in AGENTS}
+    for item in saved if isinstance(saved,list) else []:
+        if not isinstance(item,dict) or not isinstance(item.get('id'),str) or item['id'] not in recovered:
+            continue
+        for field,limit in (('instructions',6000),('model',200)):
+            value=item.get(field)
+            if isinstance(value,str) and len(value)<=limit:
+                recovered[item['id']][field]=value
+    saved=list(recovered.values())
     kind=provider()
     if kind in cloud.PROVIDERS and store.setting('provider', None)!=kind:
         return [{**a,'model':cloud.PROVIDERS[kind]['model']} for a in saved]
@@ -108,9 +122,14 @@ def _http_error(exc, kind, structured=False):
 
 
 def _api_client(kind, timeout):
-    if kind in cloud.PROVIDERS:
-        return httpx.AsyncClient(timeout=timeout, trust_env=True, follow_redirects=False)
-    return _client(timeout)
+    try:
+        if kind in cloud.PROVIDERS:
+            return httpx.AsyncClient(timeout=timeout, trust_env=True, follow_redirects=False)
+        return _client(timeout)
+    except OSError:
+        raise ValueError('No se pudo preparar la conexión segura. Revisa la configuración de certificados TLS del servidor y vuelve a intentar.') from None
+    except ImportError:
+        raise ValueError('No se pudo preparar la conexión: el proxy configurado requiere soporte adicional en el servidor. Revisa la configuración del proxy o instala su dependencia.') from None
 
 
 async def available(kind=None):

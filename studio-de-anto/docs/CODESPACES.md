@@ -56,6 +56,20 @@ Junto al cuadro donde escribes aparece **Conectar Gemini**. Usa el secreto ya co
 
 ## Error interno al guardar la clave
 
+La actualización también recupera las seis configuraciones de agentes cuando hay ajustes antiguos inválidos, conserva las instrucciones válidas y comprueba la escritura de SQLite antes de consumir cuota del proveedor. Las conexiones a la base de datos se cierran siempre, incluso al fallar. Los problemas de certificados/proxy y los fallos de almacenamiento muestran una causa concreta; los fallos inesperados incluyen un diagnóstico seguro junto a su referencia, sin claves ni contenido de la solicitud.
+
 Los fallos del formulario se muestran junto al campo protegido. Se verifican permisos y espacio del almacenamiento, y se reparan los permisos esperados solo en carpetas/archivos de datos propiedad del usuario que ejecuta el servidor. No se usa sudo ni se toma posesión de archivos de otro usuario. Un fallo inesperado devuelve una referencia que coincide con el registro del servidor; el registro excluye claves y cuerpos de solicitudes.
 
 La interfaz también maneja respuestas de proxy en texto o HTML sin intentar mostrarlas ni revelar su contenido. Un error500 de texto se identifica como error del servidor;401/403 pide abrir de nuevo la sesión y502/503/504 indica indisponibilidad temporal. Para errores con referencia, el registro está en `local-data/codespaces-server.log`.
+
+## Aplicar la actualización desde el navegador
+
+En el editor web del Codespace, abre **☰ → Terminal → Nueva terminal** y pega este bloque:
+
+```bash
+cd /workspaces/virello-ghpages &&
+git pull --ff-only origin codex/studio-de-anto-modelo-real &&
+bash studio-de-anto/scripts/start-cloud.sh --background
+```
+
+Después abre **Puertos → 8765 → Abrir en navegador** y recarga la aplicación. Esta actualización no cambia dependencias ni requiere volver a descargarlas. El comando se detiene si Git encuentra cambios incompatibles; no borra archivos ni modifica claves. Aplicar los cambios en el Codespace es distinto de publicar un entorno de Codex. La conexión de GitHub de esta conversación puede permitir actualizar el repositorio y a la vez denegar acceso remoto a la terminal del Codespace.
