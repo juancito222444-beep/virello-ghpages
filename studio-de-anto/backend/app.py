@@ -6,8 +6,8 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
-from . import store,models,engine,cloud,runtime
+from pydantic import BaseModel, Field, SecretStr
+from . import store,models,engine,cloud,runtime,credential_store
 from .schemas import Plan,Analysis,Task,Strict
 from .data_tools import load,inspect
 from .access import access_error
@@ -16,6 +16,8 @@ from . import conversation
 
 @asynccontextmanager
 async def lifespan(app):
+    global SETUP_LOCK
+    SETUP_LOCK=asyncio.Lock()
     store.init(); engine.QUEUE=asyncio.Queue(); models.LOCK=asyncio.Lock(); worker=asyncio.create_task(engine.worker())
     yield
     for task in list(engine.ACTIVE.values()): task.cancel()
@@ -23,6 +25,7 @@ async def lifespan(app):
     with contextlib.suppress(asyncio.CancelledError): await worker
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
+SETUP_LOCK=asyncio.Lock()
 
 @app.get('/api/health')
 def health():
@@ -41,7 +44,7 @@ async def local_only(request,call_next):
 @app.exception_handler(ValueError)
 async def invalid(request,exc):
     from fastapi.responses import JSONResponse
-    return JSONResponse({'detail':str(exc)},status_code=422)
+    return JSONResponse({'detail':runtime.safe_error(exc)},status_code=422)
 def need_project(pid):
     if not store.one('SELECT id FROM projects WHERE id=?',(pid,)): raise HTTPException(404,'Proyecto inexistente')
 def need_run(rid):
@@ -74,8 +77,7 @@ class CloudConnect(Strict):
     provider:Literal['gemini','groq']='gemini'
     agent:Literal['anto','atlas','vera','bruno','iris','leo']='anto'
 
-@app.post('/api/connect')
-async def connect_cloud(body:CloudConnect):
+async def prepare_connection(body:CloudConnect):
     status=await models.available(body.provider)
     if not status['connected'] or not status['models']:
         raise ValueError(status.get('error','El proveedor no anuncia modelos de conversación disponibles.'))
@@ -93,12 +95,75 @@ async def connect_cloud(body:CloudConnect):
     started=time.perf_counter()
     with models.use_snapshot(selected):
         text=await models.complete(body.agent,[{'role':'user','content':'Responde únicamente: Conexión correcta.'}],token_limit=32 if body.provider=='gemini' else 512)
-    # Commit only after real generation succeeds: failed setup never overwrites preferences.
+    status.update(inference_verified=True,verified_model=chosen['model'])
+    return {'configured':configured,'status':status,'proof':{'verified':True,'response':text[:500],'model':chosen['model'],'latency_ms':round((time.perf_counter()-started)*1000)}}
+
+
+def commit_connection(body,result):
     with store.db() as c:
         c.executemany('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)',[
-            ('provider',json.dumps(body.provider)),('agents',json.dumps(configured,ensure_ascii=False))])
-    status.update(inference_verified=True,verified_model=chosen['model'])
-    return {'settings':get_settings(),'status':status,'proof':{'verified':True,'response':text[:500],'model':chosen['model'],'latency_ms':round((time.perf_counter()-started)*1000)}}
+            ('provider',json.dumps(body.provider)),('agents',json.dumps(result['configured'],ensure_ascii=False))])
+    result['status']['credential']=cloud.credential_status(body.provider)
+    return {'settings':get_settings(),'status':result['status'],'proof':result['proof']}
+
+
+@app.post('/api/connect')
+async def connect_cloud(body:CloudConnect):
+    async with SETUP_LOCK:
+        return commit_connection(body,await prepare_connection(body))
+
+
+class CredentialInput(Strict):
+    provider:Literal['gemini','groq']='gemini'
+    api_key:SecretStr
+
+
+# Validation failures on this endpoint must not echo a submitted secret.
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
+@app.exception_handler(RequestValidationError)
+async def validation_error(request,exc):
+    if request.url.path.startswith('/api/credentials'):
+        from fastapi.responses import JSONResponse
+        return JSONResponse({'detail':'Solicitud de clave inválida. Selecciona Gemini o Groq y pega solo la clave.'},status_code=422)
+    return await request_validation_exception_handler(request,exc)
+
+
+@app.get('/api/credentials/{provider}')
+def credential_info(provider:Literal['gemini','groq']):
+    return cloud.credential_status(provider)
+
+
+@app.post('/api/credentials')
+async def save_credential(body:CredentialInput):
+    value=body.api_key.get_secret_value().strip()
+    if not 1<=len(value)<=4096:raise ValueError('Pega una clave válida de tu proveedor.')
+    connection=CloudConnect(provider=body.provider)
+    async with SETUP_LOCK:
+        with cloud.use_secret(body.provider,value):
+            # Format, catalog and generation are checked before replacing a working key.
+            try:
+                cloud.headers(body.provider)
+                result=await prepare_connection(connection)
+            except ValueError as exc:
+                raise ValueError(cloud.redact(exc)) from None
+        previous=credential_store.read_all()
+        credential_store.save(body.provider,value)
+        try:
+            response=commit_connection(connection,result)
+        except Exception:
+            credential_store.restore(previous)
+            raise
+        response['credential']=cloud.credential_status(body.provider)
+        return response
+
+
+@app.delete('/api/credentials/{provider}')
+async def delete_credential(provider:Literal['gemini','groq']):
+    async with SETUP_LOCK:
+        credential_store.delete(provider)
+        return cloud.credential_status(provider)
+
 
 class Settings(Strict):
     provider:Literal['gemini','groq','ollama','openai_local']='gemini'

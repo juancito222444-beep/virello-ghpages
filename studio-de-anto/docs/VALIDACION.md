@@ -8,6 +8,8 @@ La nueva comprobación Docker descargó la imagen base y alcanzó el paso de ins
 
 ## Entrega actual: APIs en la nube
 
+Claves desde la aplicación: campo password y Guardar clave y conectar, prueba del candidato antes de reemplazar la clave, almacenamiento privado atómico con permisos0600/carpeta0700 en Linux, eliminación y alternativa de secretos de Codespaces. El archivo no se cifra; no está en SQLite, respuestas, historial ni ZIP de entrega. Se sanitizan los errores de validación y se redactan valores en errores. Se rechaza guardar en la carpeta pública. Se verificaron196 pruebas, compilación y Chromium con proveedor HTTP MOCK: guardar y probar, campo vacío tras éxito, recargar sin devolver la clave, sin almacenamiento de navegador, eliminar, móvil sin overflow y cero errores JS. No se usó ni verificó la cuenta real de Gemini del usuario.
+
 La conexión se simplificó a **Conectar Gemini** junto al cuadro de mensajes. Comprueba catálogo y generación, conserva modelos válidos e instrucciones y selecciona un modelo disponible si el anterior ya no existe. Solo confirma y guarda la configuración cuando la generación termina correctamente; una cuota agotada mantiene las preferencias previas. El botón, el estado listo y los fallos persistentes se verificaron en Chromium con respuestas MOCK explícitas; sin inferencia real de la cuenta del usuario. Total188 pruebas superadas y compilación actual superada.
 
 Corrección de respuestas fallidas: error visible junto al mensaje y en la actividad, redacción de claves, estado de conexión junto al cuadro de entrada y comprobación de versión/entorno antes de reutilizar un servidor. Reinicio gradual limitado al PID propio, propietario, carpeta y comando verificados; el puerto ocupado por un proceso desconocido no provoca otra inicialización de la base. 188 pytest PASS, build PASS y humo Chromium con HTTP MOCK: catálogo conectado pero generación429, error sigue visible al cerrar el aviso global, sin respuesta inventada, móvil sin desbordamiento y cero errores JS. No se verificó la cuenta real de Gemini del usuario.
@@ -16,7 +18,7 @@ Corrección de Gemini: conexión nativa `streamGenerateContent`, catálogo filtr
 
 El usuario confirmó la apertura del estudio en Codespaces. Esta entrega usa Gemini/Groq por HTTPS con claves solo en variables de entorno del servidor. El arranque no inicia Ollama y la instalación no descarga modelos. Las pruebas históricas de Qwen/Ollama que siguen no certifican estas APIs.
 
-Validación actual: **188 pruebas pytest superadas**, TypeScript/Vite compilados y humo Chromium de interfaz Gemini/Groq, error por clave ausente, ausencia de respuesta inventada, diseño móvil y cero errores JavaScript. No se ejecutaron inferencias ni descargas locales en esta comprobación.
+Validación actual: **196 pruebas pytest superadas**, TypeScript/Vite compilados y humo Chromium de interfaz Gemini/Groq, error por clave ausente, ausencia de respuesta inventada, diseño móvil y cero errores JavaScript. No se ejecutaron inferencias ni descargas locales en esta comprobación.
 
 Se añadió conversación general con continuidad, estados de espera y botón Continuar. Los contratos de nube se prueban con HTTP mocks: destinos fijos, autenticación, ausencia de claves en respuestas/SQLite, errores de permisos/cuota y conservación de instrucciones al migrar. **No se ha probado inferencia real en Gemini/Groq: no se recibió una clave utilizable en este entorno.** Debe probarse desde Configuración en el Codespace después de añadir el secreto.
 

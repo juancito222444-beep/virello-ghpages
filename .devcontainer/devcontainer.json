@@ -30,14 +30,6 @@
   "otherPortsAttributes": {
     "onAutoForward": "ignore"
   },
-  "secrets": {
-    "STUDIO_GEMINI_API_KEY": {
-      "description": "Clave Gemini: AI en la nube (cuotas según tu cuenta)"
-    },
-    "STUDIO_GROQ_API_KEY": {
-      "description": "Clave Groq: alternativa AI en la nube (opcional)"
-    }
-  },
   "postAttachCommand": "cd studio-de-anto && bash scripts/start-cloud.sh --background",
   "waitFor": "postStartCommand"
 }

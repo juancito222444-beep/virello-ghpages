@@ -38,11 +38,8 @@ def environment_matches(pid,root=ROOT,proc=Path('/proc')):
 
 
 def safe_error(value):
-    message=str(value)
-    for name in SECRET_NAMES:
-        secret=os.environ.get(name,'').strip()
-        if secret:message=message.replace(secret,'[clave oculta]')
-    return message[:1600]
+    from . import cloud
+    return cloud.redact(value)
 
 
 def stop_owned_server(pidfile,root=ROOT,timeout=20):

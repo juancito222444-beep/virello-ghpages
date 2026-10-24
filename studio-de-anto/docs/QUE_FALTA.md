@@ -4,7 +4,7 @@ La entrega actual usa APIs de Google Gemini o Groq en la nube. No inicia Ollama 
 
 ## Para activar la IA
 
-1. Añadir `STUDIO_GEMINI_API_KEY` o `STUDIO_GROQ_API_KEY` como secreto de Codespaces para este repositorio.
+1. Guardar la clave desde Configuración → Clave API → Guardar clave y conectar (o usar un secreto de Codespaces).
 2. Actualizar el código y reconstruir el contenedor una vez.
 3. En Configuración seleccionar proveedor/modelo, comprobar catálogo y probar una respuesta real. Las pruebas HTTP mock no sustituyen esa verificación.
 

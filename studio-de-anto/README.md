@@ -5,14 +5,14 @@ Oficina 3D interactiva con seis agentes, conversación con historial, proyectos,
 ## Abrir en Codespaces
 
 1. Abre la rama `codex/studio-de-anto-modelo-real` de este repositorio y crea o reabre su Codespace.
-2. En GitHub → Settings → Codespaces → Secrets, añade **una** clave y autoriza este repositorio:
-   - `STUDIO_GEMINI_API_KEY`: [crear clave Gemini](https://aistudio.google.com/apikey).
-   - `STUDIO_GROQ_API_KEY`: [crear clave Groq](https://console.groq.com/keys).
-3. Detén y vuelve a abrir el Codespace después de añadir el secreto. Espera el arranque.
-4. La aplicación se abre automáticamente cuando está lista. También puedes abrir **Puertos → 8765 → Abrir en navegador**, con visibilidad **Privada**.
-5. En **Configuración**, selecciona el proveedor, pulsa **Actualizar catálogo**, elige un modelo anunciado y pulsa **Conectar y probar respuesta**.
+2. Abre **Puertos → 8765 → Abrir en navegador**, con visibilidad **Privada**.
+3. En la aplicación, abre **Configuración**, selecciona Gemini y pega tu clave en **Clave API**.
+4. Pulsa **Guardar clave y conectar**. Se comprueban catálogo y respuesta antes de guardarla.
+5. Vuelve a Oficina y conversa. Para cambiar la clave repite el proceso; para quitarla usa **Eliminar clave guardada**.
 
-Las claves nunca se solicitan en el chat, se envían al navegador ni se guardan en SQLite. Las cuentas pueden ofrecer cuotas gratuitas con límites; la disponibilidad, los modelos y las condiciones dependen de cada proveedor. No se promete GPT de OpenAI gratuito ni uso ilimitado. Codespaces tiene su propia cuota.
+Si prefieres gestionar secretos en Codespaces, también se aceptan `STUDIO_GEMINI_API_KEY` o `STUDIO_GROQ_API_KEY`; la clave guardada desde la aplicación tiene prioridad. Claves oficiales: [Gemini](https://aistudio.google.com/apikey) y [Groq](https://console.groq.com/keys).
+
+La clave se envía desde el campo protegido al servidor y no se devuelve en las respuestas de la API. Se guarda en `local-data/private/credentials.json`, con directorio0700 y archivo0600 en Linux; no se cifra ese archivo. No se guarda en SQLite, historial ni almacenamiento del navegador, y queda fuera de Git y los ZIP de entrega. Protege una copia completa de `local-data/`, ya que incluiría esa clave. Mantén el puerto privado. Las cuentas pueden ofrecer cuotas gratuitas con límites; la disponibilidad, los modelos y las condiciones dependen de cada proveedor. No se promete GPT de OpenAI gratuito ni uso ilimitado. Codespaces tiene su propia cuota.
 
 ## Volver a entrar
 
@@ -41,6 +41,6 @@ bash scripts/install.sh
 bash scripts/start.sh
 ```
 
-Las claves deben estar en las variables de entorno del servidor; `.env` no se carga automáticamente. Windows: `Instalar-Windows.cmd` y `Iniciar-Windows.cmd`. El navegador puede estar en otro dispositivo: se conecta al servidor, que consulta la API. Mantén el acceso privado.
+Puedes guardar la clave desde Configuración o usar variables de entorno del servidor; `.env` no se carga automáticamente. Windows: `Instalar-Windows.cmd` y `Iniciar-Windows.cmd`. El navegador puede estar en otro dispositivo: se conecta al servidor, que consulta la API. Mantén el acceso privado.
 
 Más información: [Codespaces](docs/CODESPACES.md), [actualizaciones](docs/ACTUALIZACIONES.md), [validación](docs/VALIDACION.md) y [pendientes](docs/QUE_FALTA.md).

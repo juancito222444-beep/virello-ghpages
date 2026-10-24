@@ -2,19 +2,13 @@
 
 El usuario ya confirmó que el estudio abre en su Codespace. Esta actualización cambia la IA a **Gemini/Groq en la nube**, sin Ollama, GPU ni descargas de pesos. GitHub Pages no ejecuta el backend; abre la aplicación con el puerto privado del Codespace.
 
-1. En GitHub → Settings → Codespaces → Secrets crea `STUDIO_GEMINI_API_KEY` o `STUDIO_GROQ_API_KEY` y permite acceso a `virello-ghpages`.
-2. En la terminal de tu Codespace:
+1. Actualiza el proyecto en tu Codespace y abre el puerto privado8765.
+2. En **Configuración**, pega la clave en **Clave API** y pulsa **Guardar clave y conectar**. La clave se valida con el proveedor y se guarda en el servidor, sin comandos ni reinicios para cambiarla.
+3. Vuelve a **Oficina** y escribe tu mensaje.
 
-   ```bash
-   cd /workspaces/virello-ghpages
-   git pull --ff-only origin codex/studio-de-anto-modelo-real
-   ```
+**Eliminar clave guardada** quita la copia de esta aplicación; si existe un secreto de Codespaces, vuelve a utilizarse. Esos secretos siguen siendo una alternativa, sin necesidad de crearlos para usar el formulario.
 
-3. Pulsa **Ctrl+Shift+P → Codespaces: Rebuild Container**. La reconstrucción aplica el nuevo arranque y los secretos; espera la instalación y el mensaje de servidor listo.
-4. La aplicación se abre automáticamente en el navegador cuando el servidor está listo. Si el navegador no abre la pestaña, usa **Puertos → 8765 → Abrir en navegador**. Conserva la visibilidad **Privada**.
-5. En Configuración selecciona el proveedor de tu clave y pulsa **Conectar y probar respuesta**. Un catálogo no demuestra que el modelo haya respondido.
-
-El arranque espera a que el servidor esté listo antes de completar la preparación del editor. Al volver a conectar, comprueba que la aplicación siga activa y reutiliza el servidor existente.
+La copia del servidor está en `local-data/private/credentials.json`, con permisos0600 y carpeta0700 en Linux; no está cifrada. Nunca se devuelve su valor al navegador ni se incluye en los ZIP de código/entregables. Una copia completa de `local-data/` sí incluiría el archivo privado: protege esa copia. Esta aplicación presupone un Codespace privado de un solo propietario, no un servicio público multiusuario.
 
 Para las próximas sesiones basta con detener y reabrir este mismo Codespace: el servidor arranca y el puerto solicita abrir la aplicación automáticamente, sin comandos en la terminal. No ejecutes la instalación ni crees uno nuevo cada vez. La aplicación y los datos se conservan mientras mantengas ese Codespace. Eliminarlo puede borrar `local-data/`; respalda esa carpeta antes de eliminarlo.
 

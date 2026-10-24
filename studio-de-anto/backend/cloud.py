@@ -1,5 +1,10 @@
-"""Fixed cloud destinations; credentials exist only in the server environment."""
+"""Fixed cloud destinations; credentials stay in server storage or environment."""
 import os
+from contextvars import ContextVar
+from contextlib import contextmanager
+from . import credential_store
+
+_CANDIDATE=ContextVar("studio_candidate_key",default=None)
 
 PROVIDERS = {
     'gemini': {'name': 'Google Gemini', 'url': 'https://generativelanguage.googleapis.com/v1beta',
@@ -17,7 +22,18 @@ def default_provider():
         return configured
     return 'groq' if configured_secret('groq')[0] and not configured_secret('gemini')[0] else 'gemini'
 
+@contextmanager
+def use_secret(kind,value):
+    token=_CANDIDATE.set((kind,value))
+    try:yield
+    finally:_CANDIDATE.reset(token)
+
+
 def configured_secret(kind):
+    candidate=_CANDIDATE.get()
+    if candidate and candidate[0]==kind:return candidate[1], 'candidate'
+    saved=credential_store.read_all().get(kind)
+    if saved:return saved, 'app'
     service=PROVIDERS[kind]
     for name in (service['secret'], *service.get('aliases', ())):
         value=os.environ.get(name, '').strip()
@@ -30,19 +46,33 @@ def credential_status(kind):
     value, source=configured_secret(kind)
     valid=bool(value) and not value.startswith(('\"', "'")) and not value.endswith(('\"', "'")) and all(33<=ord(c)<=126 for c in value)
     return {'configured': bool(value), 'valid_format': valid, 'source': source,
+            'saved_in_app':kind in credential_store.read_all(),
             'accepted_names': [PROVIDERS[kind]['secret'], *PROVIDERS[kind].get('aliases', ())]}
 
 
 def headers(kind):
     value, source = configured_secret(kind)
     if not value:
-        raise ValueError('El servidor no recibe la clave de '+PROVIDERS[kind]['name']+'. Usa '+
+        raise ValueError('Añade tu clave de '+PROVIDERS[kind]['name']+' en Configuración de la aplicación. También puedes usar '+
                          ' o '.join(credential_status(kind)['accepted_names'])+
                          ' como secreto de Codespaces, autoriza este repositorio y detén y vuelve a abrir el Codespace (no solo la pestaña). Nunca pegues la clave en el chat.')
     if not credential_status(kind)['valid_format']:
-        raise ValueError('El secreto '+source+' contiene espacios internos o caracteres no válidos. Guarda solo el valor de la clave, sin comillas, prefijos ni saltos de línea.')
+        raise ValueError('La clave contiene espacios internos o caracteres no válidos. Guarda solo su valor, sin comillas, prefijos ni saltos de línea.')
     return {'Authorization': 'Bearer ' + value}
 
 
 def configured(kind):
     return bool(configured_secret(kind)[0])
+
+
+def redact(value):
+    message=str(value)
+    try:candidates=list(credential_store.read_all().values())
+    except ValueError:candidates=[]
+    pending=_CANDIDATE.get()
+    if pending:candidates.append(pending[1])
+    for service in PROVIDERS.values():
+        candidates.extend(os.environ.get(name,'').strip() for name in (service['secret'],*service.get('aliases',())))
+    for key in candidates:
+        if key:message=message.replace(key,'[clave oculta]')
+    return message[:1600]

@@ -10,3 +10,7 @@ tools/
 *.gguf
 *.safetensors
 .env
+
+# Private API keys (including custom data directories).
+**/private/credentials.json
+**/private/.credentials-*

@@ -32,3 +32,5 @@ Corrección Gemini: API nativa, detección de secretos y errores, modelos de con
 Mejora de operación: fallos del chat muestran causa y quedan en Actividad; actualización del servidor y secretos verificada por versión, PID y proceso propio. 186 pruebas, build y humo Chromium con generación429 MOCK superados. Sin confirmación de generación en la cuenta real de Gemini.
 
 Conectar Gemini en un paso: detección, modelo disponible y generación antes de confirmar; ajustes avanzados plegados, causas visibles junto al chat y recuperación de versión/secretos del servidor. 188 tests, build y humo de interfaz MOCK superados. La cuenta real debe comprobarse en su Codespace.
+
+Claves en la propia aplicación: añadir, verificar, guardar en archivo privado, reemplazar y eliminar. Preferencia sobre secretos de entorno, sin exponer valor ni exportarlo. 196 pruebas, build y humo Chromium MOCK superados; cuenta real del usuario pendiente de comprobación desde el formulario.

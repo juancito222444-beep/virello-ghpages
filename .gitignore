@@ -1,0 +1,4 @@
+
+# Private server API keys; never commit credentials.
+**/private/credentials.json
+**/private/.credentials-*
