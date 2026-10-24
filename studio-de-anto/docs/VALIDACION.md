@@ -4,7 +4,7 @@
 
 Entorno remoto Linux, Python 3.12.14 y Node 24.19.0. Cuatro CPU efectivas, unos 33 GiB de RAM y ninguna GPU NVIDIA accesible.
 
-69 pruebas pytest superadas en esta iteración:
+156 pruebas pytest superadas en la ejecución final de esta ampliación:
 
 - Cifras sintéticas de ingresos A=50, B=50, total=100; unidades A=5/B=1; región Norte=70.
 - Revisión matemática detecta cifra manipulada y grupos omitidos; tratamiento de faltantes, infinito y duplicados.
@@ -16,7 +16,7 @@ Entorno remoto Linux, Python 3.12.14 y Node 24.19.0. Cuatro CPU efectivas, unos 
 - Migración 2, valoraciones, correcciones acotadas y eliminables; procedencia de mensajes y contexto aislado por proyecto/agente.
 - Recuperación idempotente tras caída abrupta: cierre de tareas dependientes, chats abandonados y eventos de actividad; preservación de resultados completos y planes aún sin aprobar.
 
-La cifra anterior corresponde a la base 1.1; esta ampliación incorpora además pruebas de planes y del instalador. El total de la ejecución final se registra al final del documento. Los detalles históricos de la primera versión se conservan en `docs/history/VALIDACION_V1.md`.
+La suite incluye además las pruebas de planificación, aislamiento de datos y del instalador de modelos. Los detalles históricos de la primera versión se conservan en `docs/history/VALIDACION_V1.md`.
 
 ## Modelo local real · 23 de octubre de 2026
 
@@ -28,6 +28,21 @@ La cifra anterior corresponde a la base 1.1; esta ampliación incorpora además 
 - Evidencia privada en `local-data/readiness.json` y copia saneada en `docs/MODELO_VERIFICADO.json`. No se incorporan pesos ni conversaciones al ZIP o al repositorio.
 
 Estas peticiones sí invocaron el modelo descargado; las pruebas mock siguientes se mantienen separadas. La prueba de conexión no certifica calidad narrativa, razonamiento general ni rendimiento en otro hardware.
+
+## Aceptación real de planes y ejecución · PASS
+
+`scripts/verify-real-model.py --run` terminó correctamente con el modelo instalado **qwen3.5:2b-q4_K_M** y Ollama 0.40.9, sin mocks ni planes fijos de respaldo. El recorrido duró **14min52s**, desde el 23 de octubre de 2026 a las 18:56:26 hasta las 19:11:18 en **America/Lima**. Los registros equivalentes en UTC van de `2026-10-23T23:56:26+00:00` a `2026-10-24T00:11:18+00:00`.
+
+- Catálogo y asignación del modelo a los seis agentes comprobados; la inferencia de ATLAS durante este recorrido tardó 43.876 ms. La prueba breve anterior de 5.428 ms corresponde a otra petición y no es una garantía de latencia.
+- CSV sintético de tres filas, idéntico al archivo `examples/ventas_sinteticas.csv`; SHA-256 `8b161f90f063d093aad80df93cf2294e8768046ae57bf6354f8a17b31412c470`.
+- Tres solicitudes interpretadas por el modelo con argumentos estructurados distintos y correctos: ingresos=`cantidad × precio` por producto; unidades=`sum(cantidad)` por producto sin derivación; ingresos de Norte con filtro `region eq Norte`.
+- **Solo se aprobó y ejecutó ingresos.** Resultado calculado: A=50, B=50, total100; tres filas antes y después, sin valores faltantes excluidos. Revisión matemática independiente superada, sin discrepancias.
+- BRUNO, IRIS y LEO devolvieron respuestas de modelo. El gráfico y los archivos se exportaron desde los resultados calculados y revisados.
+- Ocho descargas no vacías verificadas: CSV, XLSX, PNG, Markdown, HTML, evidencia JSON, manifiesto y ZIP; tamaños y SHA-256 registrados en la evidencia pública.
+
+[ACEPTACION_MODELO_REAL.json](ACEPTACION_MODELO_REAL.json) conserva solicitudes sintéticas, argumentos, resultados, presencia de respuestas y hashes. Se excluyeron UUIDs, conversaciones y textos libres de las tareas o del informe. `MODELO_VERIFICADO.json` enlaza esa aceptación; la evidencia privada completa permanece en `local-data/model-acceptance.json`.
+
+**La narrativa no está certificada.** La comprobación cubre argumentos y matemáticas, sin validar afirmaciones libres de tareas, criterios de aceptación o informes. Las unidades y la interpretación del análisis requieren revisión humana; el archivo sintético no declara divisa. Unidades y Norte se verificaron como planes y no como ejecuciones adicionales.
 
 ## Interfaz y APIs con proveedor mock
 
@@ -101,6 +116,6 @@ La instalación final mediante `bash scripts/install.sh` terminó correctamente 
 - TypeScript y Vite: compilación de producción superada. Bundle principal de unos 777 kB (212 kB comprimidos); Vite advierte de su tamaño, sin error de compilación.
 - Bootstrap de modelo: tamaños/digests, límite de descarga, rechazo de redirecciones locales, configuración idempotente, preservación de personalizaciones y evidencia vinculada al proveedor/modelo/endpoint.
 - Planificación: contrato y ejemplos JSON visibles para el modelo, campos obligatorios, dos reparaciones como máximo, columna derivada explícita, snapshot de configuración constante y diagnóstico exacto de dependencias inexistentes o cíclicas. Los operandos y filtros del esquema de generación solo admiten encabezados reales del archivo; el modelo elige las operaciones.
-- Primer intento de aceptación real: inferencia breve superada, planificación agotó el límite antiguo de 300 segundos. Una prueba diagnóstica mostró una fórmula omitida y dependencias ausentes; se corrigió la guía del modelo y se amplió el límite por petición a 900 segundos. El estado definitivo de colaboración se registra aparte; estas correcciones no equivalen por sí mismas a una aceptación superada.
+- Aceptación real definitiva: **PASS**, tres planes con argumentos verificados, ejecución de ingresos completada, revisión matemática y ocho descargas. [Evidencia pública saneada](ACEPTACION_MODELO_REAL.json); narrativa sin certificar.
 - GitHub: rama de entrega subida y [PR #1 en borrador](https://github.com/juancito222444-beep/virello-ghpages/pull/1), sin fusionar en `main`. El `index.html` de Virello conserva su checksum. La integración devuelve HTTP403 al consultar máquinas y permisos de Codespaces; no se creó un entorno real allí.
 - Los devcontainers de la raíz del repositorio y de la aplicación pasan el esquema oficial y resuelven el Dockerfile correctamente. La construcción local de su imagen se intentó, pero el registro redirigió a `westus.data.mcr.microsoft.com`, bloqueado con HTTP403 por la red de Codex. El dominio se añadió al borrador; guardar ese borrador no equivale a aplicar la red ni a superar una construcción real.

@@ -15,12 +15,12 @@
 - [x] Recuperación ante caídas abruptas de tareas/chats, con estados y eventos idempotentes.
 - [x] Ollama 0.40.9 y Qwen 3.5 de 2B Q4_K_M instalados; seis agentes configurados. Inferencia real «Conexión correcta» en 5.428 ms.
 - [x] Instalador explícito verificado, límite de pesos de 2,2 GB y arranque de Ollama instalado sin descargar.
-- [x] Prueba reusable de aceptación con tres planes distintos, cifras sintéticas y descargas; catálogo y prueba de inferencia separados.
+- [x] Aceptación REAL superada con Qwen 3.5: argumentos de tres planes distintos verificados; solo ingresos ejecutado, total100 A50/B50, revisión matemática y ocho descargas con SHA-256. Evidencia pública: `docs/ACEPTACION_MODELO_REAL.json`.
 
 Arranque local: `bash scripts/start.sh`. Instalar/actualizar: `bash scripts/install.sh`. Windows: `Instalar-Windows.cmd`, después `Iniciar-Windows.cmd`. Codespaces: `docs/CODESPACES.md`.
 
 Capturas reales: `oficina-3d-escritorio.png`, `oficina-3d-movil.png`, `personaje-saludando-primer-plano.png`.
 
-El modelo real ya funciona en esta máquina CPU. El estado de aceptación de planes está en `docs/VALIDACION.md`; una respuesta breve no certifica la planificación. La creación del Codespace está pendiente porque GitHub devuelve HTTP403 a la integración al consultar máquinas y permisos. La API oficial de GPT no se anuncia como gratuita. Virello permanece intacto.
+El modelo real y la aceptación sintética por API ya funcionan en esta máquina CPU. El recorrido terminó el 23 de octubre de 2026 a las 19:11, America/Lima, en 14min52s; `docs/VALIDACION.md` detalla su alcance. Se verificaron los argumentos de ingresos, unidades y Norte; únicamente ingresos se aprobó y ejecutó. Las narraciones no están certificadas. La creación del Codespace está pendiente porque GitHub devuelve HTTP403 a la integración al consultar máquinas y permisos. La API oficial de GPT no se anuncia como gratuita. Virello permanece intacto.
 
 Pendientes: `docs/QUE_FALTA.md`. Referencia original íntegra: `docs/ESPECIFICACION_ORIGINAL.txt`; no se recibieron studio_de_anto.py ni el video.

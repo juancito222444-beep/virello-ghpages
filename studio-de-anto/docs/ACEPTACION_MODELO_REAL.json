@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "started_at_utc": "2026-10-23T23:56:26+00:00",
+  "finished_at_utc": "2026-10-24T00:11:18+00:00",
+  "user_timezone": "America/Lima",
+  "started_at_user": "2026-10-23T18:56:26-05:00",
+  "finished_at_user": "2026-10-23T19:11:18-05:00",
+  "duration_seconds": 892,
+  "provider": "ollama",
+  "model": "qwen3.5:2b-q4_K_M",
+  "model_digest": "1e2d21a4f03ab9e4a9c1976a4b7e88f21de61d65f2c5485d8fde8942be73f1e7",
+  "model_download_bytes": 1945781358,
+  "runtime": "Ollama 0.40.9 CPU",
+  "configured_agents": {
+    "anto": "qwen3.5:2b-q4_K_M",
+    "atlas": "qwen3.5:2b-q4_K_M",
+    "vera": "qwen3.5:2b-q4_K_M",
+    "bruno": "qwen3.5:2b-q4_K_M",
+    "iris": "qwen3.5:2b-q4_K_M",
+    "leo": "qwen3.5:2b-q4_K_M"
+  },
+  "dataset": {
+    "file": "examples/ventas_sinteticas.csv",
+    "synthetic": true,
+    "rows": 3,
+    "bytes": 69,
+    "sha256": "8b161f90f063d093aad80df93cf2294e8768046ae57bf6354f8a17b31412c470",
+    "uploaded_bytes_match_example": true
+  },
+  "preflight": {
+    "passed": true,
+    "inference_verified": true,
+    "agent": "atlas",
+    "latency_ms": 43876
+  },
+  "plans": {
+    "ingresos": {
+      "request": "Calcula ingresos por producto: crea la columna ingresos = cantidad multiplicada por precio, agrupa por producto y suma ingresos, sin filtros. Usa un gráfico de barras. Incluye VERA analyze, BRUNO review, IRIS chart y LEO report con sus dependencias de revisión.",
+      "mode": "real",
+      "arguments_verified": true,
+      "verified_arguments": {
+        "metric": "ingresos",
+        "group_by": [
+          "producto"
+        ],
+        "aggregation": "sum",
+        "derived": {
+          "name": "ingresos",
+          "left": "cantidad",
+          "op": "multiply",
+          "right": "precio"
+        },
+        "filters": [],
+        "chart": "bar"
+      },
+      "approved_and_executed": true,
+      "task_graph": [
+        {
+          "id": "a",
+          "agent": "vera",
+          "tools": [
+            "analyze"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "b",
+          "agent": "bruno",
+          "tools": [
+            "review"
+          ],
+          "depends_on": [
+            "a"
+          ]
+        },
+        {
+          "id": "c",
+          "agent": "iris",
+          "tools": [
+            "chart"
+          ],
+          "depends_on": [
+            "b"
+          ]
+        },
+        {
+          "id": "d",
+          "agent": "leo",
+          "tools": [
+            "report"
+          ],
+          "depends_on": [
+            "c"
+          ]
+        }
+      ]
+    },
+    "unidades": {
+      "request": "Calcula unidades vendidas por producto: agrupa por producto y suma la columna cantidad, sin columna derivada y sin filtros. Usa un gráfico de barras y revisión de BRUNO.",
+      "mode": "real",
+      "arguments_verified": true,
+      "verified_arguments": {
+        "metric": "cantidad",
+        "group_by": [
+          "producto"
+        ],
+        "aggregation": "sum",
+        "derived": null,
+        "filters": [],
+        "chart": "bar"
+      },
+      "approved_and_executed": false,
+      "task_graph": [
+        {
+          "id": "a",
+          "agent": "vera",
+          "tools": [
+            "analyze"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "b",
+          "agent": "bruno",
+          "tools": [
+            "review"
+          ],
+          "depends_on": [
+            "a"
+          ]
+        },
+        {
+          "id": "c",
+          "agent": "iris",
+          "tools": [
+            "chart"
+          ],
+          "depends_on": [
+            "b"
+          ]
+        },
+        {
+          "id": "d",
+          "agent": "leo",
+          "tools": [
+            "report"
+          ],
+          "depends_on": [
+            "c"
+          ]
+        }
+      ]
+    },
+    "norte": {
+      "request": "Calcula ingresos por producto solo de la región Norte: crea la columna ingresos = cantidad multiplicada por precio, filtra region igual a Norte, agrupa por producto y suma ingresos. Usa un gráfico de barras y revisión de BRUNO.",
+      "mode": "real",
+      "arguments_verified": true,
+      "verified_arguments": {
+        "metric": "ingresos",
+        "group_by": [
+          "producto"
+        ],
+        "aggregation": "sum",
+        "derived": {
+          "name": "ingresos",
+          "left": "cantidad",
+          "op": "multiply",
+          "right": "precio"
+        },
+        "filters": [
+          {
+            "column": "region",
+            "op": "eq",
+            "value": "Norte"
+          }
+        ],
+        "chart": "bar"
+      },
+      "approved_and_executed": false,
+      "task_graph": [
+        {
+          "id": "a",
+          "agent": "vera",
+          "tools": [
+            "analyze"
+          ],
+          "depends_on": []
+        },
+        {
+          "id": "b",
+          "agent": "bruno",
+          "tools": [
+            "review"
+          ],
+          "depends_on": [
+            "a"
+          ]
+        },
+        {
+          "id": "c",
+          "agent": "iris",
+          "tools": [
+            "chart"
+          ],
+          "depends_on": [
+            "b"
+          ]
+        },
+        {
+          "id": "d",
+          "agent": "leo",
+          "tools": [
+            "report"
+          ],
+          "depends_on": [
+            "c"
+          ]
+        }
+      ]
+    }
+  },
+  "plan_variation": {
+    "passed": true,
+    "compared": "metric, group_by, aggregation, derived, filters, chart"
+  },
+  "execution": {
+    "approved_plan": "ingresos",
+    "only_approved_and_executed_plan": true,
+    "status": "Completado",
+    "result": {
+      "table": [
+        {
+          "producto": "A",
+          "valor": 50
+        },
+        {
+          "producto": "B",
+          "valor": 50
+        }
+      ],
+      "total": 100,
+      "rows_before": 3,
+      "rows_after": 3,
+      "excluded_missing": 0
+    },
+    "mathematical_review": {
+      "passed": true,
+      "problems": [],
+      "checks": [
+        "Columnas y filtros del plan aprobado",
+        "Filas y valores faltantes",
+        "Recálculo independiente por grupo",
+        "Total y subtotales cuando corresponde"
+      ],
+      "status": "Verificación automática superada"
+    },
+    "model_response_present": {
+      "bruno": true,
+      "iris": true,
+      "leo": true
+    },
+    "narrative_verified": false
+  },
+  "artifacts": [
+    {
+      "name": "entrega.zip",
+      "bytes": 27867,
+      "sha256": "52f6156eaeb540013b678e8303e0d0c53aedf1c6bbf57d8c91a922262564df3f",
+      "downloaded_at_utc": "2026-10-24T00:11:18+00:00"
+    },
+    {
+      "name": "manifiesto.json",
+      "bytes": 461,
+      "sha256": "7125199437a532c7f0887725f25e0d7c5333e9270d5a82a306bd14d76b41cd9c",
+      "downloaded_at_utc": "2026-10-24T00:11:18+00:00"
+    },
+    {
+      "name": "resultados.xlsx",
+      "bytes": 4958,
+      "sha256": "a7c0ccc2135e3b90e3c18be73c2f8fc2a3311d4c97aac56b0ba1f444710ad14d",
+      "downloaded_at_utc": "2026-10-24T00:11:18+00:00"
+    },
+    {
+      "name": "informe.html",
+      "bytes": 5220,
+      "sha256": "5cefaf5648d2e3c18287aa0ab39b7f1544b667bc37e7cbe913bea789de9bbcc3",
+      "downloaded_at_utc": "2026-10-24T00:11:18+00:00"
+    },
+    {
+      "name": "informe.md",
+      "bytes": 4229,
+      "sha256": "429f982acd466bf92360ffe53461631863ed07fc7e86ec8c598a867c8c3e6eb8",
+      "downloaded_at_utc": "2026-10-24T00:11:18+00:00"
+    },
+    {
+      "name": "grafico.png",
+      "bytes": 24866,
+      "sha256": "14bd315371171a5e0e2926096e102d584c3d4d38d25a738d4fe57d528e279369",
+      "downloaded_at_utc": "2026-10-24T00:11:18+00:00"
+    },
+    {
+      "name": "resultados.csv",
+      "bytes": 25,
+      "sha256": "b92d45c82a25b6f448c55ff5b1b60485cc8c21efda9d811779ff30dd74bba960",
+      "downloaded_at_utc": "2026-10-24T00:11:18+00:00"
+    },
+    {
+      "name": "evidencia.json",
+      "bytes": 1549,
+      "sha256": "7ef78eeb748cbb7bf099cc4448a0578b991c82b96f2c5dbe74309e5d2e508400",
+      "downloaded_at_utc": "2026-10-24T00:11:18+00:00"
+    }
+  ],
+  "artifact_downloads_verified": true,
+  "narrative_verified": false,
+  "scope": "Aceptación sintética real de selección de argumentos, colaboración por API, cálculo determinista, revisión matemática y ocho descargas. Solo se ejecutó ingresos; unidades y Norte se verificaron como planes. No certifica el texto libre, las unidades monetarias, la calidad general del modelo, su entrenamiento ni otro hardware.",
+  "privacy": "Sin UUIDs de proyectos, archivos, ejecuciones o artefactos, sin conversaciones ni respuestas narrativas. No contiene pesos ni datos privados."
+}

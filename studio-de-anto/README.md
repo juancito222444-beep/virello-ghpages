@@ -45,9 +45,11 @@ Para comprobar además planificación y ejecución, con el servidor activo:
 
 La prueba crea un proyecto sintético separado, compara planes de ingresos, unidades y filtro Norte, ejecuta ingresos y revisa cifras y entregables. Guarda evidencia en `local-data/model-acceptance.json`; requiere el modelo real y no usa un plan fijo como respaldo. El comentario narrativo sigue necesitando revisión humana.
 
+La aceptación real con Qwen 3.5 terminó **PASS el 23 de octubre de 2026 a las 19:11, America/Lima**: tres planes con argumentos verificados y una ejecución de ingresos con total 100, A=50, B=50, revisión matemática y ocho descargas. Solo se ejecutó ingresos; unidades y Norte se comprobaron como planes. Consulta la [validación](docs/VALIDACION.md) y la [evidencia pública saneada](docs/ACEPTACION_MODELO_REAL.json). Esta comprobación no certifica los textos libres del modelo.
+
 **Alternativa: LM Studio o llama.cpp.** Activa su servidor local compatible con el formato OpenAI. Selecciona **API local compatible** y configura su URL base, por ejemplo `http://127.0.0.1:1234/v1` si coincide con tu servidor. Comprueba la API y elige un modelo que anuncie. Los planes requieren soporte de JSON Schema; los servidores que lo rechazan muestran un error y no ejecutan planes sin validar. “Compatible” describe el protocolo, no acceso a GPT de OpenAI.
 
-Solo una inferencia pesada a la vez. Ollama recibe `keep_alive=0`; la gestión de memoria de LM Studio/llama.cpp depende de su servidor. Los planes usan JSON Schema, temperatura cero y un máximo de tres intentos para reparar errores de validación. Se rechazan columnas inexistentes, tareas vacías o dependencias que omitan la revisión matemática. El contexto es limitado, no memoria infinita. Puedes añadir resultados con el selector de ejecución.
+Solo una inferencia pesada a la vez. Ollama recibe `keep_alive=0`; la gestión de memoria de LM Studio/llama.cpp depende de su servidor. Los planes usan JSON Schema, temperatura cero y un máximo de tres intentos totales: una respuesta inicial y hasta dos reparaciones de errores de validación. Se rechazan columnas inexistentes, tareas vacías o dependencias que omitan la revisión matemática. El contexto es limitado, no memoria infinita. Puedes añadir resultados con el selector de ejecución.
 
 **El localhost de la nube pertenece a la nube.** No conecta a tu PC. En este entorno están instalados Ollama 0.40.9 y Qwen 3.5 de 2B: los seis agentes tienen el modelo asignado y la inferencia real respondió «Conexión correcta» en 5,4 segundos. La descarga suma 1.945.781.358 bytes según el manifiesto; Ollama verificó sus SHA-256. El entorno dispone de cuatro CPU efectivas y unos 33 GiB de RAM, sin GPU NVIDIA accesible; eso no describe tu RTX 3060. Una respuesta de conexión no certifica la calidad de los análisis.
 
@@ -108,7 +110,7 @@ Las pruebas sintéticas y del proveedor mock están separadas en `tests/test_acc
 
 Consulta [el inventario completo](docs/QUE_FALTA.md), que separa implementación y comprobaciones reales.
 
-El modelo real ya está conectado. La planificación y colaboración se someten a la aceptación sintética descrita en [VALIDACION](docs/VALIDACION.md). Queda crear y validar el Codespace desde tu cuenta, porque la integración no dispone de permisos suficientes; auditar el Python y video originales cuando se reciban; y ampliar revisión semántica, series temporales, reanudación selectiva y ComfyUI. La aplicación no incluye GPT de OpenAI ni reentrenamiento autónomo.
+El modelo real ya está conectado. La planificación y colaboración superaron la aceptación sintética descrita en [VALIDACION](docs/VALIDACION.md), con tres planes verificados y una ejecución de ingresos completa. Queda crear y validar el Codespace desde tu cuenta, porque la integración no dispone de permisos suficientes; auditar el Python y video originales cuando se reciban; y ampliar revisión semántica, series temporales, reanudación selectiva y ComfyUI. La aplicación no incluye GPT de OpenAI ni reentrenamiento autónomo.
 
 ## Referencias
 

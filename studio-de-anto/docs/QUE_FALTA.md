@@ -14,11 +14,12 @@ Este inventario distingue código implementado de validación real. No equivale 
 - Ollama 0.40.9 instalado y disponible en este entorno; Qwen 3.5 de 2B Q4_K_M descargado y asignado a los seis agentes. Prueba de inferencia real superada, con respuesta «Conexión correcta» en 5,4 segundos sobre CPU.
 - Instalador reusable de modelo con verificación de distribución y límite de 2,2 GB de pesos; arranque automático del servidor instalado sin nuevas descargas. Diagnóstico persistente con evidencia diferenciada del catálogo.
 - Planes con columnas validadas, herramientas únicas y no vacías, un análisis por ejecución y dependencias de revisión; máximo dos reparaciones mediante el modelo, sin plan fijo como respaldo.
+- Aceptación sintética REAL superada con Qwen 3.5: tres planes con argumentos verificados y una ejecución de ingresos con total100 A50/B50, revisión matemática y ocho descargas. Evidencia pública en [ACEPTACION_MODELO_REAL.json](ACEPTACION_MODELO_REAL.json); no se certifica la prosa del modelo.
 
-## Imprescindible para usar IA real
+## Usar y verificar IA real
 
 1. **Conservar y arrancar el modelo.** Ya funciona en este entorno. Una máquina nueva necesita sus propios pesos: `python scripts/setup-model.py --download --test` con la app activa. El ZIP y Git no contienen los pesos ni datos privados.
-2. **Validación de planes y colaboración con tu modelo.** `scripts/verify-real-model.py --run` comprueba ingresos, unidades, filtro Norte y una ejecución sintética completa. Las pruebas unitarias con mocks comprueban el protocolo, no la capacidad del modelo. Consulta el resultado efectivamente ejecutado en `docs/VALIDACION.md`.
+2. **Repetir la validación al cambiar de modelo o equipo.** La aceptación real en esta máquina terminó PASS el 23 de octubre de 2026, America/Lima. `scripts/verify-real-model.py --run` verifica argumentos de ingresos, unidades y filtro Norte, y ejecuta únicamente ingresos. Las pruebas unitarias con mocks comprueban el protocolo; esta aceptación sí usó el modelo instalado. Consulta las cifras y descargas en [VALIDACION.md](VALIDACION.md).
 3. **Hardware real.** No se ha probado velocidad, memoria ni calidad en tu RTX 3060. El entorno remoto no describe tu PC. En Codespaces, un modelo puede depender de CPU y ser lento.
 
 ## Para verlo en GitHub

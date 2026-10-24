@@ -17,7 +17,10 @@
     "agent": "anto"
   },
   "inference_verified": true,
-  "collaboration_verified": false,
+  "collaboration_verified": true,
   "narrative_verified": false,
-  "notes": "Respuesta real de conexión. La aceptación de planes se documenta por separado. Sin pesos ni datos privados."
+  "notes": "Inferencia real y aceptación sintética por API superadas. La evidencia pública de colaboración se enlaza por separado. No contiene pesos ni conversaciones privadas; no certifica la narrativa.",
+  "collaboration_checked_at": "2026-10-24T00:11:18+00:00",
+  "collaboration_evidence": "ACEPTACION_MODELO_REAL.json",
+  "collaboration_scope": "Tres planes con argumentos verificados y una ejecución sintética de ingresos con revisión matemática y ocho descargas; narrativa sin certificar."
 }
