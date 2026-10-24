@@ -113,8 +113,8 @@ def _api_client(kind, timeout):
     return _client(timeout)
 
 
-async def available():
-    kind = provider()
+async def available(kind=None):
+    kind = kind or provider()
     url = endpoint(kind)
     result = {'provider': kind, 'endpoint': url, 'connected': False, 'models': [],
               'inference_verified': False, 'check': 'discovery_only'}

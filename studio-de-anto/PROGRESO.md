@@ -28,3 +28,7 @@ El modelo real y la aceptación sintética por API ya funcionan en esta máquina
 Pendientes: `docs/QUE_FALTA.md`. Referencia original íntegra: `docs/ESPECIFICACION_ORIGINAL.txt`; no se recibieron studio_de_anto.py ni el video.
 
 Corrección Gemini: API nativa, detección de secretos y errores, modelos de conversación y prueba de respuesta con presupuesto de salida suficiente. 182 pruebas y compilación superadas; conexión real de la cuenta pendiente de comprobación en su Codespace.
+
+Mejora de operación: fallos del chat muestran causa y quedan en Actividad; actualización del servidor y secretos verificada por versión, PID y proceso propio. 186 pruebas, build y humo Chromium con generación429 MOCK superados. Sin confirmación de generación en la cuenta real de Gemini.
+
+Conectar Gemini en un paso: detección, modelo disponible y generación antes de confirmar; ajustes avanzados plegados, causas visibles junto al chat y recuperación de versión/secretos del servidor. 188 tests, build y humo de interfaz MOCK superados. La cuenta real debe comprobarse en su Codespace.

@@ -164,3 +164,36 @@ def test_invalid_secret_format_is_diagnosed_without_network(monkeypatch,invalid)
     status=asyncio.run(models.available())
     assert status['credential']['configured'] and not status['credential']['valid_format']
     assert 'caracteres no válidos' in status['error']
+
+
+def test_one_click_connect_selects_available_model_and_preserves_instructions(monkeypatch):
+    monkeypatch.setenv('STUDIO_GEMINI_API_KEY','protocol-test-key')
+    saved=[{**a,'model':'retired-model','instructions':'Mantén mis instrucciones.'} for a in models.AGENTS]
+    store.save_setting('provider','gemini');store.save_setting('agents',saved)
+    seen=[]
+    def handler(request):
+        seen.append(request)
+        if request.method=='GET':return httpx.Response(200,json={'models':[{'name':'models/gemini-available-flash-lite','supportedGenerationMethods':['generateContent']}]})
+        return httpx.Response(200,content=b'data: {"candidates":[{"content":{"parts":[{"text":"MOCK conectado"}]},"finishReason":"STOP"}]}\n\n')
+    monkeypatch.setattr(models,'_api_client',lambda kind,timeout:httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+    with TestClient(app) as client:
+        result=client.post('/api/connect',json={'provider':'gemini','agent':'anto'})
+    assert result.status_code==200
+    data=result.json()
+    assert data['status']['inference_verified'] and data['proof']['verified']
+    assert all(a['model']=='gemini-available-flash-lite' and a['instructions']=='Mantén mis instrucciones.' for a in data['settings']['agents'])
+    assert 'protocol-test-key' not in result.text and len(seen)==2
+
+
+def test_failed_one_click_connect_does_not_replace_preferences(monkeypatch):
+    monkeypatch.setenv('STUDIO_GEMINI_API_KEY','protocol-test-key')
+    saved=[{**a,'model':'saved-model'} for a in models.AGENTS]
+    store.save_setting('agents',saved);store.save_setting('provider','gemini')
+    def handler(request):
+        if request.method=='GET':return httpx.Response(200,json={'models':[{'name':'models/gemini-available-flash','supportedGenerationMethods':['generateContent']}]})
+        return httpx.Response(429,json={'error':'quota'})
+    monkeypatch.setattr(models,'_api_client',lambda kind,timeout:httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+    with TestClient(app) as client:
+        result=client.post('/api/connect',json={'provider':'gemini'})
+    assert result.status_code==422 and 'cuota' in result.json()['detail']
+    assert store.setting('agents',[])==saved

@@ -26,6 +26,7 @@ ready() {
   .venv/bin/python - <<'PY' >/dev/null 2>&1
 import json, urllib.request
 from backend.access import codespace_host
+from backend.runtime import code_version, environment_matches
 host = codespace_host()
 assert host
 headers = {'Host': host, 'Origin': 'https://' + host}
@@ -33,6 +34,11 @@ request = urllib.request.Request('http://127.0.0.1:8765/openapi.json', headers=h
 with urllib.request.urlopen(request, timeout=2) as response:
     data = json.load(response)
 assert data.get('info', {}).get('title') == 'STUDIO DE ANTO'
+request = urllib.request.Request('http://127.0.0.1:8765/api/health', headers=headers)
+with urllib.request.urlopen(request, timeout=2) as response:
+    health = json.load(response)
+assert health.get('code_version') == code_version()
+assert environment_matches(health.get('pid'))
 request = urllib.request.Request('http://127.0.0.1:8765/api/projects', headers=headers)
 with urllib.request.urlopen(request, timeout=2) as response:
     assert isinstance(json.load(response), list)
@@ -58,6 +64,25 @@ if ready; then
   echo "STUDIO DE ANTO ya está ejecutándose: ${cloud_url}"
   exit 0
 fi
+# A code/key update must not leave an old process serving the new interface.
+# Only the PID recorded by this script, with verified owner/cwd/command, may stop.
+.venv/bin/python - <<'PYCODE'
+import socket
+from backend.runtime import ROOT, stop_owned_server
+try:
+    if stop_owned_server(ROOT/'local-data/codespaces-server.pid'):
+        print('Aplicando actualización del servidor y su configuración de conexión…')
+    # Refuse to initialize the database while an unidentified server is listening.
+    try:
+        with socket.socket() as listener:
+            listener.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+            listener.bind(('127.0.0.1',8765))
+    except OSError:
+        raise ValueError('El puerto 8765 sigue ocupado por un servidor no identificado. No se modificó ningún otro proceso; reinicia el Codespace.')
+except ValueError as exc:
+    print(str(exc))
+    raise SystemExit(1)
+PYCODE
 nohup .venv/bin/python -m uvicorn backend.app:app --host 0.0.0.0 --port 8765 >"$cloud_log" 2>&1 < /dev/null 9>&- &
 cloud_pid=$!
 printf '%s\n' "$cloud_pid" > "$cloud_pidfile"

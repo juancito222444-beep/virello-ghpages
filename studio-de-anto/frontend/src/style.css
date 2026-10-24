@@ -12,3 +12,7 @@
 @media(max-width:640px){.scene-3d-actions{top:56px!important;right:8px!important}.scene-3d-actions button{font-size:8px!important;padding:5px 7px!important}.scene-3d-feedback{right:10px!important;left:10px!important;bottom:51px!important;font-size:7px!important;max-width:none!important}.chat-panel{height:650px}}
 
 .chat-progress{display:flex;align-items:center;gap:7px;padding:8px 0;color:#7c6997;font-size:10px}.chat-progress time{margin-left:auto;font-variant-numeric:tabular-nums;white-space:nowrap}.conversation-hint{font-size:9px;line-height:1.5;color:#84798f;margin:8px 0}.chat-compose .retry{margin-right:8px}.chat-empty p{line-height:1.6;margin:8px 0 14px}
+
+.message .chat-error{color:#9a3553;margin-top:8px;font-size:11px;line-height:1.6}
+
+.chat-connection-error{border:1px solid #eed5dd;background:#fff6f8;border-radius:8px;padding:10px;margin-bottom:10px;line-height:1.6;overflow-wrap:anywhere;font-size:11px}.chat-connection-error p{margin:7px 0;color:#8c3a54}

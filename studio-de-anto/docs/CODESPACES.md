@@ -39,3 +39,23 @@ La aplicación usa la API nativa de Gemini para listar modelos que admiten conve
 En Configuración verás si el **servidor** recibió el secreto y su nombre, sin mostrar su valor. Si aparece ausente, confirma que sea un secreto de Codespaces autorizado para este repositorio; detén el Codespace completo y vuelve a abrirlo, no solo la pestaña. Si está detectado, el error de generación distingue clave inválida, restricciones del proyecto, modelo o cuota. Un catálogo recibido no certifica generación: usa **Conectar y probar respuesta**.
 
 El modelo se identifica sin el prefijo `models/`, que también se acepta si estaba guardado. Se filtran modelos de embeddings, imagen, audio y otros sin capacidad de conversación. La prueba breve evita el límite anterior de 32 tokens que podía terminar sin texto en modelos con razonamiento. No se muestran pensamientos internos ni se registra como completa una respuesta truncada.
+
+## «Sin respuesta» o «Modelo no conectado»
+
+El estado por sí solo no identifica la causa. Ahora el mensaje fallido conserva el error concreto dentro del chat; si la conexión falla, el aviso se muestra también junto al cuadro donde escribes. Los errores de proveedor quedan en Actividad sin exponer claves. **Revisar conexión** abre directamente la configuración.
+
+El arranque compara la versión realmente cargada por el servidor y sus secretos con los archivos y el entorno actuales. Al actualizar, reinicia de forma gradual solo el PID registrado y verificado de esta aplicación, sin tocar procesos ajenos ni forzar el cierre de peticiones. Esto evita servir una interfaz nueva con un backend anterior o una clave antigua. Si no puede verificar el proceso, pide reiniciar el Codespace. No obtiene secretos nuevos de GitHub: estos deben estar disponibles en el entorno del Codespace.
+
+Para aplicar cambios sin reinstalar cuando no cambian las dependencias, desde la raíz del repositorio:
+
+```bash
+git pull --ff-only origin codex/studio-de-anto-modelo-real
+cd studio-de-anto
+bash scripts/start-cloud.sh --background
+```
+
+Después recarga la aplicación y reintenta el mensaje. Si el proveedor rechaza una clave o su cuota está agotada, el programa muestra el motivo: no puede cambiar los permisos ni las cuotas de la cuenta.
+
+## Conectar en un paso
+
+Junto al cuadro donde escribes aparece **Conectar Gemini**. Usa el secreto ya configurado, comprueba el catálogo y prueba una respuesta. Conserva los modelos disponibles y las instrucciones; si un modelo guardado ya no existe, usa uno del catálogo. No cambia cuotas ni crea claves. Si falla, el motivo permanece junto al chat y el botón permite volver a comprobar después de resolverlo. Los ajustes de cada agente quedan en **Ajustes avanzados del equipo**.

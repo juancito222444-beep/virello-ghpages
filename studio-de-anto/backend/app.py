@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from . import store,models,engine,cloud
+from . import store,models,engine,cloud,runtime
 from .schemas import Plan,Analysis,Task,Strict
 from .data_tools import load,inspect
 from .access import access_error
@@ -22,6 +22,12 @@ async def lifespan(app):
     worker.cancel()
     with contextlib.suppress(asyncio.CancelledError): await worker
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
+LOADED_CODE_VERSION=runtime.code_version()
+
+@app.get('/api/health')
+def health():
+    return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid()}
+
 
 @app.middleware('http')
 async def local_only(request,call_next):
@@ -64,6 +70,36 @@ async def model_test(body:ModelProbe):
     with models.use_snapshot(selected):
         response=await models.complete(body.agent,[{'role':'user','content':'Prueba breve de conexión: responde únicamente «Conexión correcta». Sin más texto.'}],token_limit=32)
     return {'verified':True,'provider':selected['provider'],'model':selected['agent']['model'],'endpoint':selected['endpoint'],'response':response[:500],'latency_ms':round((time.perf_counter()-started)*1000)}
+class CloudConnect(Strict):
+    provider:Literal['gemini','groq']='gemini'
+    agent:Literal['anto','atlas','vera','bruno','iris','leo']='anto'
+
+@app.post('/api/connect')
+async def connect_cloud(body:CloudConnect):
+    status=await models.available(body.provider)
+    if not status['connected'] or not status['models']:
+        raise ValueError(status.get('error','El proveedor no anuncia modelos de conversación disponibles.'))
+    catalog=status['models']
+    default=cloud.PROVIDERS[body.provider]['model']
+    fallback=default if default in catalog else catalog[0]
+    configured=[]
+    for agent in models.agents():
+        name=agent.get('model','')
+        if body.provider=='gemini':name=name.removeprefix('models/')
+        configured.append({**agent,'model':name if name in catalog else fallback})
+    chosen=next(a for a in configured if a['id']==body.agent)
+    selected={'agent':chosen,'provider':body.provider,'endpoint':models.endpoint(body.provider)}
+    import time
+    started=time.perf_counter()
+    with models.use_snapshot(selected):
+        text=await models.complete(body.agent,[{'role':'user','content':'Responde únicamente: Conexión correcta.'}],token_limit=32 if body.provider=='gemini' else 512)
+    # Commit only after real generation succeeds: failed setup never overwrites preferences.
+    with store.db() as c:
+        c.executemany('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)',[
+            ('provider',json.dumps(body.provider)),('agents',json.dumps(configured,ensure_ascii=False))])
+    status.update(inference_verified=True,verified_model=chosen['model'])
+    return {'settings':get_settings(),'status':status,'proof':{'verified':True,'response':text[:500],'model':chosen['model'],'latency_ms':round((time.perf_counter()-started)*1000)}}
+
 class Settings(Strict):
     provider:Literal['gemini','groq','ollama','openai_local']='gemini'
     ollama_url:str='http://127.0.0.1:11434'
@@ -201,7 +237,7 @@ async def chat(body:Chat,request:Request):
         c.execute('INSERT INTO message_provenance VALUES(?,?)',(user_message,current_provider))
     history.append({'role':'user','content':body.content})
     async def events():
-        chunks=[]; outcome='Cancelado'
+        chunks=[]; outcome='Cancelado';failure=None
         try:
             store.event(body.project,'chat',{'status':'En ejecución','model':model,'provider':current_provider},agent=body.agent)
             with models.use_snapshot(selected):
@@ -218,9 +254,12 @@ async def chat(body:Chat,request:Request):
             outcome='Disponible'
             yield 'data: '+json.dumps({'done':True,'message_id':message_id,'model':model,'provider':current_provider})+'\n\n'
         except ValueError as e:
-            outcome='Fallido'
-            yield 'data: '+json.dumps({'error':str(e)})+'\n\n'
-        finally: store.event(body.project,'chat',{'status':outcome,'model':model,'provider':current_provider},agent=body.agent)
+            outcome='Fallido';failure=runtime.safe_error(e)
+            yield 'data: '+json.dumps({'error':failure})+'\n\n'
+        except Exception:
+            outcome='Fallido';failure='Error interno al recibir la respuesta. Reinicia el servidor del Codespace y vuelve a probar desde Configuración.'
+            yield 'data: '+json.dumps({'error':failure})+'\n\n'
+        finally: store.event(body.project,'chat',{'status':outcome,'model':model,'provider':current_provider,**({'message':failure} if failure else {})},agent=body.agent)
     return StreamingResponse(events(),media_type='text/event-stream')
 class PlanRequest(Strict):
     project:str
