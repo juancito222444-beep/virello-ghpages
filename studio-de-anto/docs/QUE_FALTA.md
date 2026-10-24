@@ -11,7 +11,7 @@ Este inventario distingue código implementado de validación real. No equivale 
 - Eventos con tarea, ejecución y referencia de resultado. Fallos, cancelaciones e interrupciones cierran estados visibles.
 - Configuración para Codespaces: instalación, arranque y acceso al puerto exacto. Esto no sube el código a GitHub ni crea un Codespace.
 - Permanecen proyectos, archivos CSV/XLSX, cálculos pandas, revisión matemática y entregables separados por ejecución.
-- Ollama 0.40.9 instalado y disponible en este entorno; Qwen 2.5 de 3B descargado y asignado a los seis agentes. Prueba de inferencia real superada, con respuesta «Conexión correcta» en 9,9 segundos sobre CPU.
+- Ollama 0.40.9 instalado y disponible en este entorno; Qwen 3.5 de 2B Q4_K_M descargado y asignado a los seis agentes. Prueba de inferencia real superada, con respuesta «Conexión correcta» en 5,4 segundos sobre CPU.
 - Instalador reusable de modelo con verificación de distribución y límite de 2,2 GB de pesos; arranque automático del servidor instalado sin nuevas descargas. Diagnóstico persistente con evidencia diferenciada del catálogo.
 - Planes con columnas validadas, herramientas únicas y no vacías, un análisis por ejecución y dependencias de revisión; máximo dos reparaciones mediante el modelo, sin plan fijo como respaldo.
 

@@ -15,7 +15,7 @@ No se ha creado un Codespace: la integración accede al repositorio, pero GitHub
 
 Si prefieres un repositorio nuevo desde el ZIP, incorpora el contenido de `studio-de-anto/` como raíz de ese repositorio, incluidos sus archivos ocultos y `.devcontainer/`. En ese caso omite el `cd studio-de-anto` adicional. No subas modelos, conversaciones, bases SQLite ni datos privados.
 
-La primera creación descarga Python 3.12, Node 22, `zstd` y dependencias. Para dejar el modelo listo en esta entrega, el devcontainer declara `STUDIO_BOOTSTRAP_MODEL=1` y `STUDIO_MODEL=qwen2.5:3b`: `postCreateCommand` instala también Ollama y el modelo compacto. `postStartCommand` arranca la aplicación y comprueba una inferencia real. Los reinicios reutilizan los pesos; el arranque habitual no descarga otros modelos. Si prefieres instalar solo la aplicación, cambia esa variable a `0` antes de crear el contenedor.
+La primera creación descarga Python 3.12, Node 22, `zstd` y dependencias. Para dejar el modelo listo en esta entrega, el devcontainer declara `STUDIO_BOOTSTRAP_MODEL=1` y `STUDIO_MODEL=qwen3.5:2b-q4_K_M`: `postCreateCommand` instala también Ollama y el modelo compacto. `postStartCommand` arranca la aplicación y comprueba una inferencia real. Los reinicios reutilizan los pesos; el arranque habitual no descarga otros modelos. Si prefieres instalar solo la aplicación, cambia esa variable a `0` antes de crear el contenedor.
 
 ## Observar y usar la oficina
 
@@ -50,19 +50,19 @@ La regla de acceso admite únicamente hosts locales y el hostname exacto del pue
 
 Ollama y un servidor compatible deben ejecutarse en la misma máquina que el backend para las conexiones locales incluidas. Ollama en tu PC no se conecta automáticamente al Codespace. La oficina, los archivos y las herramientas deterministas funcionan sin modelo.
 
-La configuración de Codespaces de esta entrega ya solicita Qwen 2.5 de 3B. Para repetir su preparación o resolver una instalación incompleta, con la aplicación ya activa:
+La configuración de Codespaces de esta entrega ya solicita Qwen 3.5 de 2B Q4_K_M. Para repetir su preparación o resolver una instalación incompleta, con la aplicación ya activa:
 
 ```bash
 .venv/bin/python scripts/setup-model.py --download --test
 ```
 
-El instalador comprueba la distribución oficial y el tamaño del modelo, descarga unos 1,93 GB de pesos y configura los agentes sin modelo. Si falta Ollama, su distribución Linux requiere otros 1,51 GB; se conserva únicamente el runtime CPU. Los modelos que superen 2,2 GB se rechazan antes de solicitar sus pesos. El comando es idempotente y no reentrena el modelo. En una red restringida se necesitan `github.com`, `release-assets.githubusercontent.com`, `registry.ollama.ai` y el almacenamiento oficial `*.r2.cloudflarestorage.com`.
+El instalador comprueba la distribución oficial y el tamaño del modelo, descarga unos 1,95 GB entre pesos y proyector y configura los agentes sin modelo. Qwen 3.5 necesita Ollama 0.30.0 o posterior; la distribución fijada es 0.40.9. Si falta Ollama, su distribución Linux requiere otros 1,51 GB; se conserva únicamente el runtime CPU. Los modelos que superen 2,2 GB se rechazan antes de solicitar sus pesos. El comando es idempotente y no reentrena el modelo. En una red restringida se necesitan `github.com`, `release-assets.githubusercontent.com`, `registry.ollama.ai` y el almacenamiento oficial `*.r2.cloudflarestorage.com`.
 
 Para instalar el modelo junto con la aplicación por una elección explícita puedes ejecutar `STUDIO_BOOTSTRAP_MODEL=1 bash scripts/install.sh`. Después arranca la aplicación y ejecuta `setup-model.py --test`: la descarga por sí sola no certifica inferencia. El informe está en `local-data/readiness.json`.
 
 Para comprobar colaboración y entregables ejecuta `.venv/bin/python scripts/verify-real-model.py --run`. Crea un proyecto sintético, compara tres planes y verifica la ejecución de ingresos. Consulta [la validación efectivamente realizada](VALIDACION.md).
 
-Codespaces suele ejecutar modelos con CPU: no se garantiza GPU ni rendimiento interactivo. La prueba de conexión en este entorno remoto tardó unos 10 segundos; otro Codespace puede tener recursos distintos. No expongas el puerto de Ollama ni claves de API como puertos públicos.
+Codespaces suele ejecutar modelos con CPU: no se garantiza GPU ni rendimiento interactivo. La prueba de conexión con Qwen 3.5 en este entorno remoto tardó 5,4 segundos; otro Codespace puede tener recursos distintos. No expongas el puerto de Ollama ni claves de API como puertos públicos.
 
 Codespaces tiene cuotas y límites que dependen de la cuenta y del plan. Esta configuración no promete uso gratuito ilimitado ni requiere una API de pago para funcionar en modo herramientas. Comprueba el consumo en tu cuenta y detén el Codespace al terminar.
 

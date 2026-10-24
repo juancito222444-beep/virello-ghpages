@@ -21,11 +21,11 @@ La cifra anterior corresponde a la base 1.1; esta ampliación incorpora además 
 ## Modelo local real · 23 de octubre de 2026
 
 - Distribución oficial Ollama 0.40.9 verificada por SHA-256 antes de ejecutar; extracción CPU de unos 72 MB. Archivo de distribución de 1.509.118.576 bytes con SHA-256 `01f0d0ae50cad3295a79a165033a65cf324f8ae5f7be64679464d29ecf28d67c`.
-- Manifiesto real de `qwen2.5:3b` de 1.929.912.432 bytes, inferior al límite del instalador de 2.200.000.000. Ollama confirmó verificación SHA-256, escritura de manifiesto y finalización de descarga.
-- Se configuraron los seis agentes; la API de Ollama anuncia el modelo instalado.
-- `setup-model.py --download --test`: PASS, respuesta «Confirmando conexión.», 8.965 ms.
-- `setup-model.py --test` contra el backend actualizado: PASS, respuesta «Conexión correcta», 9.913 ms. La respuesta incluye proveedor, endpoint y modelo del snapshot efectivamente usado.
-- Evidencia privada en `local-data/readiness.json`. No se incorporan pesos ni conversaciones al ZIP o al repositorio.
+- Modelo elegido: **`qwen3.5:2b-q4_K_M`**, Apache 2.0, requiere Ollama ≥0.30.0. Manifiesto real de 1.945.781.358 bytes, incluido proyector, inferior al límite de 2.200.000.000. Ollama confirmó verificación SHA-256, escritura de manifiesto y finalización de descarga.
+- Los seis agentes tienen asignado ese modelo y el catálogo real lo anuncia. Se envía `think:false`, admitido por la API oficial también para modelos sin razonamiento interno; se solicitan respuestas directas en CPU.
+- `setup-model.py --model qwen3.5:2b-q4_K_M --test`: PASS, respuesta «Conexión correcta», 5.428 ms. La respuesta incluye proveedor, endpoint y modelo del snapshot efectivamente usado; el tiempo varía con carga y arranque del modelo.
+- Qwen 2.5 de 3B también respondió a las pruebas de conexión anteriores, pero no corrigió sus dependencias de planificación con suficiente fiabilidad; se conserva como modelo opcional instalado, no como predeterminado.
+- Evidencia privada en `local-data/readiness.json` y copia saneada en `docs/MODELO_VERIFICADO.json`. No se incorporan pesos ni conversaciones al ZIP o al repositorio.
 
 Estas peticiones sí invocaron el modelo descargado; las pruebas mock siguientes se mantienen separadas. La prueba de conexión no certifica calidad narrativa, razonamiento general ni rendimiento en otro hardware.
 
@@ -96,10 +96,11 @@ La instalación final mediante `bash scripts/install.sh` terminó correctamente 
 
 ## Comprobaciones finales de esta ampliación
 
-- Suite completa actual: **153 pruebas pytest superadas**, 15 avisos de deprecación de dependencias; datos aislados por `tests/conftest.py` antes de importar el backend.
+- Suite completa actual: **156 pruebas pytest superadas**, 15 avisos de deprecación de dependencias; datos aislados por `tests/conftest.py` antes de importar el backend.
 - Diez pruebas de navegación superadas. La escena no cambió en esta ampliación de modelos; conserva la validación WebGL indicada arriba.
 - TypeScript y Vite: compilación de producción superada. Bundle principal de unos 777 kB (212 kB comprimidos); Vite advierte de su tamaño, sin error de compilación.
 - Bootstrap de modelo: tamaños/digests, límite de descarga, rechazo de redirecciones locales, configuración idempotente, preservación de personalizaciones y evidencia vinculada al proveedor/modelo/endpoint.
-- Planificación: contrato visible para el modelo, campos obligatorios, dos reparaciones como máximo, columna derivada explícita, snapshot de configuración constante y diagnóstico exacto de dependencias inexistentes o cíclicas.
+- Planificación: contrato y ejemplos JSON visibles para el modelo, campos obligatorios, dos reparaciones como máximo, columna derivada explícita, snapshot de configuración constante y diagnóstico exacto de dependencias inexistentes o cíclicas. Los operandos y filtros del esquema de generación solo admiten encabezados reales del archivo; el modelo elige las operaciones.
 - Primer intento de aceptación real: inferencia breve superada, planificación agotó el límite antiguo de 300 segundos. Una prueba diagnóstica mostró una fórmula omitida y dependencias ausentes; se corrigió la guía del modelo y se amplió el límite por petición a 900 segundos. El estado definitivo de colaboración se registra aparte; estas correcciones no equivalen por sí mismas a una aceptación superada.
 - GitHub: rama de entrega subida y [PR #1 en borrador](https://github.com/juancito222444-beep/virello-ghpages/pull/1), sin fusionar en `main`. El `index.html` de Virello conserva su checksum. La integración devuelve HTTP403 al consultar máquinas y permisos de Codespaces; no se creó un entorno real allí.
+- Los devcontainers de la raíz del repositorio y de la aplicación pasan el esquema oficial y resuelven el Dockerfile correctamente. La construcción local de su imagen se intentó, pero el registro redirigió a `westus.data.mcr.microsoft.com`, bloqueado con HTTP403 por la red de Codex. El dominio se añadió al borrador; guardar ese borrador no equivale a aplicar la red ni a superar una construcción real.

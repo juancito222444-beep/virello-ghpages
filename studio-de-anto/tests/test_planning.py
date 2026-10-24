@@ -291,3 +291,55 @@ def test_repairs_receive_exact_invalid_dependencies_and_cycle_members(monkeypatc
     else:
         assert {tuple(error['cycle_ids']) for error in detailed}=={('a','b'),('c','d')}
         assert len(detailed)==4
+
+
+def test_prompt_shows_literal_derived_objects_without_rewriting_user_data(monkeypatch):
+    data=data_context();original=copy.deepcopy(data);request='Suma unidades por producto'
+    prompts=[]
+    async def complete(agent,messages,schema):
+        prompts.append(json.loads(messages[0]['content']))
+        return json.dumps(model_output(analysis_plan()))
+    monkeypatch.setattr(models,'complete',complete)
+    result=asyncio.run(propose_plan(request,data))
+    prompt=prompts[0];examples=prompt['derived_examples']
+    derived=examples['new_metric_x_equals_a_times_b']['derived']
+    assert isinstance(derived,dict) and derived=={'name':'x','left':'a','op':'multiply','right':'b'}
+    assert examples['new_metric_x_equals_a_times_b']['metric']==derived['name']
+    assert examples['original_column_metric_a']['metric']=='a'
+    assert examples['original_column_metric_a']['derived'] is None
+    assert 'placeholders' in prompt['rules'] and 'NO columnas del archivo' in prompt['rules']
+    assert 'metric debe ser igual a derived.name' in prompt['rules']
+    assert prompt['request']==request and prompt['data_untrusted']==original and data==original
+    assert result.analysis.metric=='cantidad' and result.analysis.derived is None
+
+
+def test_model_schema_constrains_source_operands_and_filters_to_exact_headers():
+    names=['producto','cantidad','precio','Importe bruto (€)','región/sector']
+    data={'columns':[{'name':name,'type':'object','missing':0} for name in names],'preview':[]}
+    original=copy.deepcopy(data);schema=model_schema(data)
+    derived=schema['$defs']['Derived']['properties']
+    assert derived['left']['enum']==names and derived['right']['enum']==names
+    assert schema['$defs']['Filter']['properties']['column']['enum']==names
+    assert 'enum' not in derived['name']
+    analysis=schema['$defs']['Analysis']['properties']
+    assert 'enum' not in analysis['metric'] and 'enum' not in analysis['group_by']['items']
+    manual=Plan.model_json_schema()
+    assert 'enum' not in manual['$defs']['Derived']['properties']['left']
+    assert 'enum' not in manual['$defs']['Derived']['properties']['right']
+    assert 'enum' not in manual['$defs']['Filter']['properties']['column']
+    assert 'enum' not in model_schema()['$defs']['Derived']['properties']['left']
+    assert data==original
+
+
+def test_proposer_passes_all_real_headers_as_schema_enums_without_modifying_data(monkeypatch):
+    data=data_context();original=copy.deepcopy(data);observed=[]
+    async def complete(agent,messages,schema):
+        observed.append(copy.deepcopy(schema))
+        return json.dumps(model_output(analysis_plan()))
+    monkeypatch.setattr(models,'complete',complete)
+    result=asyncio.run(propose_plan('Suma unidades por producto',data))
+    expected=[column['name'] for column in original['columns']]
+    assert observed[0]['$defs']['Derived']['properties']['left']['enum']==expected
+    assert observed[0]['$defs']['Derived']['properties']['right']['enum']==expected
+    assert observed[0]['$defs']['Filter']['properties']['column']['enum']==expected
+    assert result.analysis.metric=='cantidad' and data==original

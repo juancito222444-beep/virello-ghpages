@@ -11,7 +11,7 @@ El primer comando comprueba el catálogo, los modelos asignados a los seis agent
 
 No descarga modelos ni modifica la configuración. Conserva los proyectos existentes y el proyecto sintético creado. Guarda los resultados y errores en `local-data/model-acceptance.json`. Una respuesta de conexión y una ejecución completa se registran por separado. La narrativa del modelo sigue requiriendo revisión humana de sus cifras.
 
-En la CPU de este entorno se observaron unas 4–6 unidades de texto del modelo (tokens) por segundo durante respuestas largas. Un plan puede necesitar varios minutos y hasta dos reparaciones, además de la primera respuesta. Estos tiempos dependen del equipo y de la longitud del plan.
+En las primeras pruebas de este entorno con Qwen 2.5 se observaron unas 4–6 unidades de texto del modelo (tokens) por segundo durante respuestas largas. La versión elegida después es Qwen 3.5 de 2B Q4_K_M; su prueba breve tardó 5,4 segundos. Un plan puede necesitar varios minutos y hasta dos reparaciones, además de la primera respuesta. Estos tiempos dependen del equipo, del modelo y de la longitud del plan.
 
 `--request-timeout` permite **900 segundos por petición** al modelo, incluidas las reparaciones que realiza la aplicación. `--timeout` permite **600 segundos para la ejecución aprobada**, después de obtener y comprobar los tres planes. Son límites diferentes: el proceso completo puede durar más de quince minutos. Puedes cambiarlos hasta 3600 segundos cada uno:
 

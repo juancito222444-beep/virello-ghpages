@@ -25,7 +25,7 @@ from urllib.parse import urlsplit
 from urllib.request import Request, ProxyHandler, HTTPRedirectHandler, build_opener
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MODEL = 'qwen2.5:3b'
+DEFAULT_MODEL = 'qwen3.5:2b-q4_K_M'
 DEFAULT_URL = 'http://127.0.0.1:11434'
 MAX_MODEL_BYTES = 2_200_000_000
 OLLAMA_VERSION = '0.40.9'

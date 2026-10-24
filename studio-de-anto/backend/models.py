@@ -224,7 +224,9 @@ async def stream(agent, messages, schema=None, token_limit=None):
     body = {'model': configured['model'], 'messages': _messages(configured, messages), 'stream': True}
     if kind == 'ollama':
         path = '/api/chat'
-        body.update(keep_alive=0, options={'num_ctx': 8192})
+        # Request direct answers on CPU. Official Ollama also accepts false for
+        # models without a thinking capability; no hidden reasoning is stored.
+        body.update(think=False, keep_alive=0, options={'num_ctx': 8192})
         if token_limit is not None:
             body['options']['num_predict'] = max(1, min(int(token_limit), 4096))
         if schema:

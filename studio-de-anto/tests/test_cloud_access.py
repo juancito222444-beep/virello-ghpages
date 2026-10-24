@@ -72,6 +72,6 @@ def test_devcontainer_has_build_start_and_single_port():
     assert config['postCreateCommand']=='bash scripts/install.sh'
     assert config['postStartCommand']=='bash scripts/start-cloud.sh --background && .venv/bin/python scripts/setup-model.py --test'
     assert config['containerEnv']['STUDIO_BOOTSTRAP_MODEL']=='1'
-    assert config['containerEnv']['STUDIO_MODEL']=='qwen2.5:3b'
+    assert config['containerEnv']['STUDIO_MODEL']=='qwen3.5:2b-q4_K_M'
     assert config['otherPortsAttributes']['onAutoForward']=='ignore'
     assert 'visibility' not in config['portsAttributes']['8765']  # not a devcontainer schema field

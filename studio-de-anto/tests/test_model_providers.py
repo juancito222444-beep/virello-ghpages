@@ -60,6 +60,7 @@ def test_mock_ollama_discovery_and_stream_schema(monkeypatch):
     assert result == 'MOCK respuesta'
     body = json.loads(requests[-1].content)
     assert body['format'] == {'type': 'object'} and body['keep_alive'] == 0
+    assert body['think'] is False
     assert body['options']['temperature'] == 0 and body['options']['num_predict'] == 3072
 
 

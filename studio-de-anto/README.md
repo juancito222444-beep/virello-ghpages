@@ -31,7 +31,7 @@ Con la aplicación ya iniciada, abre **otra terminal en la carpeta del proyecto*
 python scripts/setup-model.py --download --test
 ```
 
-En Windows puedes usar `.venv\Scripts\python.exe`; en Linux/macOS, `.venv/bin/python`. El comando prepara **qwen2.5:3b**, inicia o reutiliza Ollama, comprueba el tamaño antes de descargar y configura los agentes que aún no tengan modelo. Los pesos rondan 1,9 GB; el límite permitido por el instalador es 2,2 GB. Si falta Ollama en Linux x86-64, obtiene la distribución oficial fijada, comprueba SHA-256 y conserva sus bibliotecas CPU. Esa distribución requiere otros 1,51 GB de descarga; necesita `zstd`, incluido en el contenedor de Codespaces. En Windows/macOS instala primero [Ollama oficial](https://ollama.com/download).
+En Windows puedes usar `.venv\Scripts\python.exe`; en Linux/macOS, `.venv/bin/python`. El comando prepara **qwen3.5:2b-q4_K_M**, inicia o reutiliza Ollama, comprueba el tamaño antes de descargar y configura los agentes que aún no tengan modelo. Los pesos y su proyector rondan 1,95 GB; el límite permitido por el instalador es 2,2 GB. Si falta Ollama en Linux x86-64, obtiene la distribución oficial fijada, comprueba SHA-256 y conserva sus bibliotecas CPU. Esa distribución requiere otros 1,51 GB de descarga; necesita `zstd`, incluido en el contenedor de Codespaces. En Windows/macOS instala primero [Ollama oficial](https://ollama.com/download). Qwen 3.5 requiere Ollama 0.30.0 o posterior; la versión fijada es 0.40.9.
 
 `--test` envía una petición real a la aplicación y guarda el diagnóstico en `local-data/readiness.json`. Si la red bloquea la descarga o la inferencia falla, el comando termina con error y no anuncia un modelo listo. Repetirlo reutiliza el modelo instalado. `--model nombre:etiqueta` permite elegir otro modelo dentro del límite; `--configure` reemplaza explícitamente las asignaciones existentes. No altera instrucciones ni conversaciones.
 
@@ -49,7 +49,7 @@ La prueba crea un proyecto sintético separado, compara planes de ingresos, unid
 
 Solo una inferencia pesada a la vez. Ollama recibe `keep_alive=0`; la gestión de memoria de LM Studio/llama.cpp depende de su servidor. Los planes usan JSON Schema, temperatura cero y un máximo de tres intentos para reparar errores de validación. Se rechazan columnas inexistentes, tareas vacías o dependencias que omitan la revisión matemática. El contexto es limitado, no memoria infinita. Puedes añadir resultados con el selector de ejecución.
 
-**El localhost de la nube pertenece a la nube.** No conecta a tu PC. En este entorno están instalados Ollama 0.40.9 y Qwen 2.5 de 3B: los seis agentes tienen el modelo asignado y la inferencia real respondió «Conexión correcta» en 9,9 segundos. Los pesos ocupan 1.929.912.432 bytes según el manifiesto; Ollama verificó sus SHA-256. El entorno dispone de cuatro CPU efectivas y unos 33 GiB de RAM, sin GPU NVIDIA accesible; eso no describe tu RTX 3060. Una respuesta de conexión no certifica la calidad de los análisis.
+**El localhost de la nube pertenece a la nube.** No conecta a tu PC. En este entorno están instalados Ollama 0.40.9 y Qwen 3.5 de 2B: los seis agentes tienen el modelo asignado y la inferencia real respondió «Conexión correcta» en 5,4 segundos. La descarga suma 1.945.781.358 bytes según el manifiesto; Ollama verificó sus SHA-256. El entorno dispone de cuatro CPU efectivas y unos 33 GiB de RAM, sin GPU NVIDIA accesible; eso no describe tu RTX 3060. Una respuesta de conexión no certifica la calidad de los análisis.
 
 ## Correcciones que el equipo recuerda
 
