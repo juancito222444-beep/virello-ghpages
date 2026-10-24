@@ -1,5 +1,7 @@
 # STUDIO DE ANTO · versión1.1
 
+El usuario confirmó la conexión de Gemini. Nueva entrega: PDF/JPG/PNG/WebP con adjuntos multimodales nativos seleccionados, límites/uso informados, nota compartida, copias ZIP por proyecto, restauración como proyecto nuevo, reanudación de tareas con evidencia guardada y acceso a Tareas desde el chat. Mejoras de lectura móvil y rendimiento3D. Sin nuevas dependencias ni modelos locales. Validación y límites: docs/ARCHIVOS_Y_CONTINUIDAD.md y docs/VALIDACION.md.
+
 Conexión de modelos retirada/indisponible:238pytest PASS. Hasta tres modelos anunciados ante404 de generación, preferencia por Flash Lite estable reciente, sin reintentos ante cuota/permisos/red ni cambios de proveedor. Se guarda solo tras respuesta completa y se mantienen claves/instrucciones anteriores al fallar. Verificación de cuenta real aún pendiente.
 
 Incidencia `ServerError · models.py:97` reproducida y corregida: lectura de errores HTTP de streaming antes de interpretarlos, sin ocultar el rechazo de Gemini. Nueve regresiones nuevas con streams HTTP MOCK no consumidos; conexión real de la cuenta aún pendiente.

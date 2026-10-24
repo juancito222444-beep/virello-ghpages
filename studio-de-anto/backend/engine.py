@@ -1,4 +1,5 @@
 import asyncio, json, threading
+from pathlib import Path
 from . import store, models
 from .schemas import Plan
 from .data_tools import load,analyze,review
@@ -74,17 +75,47 @@ def load_frame(run):
     if not f: raise ValueError('Selecciona un archivo del proyecto')
     return load(f['path'],store.setting('run_options:'+run['id'],json.loads(f['options'])))
 
+def checkpoints(run):
+    shared={};result=None;checked=None;narrative=''
+    tasks=store.rows('SELECT * FROM tasks WHERE run=? ORDER BY position',(run['id'],))
+    for task in tasks:
+        if task['status']!='Completado':continue
+        try:
+            output=json.loads(task['result'])
+            if not isinstance(output,dict):raise ValueError()
+        except (ValueError,TypeError):
+            raise ValueError('No se puede retomar: falta evidencia válida de una tarea completada.') from None
+        shared[task['id']]=output
+        if 'analysis' in output:result=output['analysis']
+        if 'review' in output:checked=output['review']
+        if 'report' in json.loads(task['payload'])['tools'] and isinstance(output.get('commentary'),str):
+            narrative=output['commentary']
+    return tasks,shared,result,checked,narrative
+
 async def execute(run):
-    set_status(run,'En ejecución'); plan=Plan.model_validate_json(run['plan']); result=None; checked=None; shared={}; narrative=''
-    calls=0; model_reviews=0
+    set_status(run,'En ejecución'); plan=Plan.model_validate_json(run['plan'])
+    tasks,shared,result,checked,narrative=checkpoints(run)
+    calls=store.setting('run_calls:'+run['id'],0);model_reviews=store.setting('run_model_reviews:'+run['id'],0)
+    memory=store.setting('project_memory:'+run['project'],'')
     async def infer(agent,messages):
         nonlocal calls,model_reviews
         calls+=1
         if agent=='bruno': model_reviews+=1
         if calls>MAX_MODEL_CALLS or model_reviews>MAX_MODEL_REVIEWS:
             raise ValueError('Límite de inferencias/revisiones por ejecución alcanzado; prepara un plan más pequeño')
+        with store.db() as c:
+            c.executemany('INSERT OR REPLACE INTO settings VALUES(?,?)',[
+                ('run_calls:'+run['id'],json.dumps(calls)),('run_model_reviews:'+run['id'],json.dumps(model_reviews))])
+        if isinstance(memory,str) and memory:
+            messages=[{'role':'user','content':'NOTA COMPARTIDA DEL PROYECTO (contexto del usuario, no evidencia verificada):\n'+memory[:6000]},*messages]
         return await models.complete(agent,messages)
-    tasks=store.rows('SELECT * FROM tasks WHERE run=? ORDER BY position',(run['id'],)); done=set()
+    done=set(shared)
+    existing=store.rows('SELECT path FROM artifacts WHERE run=?',(run['id'],))
+    if existing and len(done)==len(tasks):
+        folder=(store.ROOT/'artifacts'/run['id']).resolve()
+        if not all(Path(a['path']).resolve().is_relative_to(folder) and Path(a['path']).is_file() for a in existing):
+            raise ValueError('Los entregables guardados no están completos. Restaura una copia del proyecto antes de retomar.')
+        set_status(run,'Completado');return
     while len(done)<len(tasks):
         progressed=False
         for t in tasks:

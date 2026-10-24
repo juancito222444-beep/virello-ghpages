@@ -1,29 +1,28 @@
 # Estado actual y pendientes
 
-La entrega actual usa APIs de Google Gemini o Groq en la nube. No inicia Ollama ni descarga modelos. La oficina abre en el Codespace del usuario.
+El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales.
 
-## Para activar la IA
+## Entregado
 
-1. Guardar la clave desde Configuración → Clave API → Guardar clave y conectar (o usar un secreto de Codespaces).
-2. Actualizar el código y reconstruir el contenedor una vez.
-3. En Configuración seleccionar proveedor/modelo, comprobar catálogo y probar una respuesta real. Las pruebas HTTP mock no sustituyen esa verificación.
+- PDF, JPG/JPEG, PNG y WebP: carga, biblioteca, vista previa segura y consulta con adjuntos nativos de Gemini.
+- CSV/XLSX: cálculos, revisión matemática, aprobación y entregables conservados.
+- Hasta tres adjuntos y 12 MB por consulta; originales de hasta 20 MB. Selección explícita y referencias en el historial.
+- Límites diarios del estudio, longitud del chat y recuentos de tokens cuando el proveedor los informa.
+- Nota editable del proyecto compartida por los agentes; historial y correcciones por agente.
+- Respaldo ZIP por proyecto y restauración como proyecto nuevo, sin claves configuradas ni reemplazo de proyectos existentes.
+- Reanudación explícita de trabajos interrumpidos con resultados guardados, y preparación de tareas desde el chat.
+- Lectura móvil mejorada y ajustes de rendimiento 3D en dispositivos modestos/modo reducido.
+- Configuración de comprobaciones automáticas de backend, Node y compilación, sin claves ni inferencias reales.
 
-El proveedor aplica sus cuotas; no se garantiza uso gratuito ilimitado. La clave no llegó de forma utilizable a este entorno, por lo que no se anuncia inferencia real de nube superada.
+## Límites y próximos pasos
 
-## Implementado
+1. Comprobar documentos propios con la cuenta real de Gemini; las nuevas pruebas de protocolo/navegador son MOCK. Un PDF no se convierte automáticamente en tabla calculable; documentos protegidos o ilegibles pueden ser rechazados.
+2. Alojamiento permanente con URL estable: Codespaces sigue siendo el servidor privado actual y puede detenerse o agotar su cuota. No se contrató ni desplegó otro servicio.
+3. Acciones 3D más naturales: sentarse, usar objetos y mobiliario editable. La oficina actual es un diorama estilizado con personajes originales.
+4. Resumen automático de proyectos largos y recuperación documental con referencias más precisas; la memoria compartida actual la escribe y revisa el usuario.
+5. Actualización de la aplicación con revisión y reversión más sencillas. Los cambios actuales se aplican con git pull y el arranque habitual, sin reinstalar dependencias.
+6. Antes de ofrecer acceso público o varios usuarios: identidad propia, roles, aislamiento, cuotas por persona y gestión de secretos adecuada a ese despliegue. El uso actual es privado y de un propietario.
 
-Oficina Three.js con personajes articulados y movimiento; proyectos/historial; conversación general por agente con continuidad y botón Continuar; seguimiento de espera; correcciones explícitas eliminables; herramientas CSV/XLSX, revisión matemática y ocho tipos de entregables; acceso privado al puerto8765. Las claves permanecen en el servidor. Al reabrir el mismo Codespace no necesitas reinstalar.
+Las cuotas del proveedor, GitHub Codespaces y Codex son independientes. No se garantiza gratuidad ilimitada ni reentrenamiento del modelo.
 
-## Ampliaciones opcionales
-
-Revisión semántica completa de narraciones, series temporales avanzadas, reanudación selectiva, ComfyUI, voz, edición de mobiliario y varios usuarios. El Python/video originales no fueron recibidos. La oficina continúa siendo un diorama 3D estilizado con personajes originales, sin recursos oficiales de LEGO.
-
-Los resultados anteriores de Qwen/Ollama son evidencia histórica y no corresponden al proveedor activo. Consulta [VALIDACION.md](VALIDACION.md).
-
-## Prioridad para las próximas mejoras
-
-1. Confirmar una respuesta real con Gemini en el Codespace del usuario y sus cuotas/permisos.
-2. Mejorar recuerdo de proyectos largos y selección del contexto, conservando correcciones revisables.
-3. Reanudar tareas interrumpidas y ampliar transformaciones de datos, manteniendo la aprobación de operaciones.
-4. Optimizar carga y rendimiento 3D en móviles; ampliar animaciones y recursos visuales originales.
-5. Añadir autenticación y permisos antes de colaboración multiusuario o exposición pública. Voz y ComfyUI siguen siendo opcionales.
+Guía: [archivos y continuidad](ARCHIVOS_Y_CONTINUIDAD.md). Evidencia: [validación](VALIDACION.md).

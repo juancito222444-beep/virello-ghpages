@@ -19,11 +19,13 @@ export default function Office(props:Props){
  latest.current=props;
  useEffect(()=>{
   const element=stage.current!,outer=host.current!;let renderer:THREE.WebGLRenderer;
+  const deviceMemory=(navigator as Navigator&{deviceMemory?:number}).deviceMemory;
+  const lowDevice=(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4)||(deviceMemory!==undefined&&deviceMemory<=4);
   try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}catch{
    setError('Tu navegador no pudo iniciar WebGL. Prueba Chrome o Edge con aceleración gráfica; puedes seleccionar el equipo desde la lista inferior.');return;
   }
   setError('');outer.dataset.rendererReady='false';outer.dataset.sceneVersion='3d';
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.22;renderer.setClearColor('#f5f2f8',0);element.appendChild(renderer.domElement);renderer.domElement.setAttribute('aria-label','Oficina 3D interactiva. Arrastra para girar, rueda para acercar, clic en agente para seleccionar o en suelo para mover.');
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,lowDevice||latest.current.reduced?1.15:1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.22;renderer.setClearColor('#f5f2f8',0);element.appendChild(renderer.domElement);renderer.domElement.setAttribute('aria-label','Oficina 3D interactiva. Arrastra para girar, rueda para acercar, clic en agente para seleccionar o en suelo para mover.');
   const scene=new THREE.Scene(),kit=new MeshKit(),nav=new GridNavigation(24,20),corridors=new CorridorReservations(),room=new THREE.Group();room.position.set(-12,0,-10);scene.add(room);
   const hemi=new THREE.HemisphereLight('#fff5e9','#a4a2bc',2.7);scene.add(hemi);const sun=new THREE.DirectionalLight('#fff6df',3.2);sun.position.set(-8,24,14);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-20;sun.shadow.camera.right=20;sun.shadow.camera.top=20;sun.shadow.camera.bottom=-20;sun.shadow.camera.near=.1;sun.shadow.camera.far=65;sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;sun.shadow.radius=4;scene.add(sun);
   const fill=new THREE.DirectionalLight('#d9d9ff',1.6);fill.position.set(16,12,-10);scene.add(fill);
@@ -103,12 +105,15 @@ export default function Office(props:Props){
   };
   renderer.domElement.addEventListener('pointerdown',onDown);renderer.domElement.addEventListener('pointerup',onUp);
   const contextLost=(event:Event)=>{event.preventDefault();setError('Se perdió el contexto gráfico. Recarga la vista de oficina para recuperar la escena; tus datos siguen guardados.');};renderer.domElement.addEventListener('webglcontextlost',contextLost);
-  let width=1,height=1,lastReset=latest.current.reset,lastZoom=latest.current.zoom,lastSelected=latest.current.selected,frame=0,nextShadow=0,wasDynamic=false,previous=performance.now()/1000,alive=true;
+  let width=1,height=1,lastReset=latest.current.reset,lastZoom=latest.current.zoom,lastSelected=latest.current.selected,frame=0,nextShadow=0,wasDynamic=false,previous=performance.now()/1000,lastFrame=0,alive=true;
   function resize(){width=Math.max(1,element.clientWidth);height=Math.max(1,element.clientHeight);const aspect=width/height,span=Math.max(21.5,38/aspect);camera.left=-span*aspect/2;camera.right=span*aspect/2;camera.top=span/2;camera.bottom=-span/2;camera.updateProjectionMatrix();renderer.setSize(width,height);}
   const observer=new ResizeObserver(resize);observer.observe(element);resize();
   const projected=new THREE.Vector3(),worldPosition=new THREE.Vector3();
   function animate(ms:number){
-   if(!alive)return;frame=requestAnimationFrame(animate);const time=ms/1000,dt=Math.min(.5,Math.max(0,time-previous));previous=time;const p=latest.current;
+   if(!alive)return;frame=requestAnimationFrame(animate);const time=ms/1000,p=latest.current;
+   if(document.hidden){previous=time;return;}
+   if((lowDevice||p.reduced)&&ms-lastFrame<1000/30-1)return;
+   lastFrame=ms;const dt=Math.min(.5,Math.max(0,time-previous));previous=time;
    controls.enableDamping=!p.reduced;
    if(p.reset!==lastReset){controls.reset();camera.zoom=p.zoom;camera.updateProjectionMatrix();lastReset=p.reset;lastZoom=p.zoom;}
    if(p.zoom!==lastZoom){camera.zoom=p.zoom;camera.updateProjectionMatrix();lastZoom=p.zoom;}

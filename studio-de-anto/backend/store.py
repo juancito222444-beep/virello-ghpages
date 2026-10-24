@@ -62,6 +62,14 @@ def init():
         );
         INSERT OR IGNORE INTO migrations VALUES(2);
         ''')
+        c.executescript('''
+        CREATE TABLE IF NOT EXISTS message_attachments(
+            message_id TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+            file_id TEXT NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+            PRIMARY KEY(message_id,file_id)
+        );
+        INSERT OR IGNORE INTO migrations VALUES(3);
+        ''')
         # Recovery and its events commit together. Repeated/concurrent startup
         # cannot observe recovered rows without their corresponding terminal events.
         c.execute('BEGIN IMMEDIATE')

@@ -41,24 +41,28 @@ def payload(model,messages,token_limit=None,schema=None):
         if m['role']=='system':
             system.append({'text':m['content']});continue
         role='model' if m['role']=='assistant' else 'user'
-        part={'text':m['content']}
-        if contents and contents[-1]['role']==role: contents[-1]['parts'].append(part)
-        else: contents.append({'role':role,'parts':[part]})
+        parts=[{'text':m['content']}]
+        # Only server-created user messages carry trusted attachment parts.
+        if m['role']=='user':parts.extend(m.get('parts',[]))
+        if contents and contents[-1]['role']==role: contents[-1]['parts'].extend(parts)
+        else: contents.append({'role':role,'parts':parts})
     config={'maxOutputTokens':4096 if token_limit is None else max(512,min(int(token_limit),4096))}
     # Flash 2.5 supports disabling thinking. A tiny output budget otherwise can
     # be consumed without emitting any answer during the connection test.
     if model.startswith('gemini-2.5-flash'):
         config['thinkingConfig']={'thinkingBudget':0}
-    elif token_limit is not None:
+    elif token_limit is not None and int(token_limit)<512:
         config['maxOutputTokens']=max(2048,config['maxOutputTokens'])
     if schema:config.update(responseMimeType='application/json',temperature=0)
     return {'systemInstruction':{'parts':system},'contents':contents,'generationConfig':config}
 
 
 async def tokens(response,sse_data):
+    from . import usage
     ended=False
     async for packet in sse_data(response):
         data=__import__('json').loads(packet)
+        usage.observe(data,'gemini')
         if data.get('error'):raise ValueError('Gemini informó un error de generación. Revisa la conexión en Configuración.')
         if data.get('promptFeedback',{}).get('blockReason'):
             raise ValueError('Gemini bloqueó esta petición. Revisa el mensaje o las políticas del proveedor.')
@@ -68,6 +72,6 @@ async def tokens(response,sse_data):
                     yield part['text']
             reason=candidate.get('finishReason')
             if reason=='STOP':ended=True
-            elif reason=='MAX_TOKENS':raise ValueError('Gemini agotó el límite de salida. Usa un modelo Flash sin razonamiento o pide una respuesta más breve.')
+            elif reason=='MAX_TOKENS':raise ValueError('Gemini agotó el límite de salida. Pide una respuesta más breve; si estás en el chat, puedes aumentar el máximo de tokens en Configuración.')
             elif reason:raise ValueError('Gemini no completó la respuesta. Revisa el mensaje y las restricciones del proveedor.')
     if not ended:raise ValueError('Gemini cerró la conexión sin confirmar una respuesta completa. Reintenta desde Configuración.')

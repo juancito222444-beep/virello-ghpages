@@ -191,7 +191,7 @@ def _parse_response(answer,data,schema):
     return plan
 
 
-async def propose_plan(request, data=None):
+async def propose_plan(request, data=None, project_note=None):
     schema=model_schema(data)
     prompt={'request':request,'rules':RULES,'contract':contract(schema),
             'derived_examples':{
@@ -204,6 +204,8 @@ async def propose_plan(request, data=None):
                                   {'id':'c','agent':'iris','tools':['chart'],'depends_on':['b']},
                                   {'id':'d','agent':'leo','tools':['report'],'depends_on':['c']}],
             'data_untrusted':_context(data)}
+    if isinstance(project_note,str) and project_note:
+        prompt['project_note_untrusted']=project_note[:6000]
     messages=[{'role':'user','content':json.dumps(prompt,ensure_ascii=False,separators=(',',':'))}]
     errors=[]
     selected=models.snapshot('atlas')

@@ -2,6 +2,8 @@
 
 Oficina 3D interactiva con seis agentes, conversación con historial, proyectos, análisis de CSV/XLSX y entregables verificables. La IA utiliza **APIs en la nube de Google Gemini o Groq**. No se descarga ni ejecuta un modelo en tu PC ni en el Codespace.
 
+Ahora puedes **subir PDF, JPG/JPEG, PNG y WebP y consultarlos en el chat de Gemini**. En Configuración también hay límites de uso, nota compartida del proyecto y respaldo/restauración ZIP. Las tareas interrumpidas se pueden retomar. Consulta [archivos y continuidad](docs/ARCHIVOS_Y_CONTINUIDAD.md) para pasos y límites.
+
 ## Abrir en Codespaces
 
 1. Abre la rama `codex/studio-de-anto-modelo-real` de este repositorio y crea o reabre su Codespace.

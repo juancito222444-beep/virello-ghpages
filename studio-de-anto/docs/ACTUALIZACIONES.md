@@ -1,10 +1,19 @@
-# Actualizar sin volver a instalar modelos
+# Actualizar el estudio
 
-Esta entrega usa Gemini o Groq en la nube. El proveedor mantiene su infraestructura: no necesitas instalar ni actualizar Ollama para usar STUDIO.
+La entrega usa Gemini/Groq en la nube. No necesitas instalar ni actualizar Ollama.
 
-- **Volver a usar:** reabre el mismo Codespace y su puerto privado 8765.
-- **Código de STUDIO:** `git pull --ff-only origin codex/studio-de-anto-modelo-real`; reconstruye el contenedor si cambian dependencias o configuración.
-- **Modelos nuevos:** en Configuración pulsa Guardar y comprobar API, elige un modelo anunciado y prueba una respuesta. El catálogo depende de tu cuenta y puede incluir modelos con distintas cuotas o precios; consulta las condiciones del proveedor antes de elegir.
-- **Clave nueva:** reemplaza el secreto de Codespaces del proveedor y reinicia el Codespace. Nunca la guardes en Git ni en el chat.
+- Para volver a usarlo, reabre el mismo Codespace y su puerto privado 8765.
+- Para aplicar una actualización sin cambios de dependencias, desde la raíz del repositorio:
 
-No hay cambios de proveedor ni descargas automáticas. La memoria de correcciones conserva preferencias explícitas; no modifica pesos ni reentrena modelos.
+```bash
+git pull --ff-only origin codex/studio-de-anto-modelo-real &&
+bash studio-de-anto/scripts/start-cloud.sh --background
+```
+
+Recarga la aplicación. Si una entrega cambia dependencias o configuración del contenedor, sus instrucciones indicarán cuándo reconstruirlo. Esta ampliación de PDF/imágenes y continuidad no añade dependencias.
+
+Para cambiar una clave, usa Configuración → Clave API → Guardar clave y conectar. Los secretos de Codespaces siguen siendo otra alternativa y requieren reiniciar el Codespace cuando cambian.
+
+Para modelos nuevos, pulsa Actualizar catálogo y Conectar. Si un modelo anunciado rechaza generación con 404, se prueban hasta tres candidatos anunciados. No hay cambio automático de proveedor ni reintentos de modelos ante errores de cuota/permisos/red. El catálogo no garantiza cuota gratuita.
+
+Antes de un cambio importante puedes descargar una copia del proyecto desde Configuración → Uso y continuidad. La importación crea otro proyecto y conserva el original. La memoria de correcciones y la nota compartida aportan contexto; no reentrenan los modelos.
