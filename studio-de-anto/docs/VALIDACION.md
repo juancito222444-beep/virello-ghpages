@@ -1,5 +1,11 @@
 # Validación — versión 1.1
 
+## Corrección del arranque de Codespaces
+
+El registro real aportado por el usuario identifica el fallo de construcción: `NO_PUBKEY 62D54FD4003F6525` en el repositorio APT de Yarn, seguido de `apt-get update` con código 100. El Dockerfile ahora retira únicamente `yarn.list` y `yarn.sources` antes de instalar `zstd`. El frontend utiliza npm; la verificación de firmas de Debian permanece activa.
+
+La nueva comprobación Docker descargó la imagen base y alcanzó el paso de instalación, pero esta máquina de pruebas no pudo acceder a los índices Debian durante la construcción, incluso usando su proxy. Se detuvo la comprobación; no se registra como construcción completa superada. La reconstrucción y la apertura del puerto 8765 en el Codespace del usuario siguen pendientes. Los pasos exactos de actualización están en [CODESPACES.md](CODESPACES.md). El código de la aplicación no cambió y no se repitieron las inferencias ni las suites ya superadas.
+
 ## Backend
 
 Entorno remoto Linux, Python 3.12.14 y Node 24.19.0. Cuatro CPU efectivas, unos 33 GiB de RAM y ninguna GPU NVIDIA accesible.

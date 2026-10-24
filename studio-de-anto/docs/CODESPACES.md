@@ -4,7 +4,7 @@ GitHub Codespaces proporciona una máquina de desarrollo en la nube y un navegad
 
 La entrega para `juancito222444-beep/virello-ghpages` usa la rama `codex/studio-de-anto-modelo-real`. STUDIO vive en `studio-de-anto/`; el devcontainer de la raíz prepara esa carpeta. El sitio Virello permanece en la raíz y Pages continúa apuntando a `main`.
 
-No se ha creado un Codespace: la integración accede al repositorio, pero GitHub devuelve `403 Resource not accessible by integration` al consultar sus máquinas y permisos de creación. Tampoco permite consultar la cuota de facturación. Puedes abrir la rama desde tu cuenta y crear el entorno con los siguientes pasos. No se afirma que un Codespace real ya esté ejecutándose.
+La integración no pudo crear el Codespace: GitHub devuelve `403 Resource not accessible by integration` al consultar sus máquinas y permisos de creación, y no permite consultar la cuota. El usuario lo creó desde su cuenta; su primer registro mostró un fallo de firma del repositorio Yarn y entró en recuperación. La corrección y los pasos para reconstruirlo están en la sección de recuperación de este documento. El acceso completo a la aplicación en ese Codespace debe confirmarse después de reconstruirlo.
 
 ## Preparar el repositorio
 
@@ -26,6 +26,21 @@ La primera creación descarga Python 3.12, Node 22, `zstd` y dependencias. Para 
 5. Verás la oficina, proyectos, datos, tareas y entregables. Prueba primero `examples/ventas_sinteticas.csv` en modo herramientas; no necesita modelo de IA.
 
 No pegues `127.0.0.1:8765` en el navegador de tu PC para intentar abrir el servidor remoto. El botón de la pestaña Puertos usa el reenvío privado que corresponde a esa máquina.
+
+## Si aparece «recovery mode» al crear el contenedor
+
+El registro recibido mostró `NO_PUBKEY 62D54FD4003F6525` y `apt-get update` terminó con código 100. La imagen base incluía un repositorio APT de Yarn cuya firma no podía verificarse. El Dockerfile corregido retira solo ese repositorio no utilizado antes de instalar `zstd`; el proyecto instala su frontend con `npm ci` y mantiene la verificación de firmas de Debian.
+
+En la terminal del Codespace de esta rama, actualiza la corrección:
+
+```bash
+cd /workspaces/virello-ghpages
+git pull --ff-only origin codex/studio-de-anto-modelo-real
+```
+
+Después pulsa **Ctrl+Shift+P**, selecciona **Codespaces: Rebuild Container** y espera a que terminen la instalación y el arranque. Abre **Puertos → 8765 → Abrir en navegador**, con visibilidad privada. Si vuelve a fallar, **Codespaces: View Creation Log** muestra la causa concreta del nuevo intento; el aviso de recuperación por sí solo no la identifica.
+
+Este diagnóstico procede del registro real del Codespace proporcionado por el usuario. La corrección requiere reconstruir su contenedor para comprobar allí el arranque completo.
 
 ## Si no arranca
 
