@@ -1,15 +1,12 @@
 # Virello y STUDIO DE ANTO
 
-El sitio Virello original permanece en `index.html`. Esta rama añade **STUDIO DE ANTO**, una oficina 3D de agentes con Python, React y modelos locales, en [`studio-de-anto/`](studio-de-anto/README.md).
+Esta rama añade [STUDIO DE ANTO](studio-de-anto/README.md): una oficina 3D de agentes con conversación e **IA en la nube mediante Gemini o Groq**. No descarga ni ejecuta modelos locales. El sitio Virello permanece en `index.html`.
 
-## Abrir la aplicación en GitHub
+1. Añade `STUDIO_GEMINI_API_KEY` o `STUDIO_GROQ_API_KEY` en GitHub → Settings → Codespaces → Secrets y autoriza este repositorio.
+2. Abre o reconstruye el Codespace de esta rama y espera la instalación.
+3. En **Puertos**, abre **8765** con visibilidad **Privada**.
+4. En Configuración elige el proveedor y prueba una respuesta real.
 
-1. Abre esta rama en GitHub.
-2. Pulsa **Code → Codespaces → Create codespace on this branch**.
-3. Espera la instalación. En **Ports / Puertos**, abre **8765** y conserva la visibilidad **Private / Privada**.
+Para volver a usarlo basta con reabrir el mismo Codespace. Las cuotas gratuitas dependen del proveedor y de tu cuenta; Codespaces tiene límites separados. No se promete uso ilimitado ni acceso gratuito a GPT de OpenAI.
 
-La configuración raíz instala la aplicación anidada, descarga Ollama y `qwen3.5:2b-q4_K_M` (aproximadamente 1,95 GB de pesos) y comprueba una respuesta real al arrancar. La primera preparación tarda más; los siguientes arranques reutilizan el modelo local. GitHub Pages mantiene su finalidad de sitio estático y no ejecuta el servidor de STUDIO.
-
-Codespaces tiene cuotas y límites propios; comprueba el consumo y detén el Codespace al terminar. El modelo debe ejecutarse en el mismo entorno que el backend. El Ollama de tu computadora no se conecta automáticamente al Codespace.
-
-Instrucciones completas: [guía de la aplicación](studio-de-anto/README.md), [Codespaces](studio-de-anto/docs/CODESPACES.md) y [validación](studio-de-anto/docs/VALIDACION.md).
+Guías: [aplicación](studio-de-anto/README.md), [Codespaces](studio-de-anto/docs/CODESPACES.md), [actualizaciones](studio-de-anto/docs/ACTUALIZACIONES.md) y [validación](studio-de-anto/docs/VALIDACION.md).

@@ -6,7 +6,7 @@ from contextvars import ContextVar
 from contextlib import contextmanager
 
 import httpx
-from . import store
+from . import store, cloud
 
 LOCK = asyncio.Lock()
 _REQUEST_SNAPSHOT = ContextVar('studio_inference_snapshot', default=None)
@@ -18,15 +18,21 @@ AGENTS = [
     {'id':'iris','name':'IRIS','role':'Visualización','color':'#e995b9','instructions':'Explica gráficos calculados, sus unidades y limitaciones.','tools':['chart']},
     {'id':'leo','name':'LEO','role':'Redacción','color':'#d7bb73','instructions':'Redacta con evidencia y reconoce incertidumbres.','tools':['report']},
 ]
-PROVIDERS = {'ollama': 'Ollama', 'openai_local': 'API local compatible (LM Studio / llama.cpp)'}
+PROVIDERS = {'ollama': 'Ollama', 'openai_local': 'API local compatible (LM Studio / llama.cpp)', **{k:v['name'] for k,v in cloud.PROVIDERS.items()}}
 
 
 def agents():
-    return store.setting('agents', [{**a, 'model': ''} for a in AGENTS])
+    saved=store.setting('agents', [{**a, 'model': ''} for a in AGENTS])
+    kind=provider()
+    if kind in cloud.PROVIDERS and store.setting('provider', None)!=kind:
+        return [{**a,'model':cloud.PROVIDERS[kind]['model']} for a in saved]
+    return saved
 
 
 def provider():
-    name = store.setting('provider', 'ollama')
+    name = store.setting('provider', cloud.default_provider() if cloud.only() else 'ollama')
+    if cloud.only() and name not in cloud.PROVIDERS:
+        name=cloud.default_provider()
     if name not in PROVIDERS:
         raise ValueError('Proveedor desconocido. Selecciona una API local en Configuración.')
     return name
@@ -57,7 +63,9 @@ def openai_base():
 
 
 def endpoint(kind=None):
-    return openai_base() if (kind or provider()) == 'openai_local' else base()
+    kind=kind or provider()
+    if kind in cloud.PROVIDERS: return cloud.PROVIDERS[kind]['url']
+    return openai_base() if kind == 'openai_local' else base()
 
 
 def _client(timeout):
@@ -67,6 +75,13 @@ def _client(timeout):
 
 def _http_error(exc, kind, structured=False):
     label = PROVIDERS[kind]
+    if kind in cloud.PROVIDERS:
+        status=exc.response.status_code if isinstance(exc,httpx.HTTPStatusError) else None
+        if status in (401,403): return f'{label} rechazó la clave o sus permisos. Revisa el secreto de Codespaces (HTTP {status}).'
+        if status==429: return f'{label}: cuota o límite temporal alcanzado (HTTP 429). Espera o selecciona otro proveedor con cuota disponible.'
+        if status==404: return f'{label}: modelo no disponible. Actualiza el catálogo y selecciona un modelo anunciado.'
+        if status: return f'{label} respondió HTTP {status}. Revisa el modelo y la disponibilidad del proveedor.'
+        return f'No se pudo conectar con {label}. Comprueba la conexión a Internet y vuelve a intentar.'
     if isinstance(exc, httpx.HTTPStatusError):
         status = exc.response.status_code
         if status in (401, 403):
@@ -81,6 +96,12 @@ def _http_error(exc, kind, structured=False):
     return f'Modelo no conectado. Inicia {label}, comprueba su API local y selecciona un modelo instalado.'
 
 
+def _api_client(kind, timeout):
+    if kind in cloud.PROVIDERS:
+        return httpx.AsyncClient(timeout=timeout, trust_env=True, follow_redirects=False)
+    return _client(timeout)
+
+
 async def available():
     kind = provider()
     url = endpoint(kind)
@@ -88,8 +109,9 @@ async def available():
               'inference_verified': False, 'check': 'discovery_only'}
     path = '/api/tags' if kind == 'ollama' else '/models'
     try:
-        async with _client(3) as client:
-            response = await client.get(url + path)
+        headers=cloud.headers(kind) if kind in cloud.PROVIDERS else {}
+        async with _api_client(kind,10 if kind in cloud.PROVIDERS else 3) as client:
+            response = await client.get(url + path, headers=headers)
             response.raise_for_status()
             data = response.json()
         records = data.get('models' if kind == 'ollama' else 'data')
@@ -105,8 +127,8 @@ async def available():
         return result
     except httpx.HTTPError as exc:
         result['error'] = _http_error(exc, kind)
-    except (ValueError, AttributeError):
-        result['error'] = 'La API local devolvió un catálogo inválido. Comprueba proveedor y dirección.'
+    except (ValueError, AttributeError) as exc:
+        result['error'] = str(exc) if kind in cloud.PROVIDERS else 'La API local devolvió un catálogo inválido. Comprueba proveedor y dirección.'
     return result
 
 
@@ -221,6 +243,9 @@ async def stream(agent, messages, schema=None, token_limit=None):
         raise ValueError('Modelo no conectado: selecciona un modelo instalado en Configuración.')
     # Snapshot configuration before waiting: one request never switches provider midway.
     kind, url = selected['provider'], selected['endpoint']
+    if kind in cloud.PROVIDERS and url!=cloud.PROVIDERS[kind]['url']:
+        raise ValueError('Destino de API no permitido.')
+    headers=cloud.headers(kind) if kind in cloud.PROVIDERS else {}
     body = {'model': configured['model'], 'messages': _messages(configured, messages), 'stream': True}
     if kind == 'ollama':
         path = '/api/chat'
@@ -241,11 +266,15 @@ async def stream(agent, messages, schema=None, token_limit=None):
             if token_limit is None:
                 body['max_tokens'] = 3072
             body['response_format'] = {'type': 'json_schema', 'json_schema': {'name': 'studio_plan', 'schema': schema, 'strict': True}}
+    if schema and kind in cloud.PROVIDERS:
+        # Portable JSON mode; the complete plan is still validated server-side.
+        body['response_format']={'type':'json_object'}
+        body['messages'].append({'role':'user','content':'Devuelve solo JSON válido según este esquema: '+json.dumps(schema,ensure_ascii=False)})
     # Cancellation propagates through the HTTP stream and releases the sole inference slot.
     async with LOCK:
         try:
-            async with _client(httpx.Timeout(180, connect=5)) as client:
-                async with client.stream('POST', url + path, json=body) as response:
+            async with _api_client(kind,httpx.Timeout(180, connect=10)) as client:
+                async with client.stream('POST', url + path, json=body, headers=headers) as response:
                     response.raise_for_status()
                     iterator = _ollama_tokens(response) if kind == 'ollama' else _openai_tokens(response)
                     received = False

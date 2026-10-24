@@ -13,6 +13,9 @@ from model_runtime import (
 
 
 def main():
+    if os.environ.get('STUDIO_CLOUD_ONLY','1')!='0':
+        print('Esta entrega usa APIs en la nube. No se inicia Ollama ni se descargan modelos. Configura Gemini o Groq en la aplicación.')
+        return 0
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--download', action='store_true', help='Autoriza instalar Ollama y descargar el modelo (máximo 2.2 GB de pesos).')
     parser.add_argument('--model', default=os.environ.get('STUDIO_MODEL', DEFAULT_MODEL))

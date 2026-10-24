@@ -10,6 +10,10 @@ async function request(path,body,method){const response=await fetch(base+'/api'+
  await page.goto(base);await page.getByLabel('Proyecto activo').selectOption(project.id);
  await page.getByLabel('Mensaje',{exact:true}).fill('Prueba explícita MOCK');await page.getByRole('button',{name:'Enviar',exact:true}).click();
  await page.getByRole('button',{name:'Guardar corrección',exact:true}).last().waitFor();
+ const previousAnswers=await page.locator('.message.assistant').count();
+ await page.getByRole('button',{name:'Continuar conversación',exact:true}).click();
+ await page.waitForFunction(expected=>document.querySelectorAll('.message.assistant .feedback-toolbar').length===expected,previousAnswers+1);
+ if(!(await page.locator('.message.user').last().innerText()).includes('Continúa desde tu respuesta anterior'))throw Error('Continuar no conservó una petición visible en la conversación');
  await page.getByRole('button',{name:'Útil',exact:true}).last().click();
  await page.getByRole('button',{name:'Guardar corrección',exact:true}).last().click();
  const correction='Prefiero que siempre expliques las unidades de la métrica.';
@@ -24,14 +28,19 @@ async function request(path,body,method){const response=await fetch(base+'/api'+
  await page.getByText('Correcciones guardadas (0)',{exact:true}).waitFor();
  // Cambiar de agente cancela la respuesta y no la mezcla con VERA.
  await page.getByLabel('Mensaje',{exact:true}).fill('respuesta lenta MOCK');await page.getByRole('button',{name:'Enviar',exact:true}).click();
+ await page.locator('.chat-progress').waitFor();
+ await page.getByLabel('Mensaje',{exact:true}).fill('mensaje que todavía no envío');await page.getByLabel('Mensaje',{exact:true}).press('Enter');
+ if(await page.getByLabel('Mensaje',{exact:true}).inputValue()!=='mensaje que todavía no envío')throw Error('Se perdió el borrador durante la inferencia');
  await page.getByRole('button',{name:'VERA Análisis',exact:true}).click();
  await page.getByRole('heading',{name:'VERA',exact:false}).waitFor();await page.waitForTimeout(600);
  if(await page.locator('.message').count())throw Error('Se mezcló el historial de ANTO con VERA');
  await page.getByRole('button',{name:'Configuración',exact:true}).click();
- await page.getByLabel('URL de la API').fill('http://127.0.0.1:11555/');await page.getByRole('button',{name:'Guardar y comprobar API',exact:true}).click();
- await page.locator('.settings-connection.ok').waitFor();if(!(await page.locator('.settings-connection.ok').innerText()).includes('1 modelos disponibles'))throw Error('No se anunció el modelo descubierto');
- if(await page.getByText('Hay cambios sin guardar.',{exact:false}).count())throw Error('La URL normalizada quedó como no guardada');
- await page.getByRole('button',{name:'Guardar y probar inferencia',exact:true}).click();await page.getByText('Respuesta recibida del proveedor',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Google Gemini',exact:false}).click();
+ await page.getByRole('button',{name:'Guardar y comprobar API',exact:true}).click();
+ await page.locator('.settings-connection').getByText('Falta el secreto STUDIO_GEMINI_API_KEY',{exact:false}).waitFor();
+ await page.getByRole('button',{name:'Guardar y probar respuesta',exact:true}).click();
+ await page.getByRole('alert').getByText('Falta el secreto STUDIO_GEMINI_API_KEY',{exact:false}).waitFor();
+ if(await page.getByText('Respuesta recibida del proveedor',{exact:true}).count())throw Error('Se fingió una respuesta sin clave de nube');
  if(errors.length)throw Error(errors.join('\n'));
- console.log('PASS MOCK: streaming, guardar/recuperar/borrar corrección, contexto enviado, cambio de agente aislado, URL normalizada y prueba API. Sin inferencia real.');await browser.close();
+ console.log('PASS MOCK: streaming, guardar/recuperar/borrar corrección, contexto enviado, cambio de agente aislado, continuación y clave de nube ausente sin respuesta inventada. Sin inferencia real.');await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

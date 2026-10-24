@@ -6,6 +6,14 @@ El registro real aportado por el usuario identifica el fallo de construcción: `
 
 La nueva comprobación Docker descargó la imagen base y alcanzó el paso de instalación, pero esta máquina de pruebas no pudo acceder a los índices Debian durante la construcción, incluso usando su proxy. Se detuvo la comprobación; no se registra como construcción completa superada. La reconstrucción y la apertura del puerto 8765 en el Codespace del usuario siguen pendientes. Los pasos exactos de actualización están en [CODESPACES.md](CODESPACES.md). El código de la aplicación no cambió y no se repitieron las inferencias ni las suites ya superadas.
 
+## Entrega actual: APIs en la nube
+
+El usuario confirmó la apertura del estudio en Codespaces. Esta entrega usa Gemini/Groq por HTTPS con claves solo en variables de entorno del servidor. El arranque no inicia Ollama y la instalación no descarga modelos. Las pruebas históricas de Qwen/Ollama que siguen no certifican estas APIs.
+
+Validación actual: **172 pruebas pytest superadas**, TypeScript/Vite compilados y humo Chromium de interfaz Gemini/Groq, error por clave ausente, ausencia de respuesta inventada, diseño móvil y cero errores JavaScript. No se ejecutaron inferencias ni descargas locales en esta comprobación.
+
+Se añadió conversación general con continuidad, estados de espera y botón Continuar. Los contratos de nube se prueban con HTTP mocks: destinos fijos, autenticación, ausencia de claves en respuestas/SQLite, errores de permisos/cuota y conservación de instrucciones al migrar. **No se ha probado inferencia real en Gemini/Groq: no se recibió una clave utilizable en este entorno.** Debe probarse desde Configuración en el Codespace después de añadir el secreto.
+
 ## Backend
 
 Entorno remoto Linux, Python 3.12.14 y Node 24.19.0. Cuatro CPU efectivas, unos 33 GiB de RAM y ninguna GPU NVIDIA accesible.

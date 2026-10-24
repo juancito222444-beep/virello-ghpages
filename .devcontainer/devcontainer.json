@@ -10,8 +10,7 @@
     }
   },
   "containerEnv": {
-    "STUDIO_BOOTSTRAP_MODEL": "1",
-    "STUDIO_MODEL": "qwen3.5:2b-q4_K_M"
+    "STUDIO_CLOUD_ONLY": "1"
   },
   "forwardPorts": [
     8765
@@ -25,10 +24,18 @@
     }
   },
   "postCreateCommand": "cd studio-de-anto && bash scripts/install.sh",
-  "postStartCommand": "cd studio-de-anto && bash scripts/start-cloud.sh --background && .venv/bin/python scripts/setup-model.py --test",
+  "postStartCommand": "cd studio-de-anto && bash scripts/start-cloud.sh --background",
   "shutdownAction": "stopContainer",
   "remoteUser": "vscode",
   "otherPortsAttributes": {
     "onAutoForward": "ignore"
+  },
+  "secrets": {
+    "STUDIO_GEMINI_API_KEY": {
+      "description": "Clave Gemini: AI en la nube (cuotas según tu cuenta)"
+    },
+    "STUDIO_GROQ_API_KEY": {
+      "description": "Clave Groq: alternativa AI en la nube (opcional)"
+    }
   }
 }

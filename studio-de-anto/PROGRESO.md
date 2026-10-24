@@ -1,5 +1,7 @@
 # STUDIO DE ANTO · versión1.1
 
+Entrega actual: Gemini/Groq en la nube, sin arrancar ni descargar modelos locales. Chat general, continuidad y progreso de respuesta implementados. Falta probar una respuesta real con la clave del usuario configurada como secreto de Codespaces. Las verificaciones locales que siguen pertenecen a la entrega anterior.
+
 - [x] Oficina Three.js, personajes articulados, cámara y acciones visuales.
 - [x] APIs locales Ollama y compatibles OpenAI; diagnóstico separado de prueba de inferencia.
 - [x] Memoria de correcciones explícitas, eliminables y aisladas por proyecto/agente; sin reentrenar el modelo.

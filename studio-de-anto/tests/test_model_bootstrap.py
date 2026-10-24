@@ -380,9 +380,10 @@ def test_successful_download_clears_the_previous_empty_catalog_error(monkeypatch
     assert 'error' not in reports[-1]
 
 
-def test_regular_launchers_only_use_download_free_server_check():
+def test_regular_launchers_never_start_or_download_local_models():
     for name in ('scripts/start.sh', 'scripts/start-cloud.sh', 'Iniciar-Windows.cmd'):
         content = (ROOT / name).read_text(encoding='utf-8')
-        assert 'ensure-model-server.py' in content
+        assert 'ensure-model-server.py' not in content
+        assert 'STUDIO_CLOUD_ONLY' in content
         assert '--download' not in content
         assert 'setup-model.py' not in content

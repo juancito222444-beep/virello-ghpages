@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Start a previously installed local Ollama, without any network download."""
+import os
 import argparse
 from pathlib import Path
 import sys
@@ -7,6 +8,9 @@ from model_runtime import DEFAULT_URL, ROOT, ensure_server, write_readiness
 
 
 def main():
+    if os.environ.get('STUDIO_CLOUD_ONLY','1')!='0':
+        print('Modo nube: no se inicia ningún modelo local.')
+        return 0
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--url', default=DEFAULT_URL, help='API HTTP local de Ollama.')
     parser.add_argument('--root', type=Path, default=ROOT, help=argparse.SUPPRESS)

@@ -12,9 +12,7 @@ fi
 export MPLCONFIGDIR="$PWD/local-data/matplotlib"
 export XDG_CACHE_HOME="$PWD/local-data/cache"
 mkdir -p "$MPLCONFIGDIR" "$XDG_CACHE_HOME"
-if ! .venv/bin/python scripts/ensure-model-server.py; then
-  echo 'La app abrirá en modo herramientas; la inferencia espera un modelo local disponible.' >&2
-fi
+export STUDIO_CLOUD_ONLY=1
 cloud_hostname="$(.venv/bin/python -c 'from backend.access import codespace_host; value=codespace_host(); print(value or ""); raise SystemExit(0 if value else 1)')" || {
   echo 'El nombre o dominio de Codespaces no es válido; no se abrirá el servidor.' >&2
   exit 1

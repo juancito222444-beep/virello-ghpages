@@ -22,5 +22,7 @@
   "notes": "Inferencia real y aceptación sintética por API superadas. La evidencia pública de colaboración se enlaza por separado. No contiene pesos ni conversaciones privadas; no certifica la narrativa.",
   "collaboration_checked_at": "2026-10-24T00:11:18+00:00",
   "collaboration_evidence": "ACEPTACION_MODELO_REAL.json",
-  "collaboration_scope": "Tres planes con argumentos verificados y una ejecución sintética de ingresos con revisión matemática y ocho descargas; narrativa sin certificar."
+  "collaboration_scope": "Tres planes con argumentos verificados y una ejecución sintética de ingresos con revisión matemática y ocho descargas; narrativa sin certificar.",
+  "delivery_status": "historical_local_inference_not_current_cloud_provider",
+  "current_cloud_inference_verified": false
 }
