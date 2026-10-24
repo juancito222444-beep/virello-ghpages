@@ -68,7 +68,7 @@ def configured(kind):
 def redact(value):
     message=str(value)
     try:candidates=list(credential_store.read_all().values())
-    except ValueError:candidates=[]
+    except (ValueError,OSError):candidates=[]
     pending=_CANDIDATE.get()
     if pending:candidates.append(pending[1])
     for service in PROVIDERS.values():

@@ -1,3 +1,4 @@
+import {fetchApi,readApiResponse} from './api';
 import React,{useEffect,useRef,useState} from 'react';
 import{createRoot}from'react-dom/client';
 import{Armchair,Layers3,LayoutGrid,Database,FolderOpen,Settings,Plus,ArrowUpRight,ArrowUp,ChevronDown,ChevronRight,Minus,Maximize,Move,MessageSquare,Activity,X,Upload,Download,Check,Play,Square,RefreshCw,Leaf,Sparkles,PanelRightClose,Menu,Boxes,MoreHorizontal,FileSpreadsheet,WifiOff,CheckCircle2,LoaderCircle}from'lucide-react';
@@ -11,7 +12,7 @@ type Artifact={id:string;name:string;run:string};
 type Preview={rows:number;duplicates:number;columns:{name:string;type:string;missing:number}[];preview:Record<string,unknown>[];sheets:string[]};
 type Msg={error?:string;id:string;key?:string;role:string;content:string;model?:string;provider?:string;persisted?:boolean;status?:'complete'|'streaming'|'cancelled'|'error'};
 type Feedback={id:string;message_id:string;project:string;agent:string;rating:'useful'|'correction';correction:string|null;created:string};
-async function api(path:string,body?:unknown,method?:string,signal?:AbortSignal){const r=await fetch('/api'+path,{method:method||(body?'POST':'GET'),headers:body instanceof FormData?{}:{'Content-Type':'application/json'},body:body instanceof FormData?body:body?JSON.stringify(body):undefined,signal});const d=await r.json();if(!r.ok)throw Error(typeof d.detail==='string'?d.detail:JSON.stringify(d.detail||d));return d;}
+async function api(path:string,body?:unknown,method?:string,signal?:AbortSignal){const r=await fetchApi('/api'+path,{method:method||(body?'POST':'GET'),headers:body instanceof FormData?{}:{'Content-Type':'application/json'},body:body instanceof FormData?body:body?JSON.stringify(body):undefined,signal});return readApiResponse(r);}
 const navs=[['office','Oficina',Armchair],['projects','Proyectos',Layers3],['tasks','Tareas',LayoutGrid],['data','Datos',Database],['deliverables','Entregables',FolderOpen],['settings','Configuración',Settings]] as const;
 function App(){
  const[page,setPage]=useState('office'),[projects,setProjects]=useState<Project[]>([]),[project,updateProject]=useState(''),[agents,setAgents]=useState<Agent[]>([]),[selected,updateSelected]=useState('anto'),[connected,setConnected]=useState(false),[ollama,setOllama]=useState('http://127.0.0.1:11434');
@@ -100,8 +101,8 @@ function App(){
   function updateAnswer(change:(message:Msg)=>Msg){if(active())setMessages(old=>old.map(m=>m.key===answerKey?change(m):m));}
   let completed=false,received=false;
   try{
-   const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
-   if(!r.ok){const data=await r.json();throw Error(data.detail||'No se pudo iniciar la conversación');}
+   const r=await fetchApi('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
+   if(!r.ok){await readApiResponse(r);throw Error('No se pudo iniciar la conversación');}
    if(!r.body)throw Error('El servidor no abrió el flujo de respuesta.');
    const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';
    while(true){const{done,value}=await reader.read();if(done)break;if(!active()){await reader.cancel();return;}buffer+=decoder.decode(value,{stream:true});let index;

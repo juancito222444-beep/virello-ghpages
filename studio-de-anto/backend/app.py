@@ -1,4 +1,4 @@
-import asyncio, contextlib, json, os, zipfile
+import asyncio, contextlib, json, os, zipfile, logging, traceback, uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
@@ -32,13 +32,28 @@ def health():
     return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid()}
 
 
+def internal_error(request,exc):
+    from fastapi.responses import JSONResponse
+    reference=uuid.uuid4().hex[:12]
+    route=getattr(request.scope.get('route'),'path','/api')
+    # Log location/type only: exception strings and request bodies can contain keys.
+    frames=' > '.join(f'{Path(f.filename).name}:{f.lineno} {f.name}' for f in traceback.extract_tb(exc.__traceback__))
+    logging.getLogger('studio.api').error('API error ref=%s route=%s type=%s frames=%s',reference,route,type(exc).__name__,frames)
+    return JSONResponse({'detail':'Error interno del servidor. Referencia: '+reference+'.','error_code':'INTERNAL_ERROR','reference':reference},status_code=500,headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Request-ID':reference})
+
+@app.exception_handler(Exception)
+async def unexpected_error(request,exc):
+    return internal_error(request,exc)
+
 @app.middleware('http')
 async def local_only(request,call_next):
     denied=access_error(request.headers.get('host',''),request.headers.get('origin'))
     if denied:
         return __import__('starlette.responses',fromlist=['JSONResponse']).JSONResponse({'detail':denied},status_code=403)
-    response=await call_next(request)
+    try:response=await call_next(request)
+    except Exception as exc:return internal_error(request,exc)
     response.headers['X-Content-Type-Options']='nosniff'
+    if request.url.path.startswith('/api/'):response.headers['Cache-Control']='no-store'
     return response
 
 @app.exception_handler(ValueError)
@@ -144,6 +159,7 @@ async def save_credential(body:CredentialInput):
             # Format, catalog and generation are checked before replacing a working key.
             try:
                 cloud.headers(body.provider)
+                credential_store.check_writable()
                 result=await prepare_connection(connection)
             except ValueError as exc:
                 raise ValueError(cloud.redact(exc)) from None

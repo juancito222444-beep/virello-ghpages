@@ -34,3 +34,5 @@ Mejora de operación: fallos del chat muestran causa y quedan en Actividad; actu
 Conectar Gemini en un paso: detección, modelo disponible y generación antes de confirmar; ajustes avanzados plegados, causas visibles junto al chat y recuperación de versión/secretos del servidor. 188 tests, build y humo de interfaz MOCK superados. La cuenta real debe comprobarse en su Codespace.
 
 Claves en la propia aplicación: añadir, verificar, guardar en archivo privado, reemplazar y eliminar. Preferencia sobre secretos de entorno, sin exponer valor ni exportarlo. 196 pruebas, build y humo Chromium MOCK superados; cuenta real del usuario pendiente de comprobación desde el formulario.
+
+Corrección de guardado:205pytest y7pruebas del lector HTTP superadas; permisos propios reparables, diagnóstico de espacio/permisos, comprobación previa sin consumir API y errores JSON sin secretos. El formulario soporta500texto de proxies y permite reintentar; build y humo Chromium MOCK superados.

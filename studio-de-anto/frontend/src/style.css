@@ -16,3 +16,5 @@
 .message .chat-error{color:#9a3553;margin-top:8px;font-size:11px;line-height:1.6}
 
 .chat-connection-error{border:1px solid #eed5dd;background:#fff6f8;border-radius:8px;padding:10px;margin-bottom:10px;line-height:1.6;overflow-wrap:anywhere;font-size:11px}.chat-connection-error p{margin:7px 0;color:#8c3a54}
+
+.settings-card .chat-error{padding:10px;border-radius:7px;background:#fff1f3;color:#942f4b;border:1px solid #e9bfc8;overflow-wrap:anywhere}

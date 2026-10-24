@@ -39,7 +39,8 @@ def environment_matches(pid,root=ROOT,proc=Path('/proc')):
 
 def safe_error(value):
     from . import cloud
-    return cloud.redact(value)
+    try:return cloud.redact(value)
+    except Exception:return 'No se pudo acceder a la configuración privada del servidor.'
 
 
 def stop_owned_server(pidfile,root=ROOT,timeout=20):

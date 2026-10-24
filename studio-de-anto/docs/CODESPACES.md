@@ -53,3 +53,9 @@ Después recarga la aplicación y reintenta el mensaje. Si el proveedor rechaza 
 ## Conectar en un paso
 
 Junto al cuadro donde escribes aparece **Conectar Gemini**. Usa el secreto ya configurado, comprueba el catálogo y prueba una respuesta. Conserva los modelos disponibles y las instrucciones; si un modelo guardado ya no existe, usa uno del catálogo. No cambia cuotas ni crea claves. Si falla, el motivo permanece junto al chat y el botón permite volver a comprobar después de resolverlo. Los ajustes de cada agente quedan en **Ajustes avanzados del equipo**.
+
+## Error interno al guardar la clave
+
+Los fallos del formulario se muestran junto al campo protegido. Se verifican permisos y espacio del almacenamiento, y se reparan los permisos esperados solo en carpetas/archivos de datos propiedad del usuario que ejecuta el servidor. No se usa sudo ni se toma posesión de archivos de otro usuario. Un fallo inesperado devuelve una referencia que coincide con el registro del servidor; el registro excluye claves y cuerpos de solicitudes.
+
+La interfaz también maneja respuestas de proxy en texto o HTML sin intentar mostrarlas ni revelar su contenido. Un error500 de texto se identifica como error del servidor;401/403 pide abrir de nuevo la sesión y502/503/504 indica indisponibilidad temporal. Para errores con referencia, el registro está en `local-data/codespaces-server.log`.
