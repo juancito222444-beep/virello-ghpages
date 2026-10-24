@@ -11,10 +11,12 @@ El usuario ya confirmó que el estudio abre en su Codespace. Esta actualización
    ```
 
 3. Pulsa **Ctrl+Shift+P → Codespaces: Rebuild Container**. La reconstrucción aplica el nuevo arranque y los secretos; espera la instalación y el mensaje de servidor listo.
-4. Abre **Puertos → 8765 → Abrir en navegador**. Conserva la visibilidad **Privada**.
+4. La aplicación se abre automáticamente en el navegador cuando el servidor está listo. Si el navegador no abre la pestaña, usa **Puertos → 8765 → Abrir en navegador**. Conserva la visibilidad **Privada**.
 5. En Configuración selecciona el proveedor de tu clave y pulsa **Guardar y comprobar API** y después **Guardar y probar respuesta**. Un catálogo no demuestra que el modelo haya respondido.
 
-Para las próximas sesiones basta con detener y reabrir este mismo Codespace. No ejecutes la instalación ni crees uno nuevo cada vez. La aplicación y los datos se conservan mientras mantengas ese Codespace. Eliminarlo puede borrar `local-data/`; respalda esa carpeta antes de eliminarlo.
+El arranque espera a que el servidor esté listo antes de completar la preparación del editor. Al volver a conectar, comprueba que la aplicación siga activa y reutiliza el servidor existente.
+
+Para las próximas sesiones basta con detener y reabrir este mismo Codespace: el servidor arranca y el puerto solicita abrir la aplicación automáticamente, sin comandos en la terminal. No ejecutes la instalación ni crees uno nuevo cada vez. La aplicación y los datos se conservan mientras mantengas ese Codespace. Eliminarlo puede borrar `local-data/`; respalda esa carpeta antes de eliminarlo.
 
 Los modelos predeterminados son sugerencias editables. Actualiza el catálogo del proveedor y selecciona uno disponible para tu cuenta si un identificador deja de existir. Un error 401/403 pide revisar clave/permisos; 429 indica cuota o límite temporal y no se transforma en una respuesta inventada.
 

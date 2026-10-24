@@ -17,7 +17,7 @@
   "portsAttributes": {
     "8765": {
       "label": "STUDIO DE ANTO",
-      "onAutoForward": "notify",
+      "onAutoForward": "openBrowser",
       "protocol": "http",
       "requireLocalPort": true
     }
@@ -36,5 +36,7 @@
     "STUDIO_GROQ_API_KEY": {
       "description": "Clave Groq: alternativa AI en la nube (opcional)"
     }
-  }
+  },
+  "postAttachCommand": "bash scripts/start-cloud.sh --background",
+  "waitFor": "postStartCommand"
 }

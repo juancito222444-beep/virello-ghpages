@@ -9,7 +9,7 @@ Oficina 3D interactiva con seis agentes, conversación con historial, proyectos,
    - `STUDIO_GEMINI_API_KEY`: [crear clave Gemini](https://aistudio.google.com/apikey).
    - `STUDIO_GROQ_API_KEY`: [crear clave Groq](https://console.groq.com/keys).
 3. Detén y vuelve a abrir el Codespace después de añadir el secreto. Espera el arranque.
-4. Abre **Puertos → 8765 → Abrir en navegador**, con visibilidad **Privada**.
+4. La aplicación se abre automáticamente cuando está lista. También puedes abrir **Puertos → 8765 → Abrir en navegador**, con visibilidad **Privada**.
 5. En **Configuración**, selecciona el proveedor, pulsa **Guardar y comprobar API**, elige un modelo anunciado y prueba **Guardar y probar respuesta**.
 
 Las claves nunca se solicitan en el chat, se envían al navegador ni se guardan en SQLite. Las cuentas pueden ofrecer cuotas gratuitas con límites; la disponibilidad, los modelos y las condiciones dependen de cada proveedor. No se promete GPT de OpenAI gratuito ni uso ilimitado. Codespaces tiene su propia cuota.

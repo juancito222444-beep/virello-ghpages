@@ -71,6 +71,9 @@ def test_devcontainer_has_build_start_and_single_port():
     assert config['forwardPorts']==[8765]
     assert config['postCreateCommand']=='bash scripts/install.sh'
     assert config['postStartCommand']=='bash scripts/start-cloud.sh --background'
+    assert config['postAttachCommand']=='bash scripts/start-cloud.sh --background'
+    assert config['waitFor']=='postStartCommand'
+    assert config['portsAttributes']['8765']['onAutoForward']=='openBrowser'
     assert config['containerEnv']=={'STUDIO_CLOUD_ONLY':'1'}
     assert 'STUDIO_GEMINI_API_KEY' in config['secrets']
     assert config['otherPortsAttributes']['onAutoForward']=='ignore'

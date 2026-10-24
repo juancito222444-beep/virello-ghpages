@@ -39,8 +39,8 @@ with urllib.request.urlopen(request, timeout=2) as response:
 PY
 }
 if ready; then
-  echo 'STUDIO DE ANTO ya está ejecutándose. No se inició otro servidor.'
-  echo "En Codespaces, abre la pestaña Puertos y el puerto 8765: ${cloud_url}"
+  echo "STUDIO DE ANTO está listo: ${cloud_url}"
+  echo 'La aplicación se abre automáticamente en el navegador. También está en Puertos → 8765.'
   exit 0
 fi
 if [[ "${1:-}" != "--background" ]]; then
@@ -63,7 +63,8 @@ cloud_pid=$!
 printf '%s\n' "$cloud_pid" > "$cloud_pidfile"
 for _ in {1..30}; do
   if ready; then
-    echo "STUDIO DE ANTO listo. Abre el puerto 8765 (Privado): ${cloud_url}"
+    echo "STUDIO DE ANTO listo: ${cloud_url}"
+    echo 'La aplicación se abre automáticamente. Si no aparece, usa Puertos → 8765 → Abrir en navegador.'
     echo "Registro: ${cloud_log}"
     exit 0
   fi
