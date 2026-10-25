@@ -38,7 +38,9 @@ El modelo se identifica sin el prefijo `models/`, que también se acepta si esta
 
 El estado por sí solo no identifica la causa. Ahora el mensaje fallido conserva el error concreto dentro del chat; si la conexión falla, el aviso se muestra también junto al cuadro donde escribes. Los errores de proveedor quedan en Actividad sin exponer claves. **Revisar conexión** abre directamente la configuración.
 
-El arranque compara la versión realmente cargada por el servidor y sus secretos con los archivos y el entorno actuales. Al actualizar, reinicia de forma gradual solo el PID registrado y verificado de esta aplicación, sin tocar procesos ajenos ni forzar el cierre de peticiones. Esto evita servir una interfaz nueva con un backend anterior o una clave antigua. Si no puede verificar el proceso, pide reiniciar el Codespace. No obtiene secretos nuevos de GitHub: estos deben estar disponibles en el entorno del Codespace.
+El arranque compara la versión realmente cargada por el servidor y sus secretos con los archivos y el entorno actuales. Al actualizar, reinicia de forma gradual solo el PID registrado y verificado de esta aplicación, sin tocar procesos ajenos. Espera hasta 15 segundos a las peticiones abiertas y después las interrumpe; así la conexión permanente de Actividad no bloquea el reinicio. Espera a que termine una respuesta antes de actualizar: una respuesta activa puede quedar interrumpida y no se repite automáticamente. Los proyectos, las claves y los resultados ya guardados se conservan. Esto evita servir una interfaz nueva con un backend anterior o una clave antigua. Si no puede verificar el proceso, pide reiniciar el Codespace. No obtiene secretos nuevos de GitHub: estos deben estar disponibles en el entorno del Codespace.
+
+La primera actualización desde un servidor anterior, que no tenía límite de cierre, puede requerir cerrar las pestañas de la aplicación antes de repetir el arranque. Si sigue apagándose, detén y reabre el mismo Codespace; no hace falta reinstalar ni borrar sus datos.
 
 Para aplicar cambios sin reinstalar cuando no cambian las dependencias, desde la raíz del repositorio:
 

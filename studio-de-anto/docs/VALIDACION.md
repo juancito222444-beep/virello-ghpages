@@ -1,5 +1,27 @@
 # Validación — versión 1.1
 
+## Revisión del 25 de octubre de 2026
+
+Se continuó desde `ca6ac07` de la rama `codex/studio-de-anto-modelo-real`, conservando las entregas anteriores.
+
+- **Gemini:** se comprobó que el formulario guardaba ajustes antes de probar la conexión. Ahora consultar el catálogo no escribe ajustes ni genera una respuesta; conectar valida el borrador y lo confirma solo al terminar correctamente. Los errores conservan proveedor, agentes, instrucciones y claves anteriores. Diez regresiones HTTP MOCK cubren estos casos y el rechazo de borradores inválidos antes de crear un cliente del proveedor.
+- **Inicio automático:** Uvicorn esperaba indefinidamente las conexiones SSE de Actividad. Los arranques usan un cierre gradual de 15 segundos, inferior a los 20 segundos de espera del reinicio. Tres pruebas ejercitan el cierre real de Uvicorn con una tarea abierta y reloj acelerado. Una respuesta en curso puede interrumpirse al actualizar; no se repite automáticamente. Los pasos para actualizar un servidor antiguo están en [Codespaces](CODESPACES.md).
+- **PDF e imágenes:** no se comprobó otro fallo que justificara cambiar el flujo. Pasan las pruebas de bytes reales, originales, límites, aislamiento y protocolo multimodal. El nuevo recorrido Chromium MOCK verifica PDF/JPG/PNG, envío explícito, límite de tres archivos, conservación de selección y texto tras un error, reintento, limpieza tras éxito, ausencia de reenvío automático y lectura móvil sin desbordamiento.
+- **Interfaz de ajustes:** otro recorrido Chromium MOCK comprueba catálogo sin guardado ni generación, proveedor del borrador separado del guardado, fallo sin perder borradores y conexión posterior correcta, sin errores JavaScript.
+
+Resultado final: **372 pruebas pytest superadas**, 15 avisos de dependencias; **17 pruebas Node superadas**, compilación TypeScript/Vite y ambos recorridos Chromium MOCK contra el cliente compilado superados. También se comprobó el backend real con Actividad abierta: tras SIGTERM cerró en **15,17 segundos**, conservando el proyecto y el archivo de clave sintéticos.
+
+Las pruebas usan datos temporales, claves sintéticas y respuestas HTTP MOCK; no se consultó la cuenta real de Gemini ni se hicieron llamadas de pago. Los proyectos y las claves reales no se abrieron ni modificaron. Vite mantiene el aviso previo de tamaño del bundle. Windows conserva su script actualizado, sin ejecución en este entorno Linux. La apertura del Codespace del usuario y los documentos con su cuenta real siguen pendientes.
+
+Para repetir los recorridos de navegador, sirve `frontend/dist` localmente y, desde `frontend/`, indica esa URL y tu Chromium instalado:
+
+```bash
+ANTO_TEST_URL=http://127.0.0.1:8791 CHROMIUM_PATH=/usr/bin/chromium npm run test:settings
+ANTO_TEST_URL=http://127.0.0.1:8791 CHROMIUM_PATH=/usr/bin/chromium npm run test:attachments
+```
+
+Ambos recorridos interceptan las APIs con respuestas simuladas; no deben apuntarse al servidor de datos del usuario.
+
 ## Corrección del arranque de Codespaces
 
 El registro real aportado por el usuario identifica el fallo de construcción: `NO_PUBKEY 62D54FD4003F6525` en el repositorio APT de Yarn, seguido de `apt-get update` con código 100. El Dockerfile ahora retira únicamente `yarn.list` y `yarn.sources` antes de instalar `zstd`. El frontend utiliza npm; la verificación de firmas de Debian permanece activa.

@@ -1,5 +1,7 @@
 # STUDIO DE ANTO · versión1.1
 
+Revisión del 25 de octubre de 2026: corregido el guardado prematuro de ajustes al comprobar Gemini y el cierre indefinido con Actividad abierta. PDF e imágenes conservan su comportamiento, ahora con prueba de navegador reproducible en `frontend/tests/attachments.cjs`. Las pruebas usan datos sintéticos y proveedores MOCK, sin llamadas de pago ni cambios en proyectos o claves reales. Ver detalle en `docs/VALIDACION.md`.
+
 El usuario confirmó la conexión de Gemini. Nueva entrega: PDF/JPG/PNG/WebP con adjuntos multimodales nativos seleccionados, límites/uso informados, nota compartida, copias ZIP por proyecto, restauración como proyecto nuevo, reanudación de tareas con evidencia guardada y acceso a Tareas desde el chat. Mejoras de lectura móvil y rendimiento3D. Sin nuevas dependencias ni modelos locales. Validación y límites: docs/ARCHIVOS_Y_CONTINUIDAD.md y docs/VALIDACION.md.
 
 Conexión de modelos retirada/indisponible:238pytest PASS. Hasta tres modelos anunciados ante404 de generación, preferencia por Flash Lite estable reciente, sin reintentos ante cuota/permisos/red ni cambios de proveedor. Se guarda solo tras respuesta completa y se mantienen claves/instrucciones anteriores al fallar. Verificación de cuenta real aún pendiente.

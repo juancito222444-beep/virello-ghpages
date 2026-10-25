@@ -10,7 +10,9 @@
     "test:browser": "node tests/browser.cjs",
     "test:scene": "node tests/scene.cjs",
     "test:feedback": "node tests/feedback.cjs",
-    "test:api": "node --test tests/api.test.cjs"
+    "test:api": "node --test tests/api.test.cjs",
+    "test:settings": "node tests/model-settings.cjs",
+    "test:attachments": "node tests/attachments.cjs"
   },
   "dependencies": {
     "lucide-react": "0.511.0",

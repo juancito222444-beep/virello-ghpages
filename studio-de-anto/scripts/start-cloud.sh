@@ -51,7 +51,7 @@ if ready; then
 fi
 if [[ "${1:-}" != "--background" ]]; then
   echo "Abre el puerto 8765 desde la pestaña Puertos (visibilidad Privada): ${cloud_url}"
-  exec .venv/bin/python -m uvicorn backend.app:app --host 0.0.0.0 --port 8765
+  exec .venv/bin/python -m uvicorn backend.app:app --host 0.0.0.0 --port 8765 --timeout-graceful-shutdown 15
 fi
 
 # Serialize postStart/manual attempts without killing a pre-existing process.
@@ -83,7 +83,9 @@ except ValueError as exc:
     print(str(exc))
     raise SystemExit(1)
 PYCODE
-nohup .venv/bin/python -m uvicorn backend.app:app --host 0.0.0.0 --port 8765 >"$cloud_log" 2>&1 < /dev/null 9>&- &
+# EventSource connections can stay open indefinitely. Bound their drain below
+# stop_owned_server's 20-second wait so an open tab cannot block the next start.
+nohup .venv/bin/python -m uvicorn backend.app:app --host 0.0.0.0 --port 8765 --timeout-graceful-shutdown 15 >"$cloud_log" 2>&1 < /dev/null 9>&- &
 cloud_pid=$!
 printf '%s\n' "$cloud_pid" > "$cloud_pidfile"
 for _ in {1..30}; do

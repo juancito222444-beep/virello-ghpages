@@ -141,7 +141,8 @@ def usage_policy(body:UsagePolicy):return usage.save_policy(body.model_dump())
 @app.get('/api/agents')
 def agents(): return models.agents()
 @app.get('/api/models')
-async def model_status(): return await models.available()
+async def model_status(provider:Literal['gemini','groq']|None=None):
+    return await models.available(provider)
 class ModelProbe(Strict):
     agent:Literal['anto','atlas','vera','bruno','iris','leo']='anto'
 @app.post('/api/models/test')
@@ -155,8 +156,27 @@ async def model_test(body:ModelProbe):
 class CloudConnect(Strict):
     provider:Literal['gemini','groq']='gemini'
     agent:Literal['anto','atlas','vera','bruno','iris','leo']='anto'
+    agents:list[dict]|None=None
+
+
+def validated_agents(agents):
+    ids=[a.get('id') for a in agents]
+    if (len(agents)!=6 or any(not isinstance(aid,str) for aid in ids)
+            or set(ids)!={a['id'] for a in models.AGENTS}):
+        raise ValueError('Se requieren los seis agentes originales')
+    saved=[]
+    for default in models.AGENTS:
+        agent=next(a for a in agents if a['id']==default['id'])
+        instructions=agent.get('instructions',default['instructions']); model=agent.get('model','')
+        if not isinstance(instructions,str) or len(instructions)>6000 or not isinstance(model,str) or len(model)>200:
+            raise ValueError('Configuración inválida')
+        saved.append({**default,'instructions':instructions,'model':model})
+    return saved
 
 async def prepare_connection(body:CloudConnect):
+    # Validate a settings draft before discovery or generation. Persist it only
+    # after the provider has returned a complete response.
+    source=validated_agents(body.agents) if body.agents is not None else models.agents()
     status=await models.available(body.provider)
     if not status['connected'] or not status['models']:
         raise ValueError(status.get('error','El proveedor no anuncia modelos de conversación disponibles.'))
@@ -164,7 +184,7 @@ async def prepare_connection(body:CloudConnect):
     default=cloud.PROVIDERS[body.provider]['model']
     fallback=default if default in catalog else catalog[0]
     configured=[]
-    for agent in models.agents():
+    for agent in source:
         name=agent.get('model','')
         if body.provider=='gemini':name=name.removeprefix('models/')
         configured.append({**agent,'model':name if name in catalog else fallback})
@@ -276,13 +296,7 @@ def settings(body:Settings):
         raise ValueError('Esta versión usa únicamente APIs en la nube: selecciona Gemini o Groq.')
     ollama_url=models.validate_url(body.ollama_url,'ollama')
     openai_url=models.validate_url(body.openai_url,'openai_local')
-    if len(body.agents)!=6 or {a.get('id') for a in body.agents}!={a['id'] for a in models.AGENTS}: raise ValueError('Se requieren los seis agentes originales')
-    saved=[]
-    for default in models.AGENTS:
-        a=next(a for a in body.agents if a['id']==default['id'])
-        instructions=a.get('instructions',default['instructions']); model=a.get('model','')
-        if not isinstance(instructions,str) or len(instructions)>6000 or not isinstance(model,str) or len(model)>200: raise ValueError('Configuración inválida')
-        saved.append({**default,'instructions':instructions,'model':model})
+    saved=validated_agents(body.agents)
     store.save_setting('agents',saved);store.save_setting('ollama_url',ollama_url)
     store.save_setting('provider',body.provider);store.save_setting('openai_url',openai_url)
     return {'saved':True}

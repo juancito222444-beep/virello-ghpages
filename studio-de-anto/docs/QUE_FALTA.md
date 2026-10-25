@@ -4,6 +4,7 @@ El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en
 
 ## Entregado
 
+- Revisados Gemini, PDF/imágenes e inicio automático sin llamadas de pago. El catálogo no guarda borradores; conectar guarda solo tras una respuesta completa. El cierre del servidor tiene un límite para que Actividad no bloquee el reinicio. Evidencia y límites: [validación](VALIDACION.md).
 - PDF, JPG/JPEG, PNG y WebP: carga, biblioteca, vista previa segura y consulta con adjuntos nativos de Gemini.
 - CSV/XLSX: cálculos, revisión matemática, aprobación y entregables conservados.
 - Hasta tres adjuntos y 12 MB por consulta; originales de hasta 20 MB. Selección explícita y referencias en el historial.
