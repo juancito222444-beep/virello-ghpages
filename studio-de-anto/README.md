@@ -4,6 +4,8 @@ Oficina 3D interactiva con seis agentes, conversación con historial, proyectos,
 
 Ahora puedes **subir PDF, JPG/JPEG, PNG y WebP y consultarlos en el chat de Gemini**. En Configuración también hay límites de uso, nota compartida del proyecto y respaldo/restauración ZIP. Las tareas interrumpidas se pueden retomar. Consulta [archivos y continuidad](docs/ARCHIVOS_Y_CONTINUIDAD.md) para pasos y límites.
 
+La **versión 1.2** añade dictado por micrófono y lectura de respuestas con las funciones del navegador, búsquedas, renombrado de proyectos, copia de respuestas y exportación del chat. No hay envío automático por voz ni nuevas APIs de pago. La disponibilidad de voz depende del navegador y de sus servicios. Guía: [voz y productividad](docs/VOZ_Y_PRODUCTIVIDAD.md).
+
 ## Abrir en Codespaces
 
 1. Abre la rama `codex/studio-de-anto-modelo-real` de este repositorio y crea o reabre su Codespace.

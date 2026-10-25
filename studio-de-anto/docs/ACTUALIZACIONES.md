@@ -3,14 +3,30 @@
 La entrega usa Gemini/Groq en la nube. No necesitas instalar ni actualizar Ollama.
 
 - Para volver a usarlo, reabre el mismo Codespace y su puerto privado 8765.
-- Para aplicar una actualización sin cambios de dependencias, desde la raíz del repositorio:
+- Para comprobar si hay una actualización, desde la raíz del repositorio:
+
+```bash
+bash studio-de-anto/scripts/update-cloud.sh --check
+```
+
+La comprobación consulta GitHub y muestra las versiones local y remota; no cambia el código ni arranca el servidor. Para aplicar la versión disponible:
+
+```bash
+bash studio-de-anto/scripts/update-cloud.sh
+```
+
+El actualizador exige la rama `codex/studio-de-anto-modelo-real` y se detiene si hay cambios locales rastreados o commits locales que impiden avanzar. Solo permite un avance directo (`ff-only`), conserva los archivos privados y arranca el servidor con el script habitual. No reinstala dependencias, modifica claves ni ejecuta inferencias. Si ya está actualizado, vuelve a comprobar el arranque habitual sin repetir la actualización.
+
+Si esta copia todavía no tiene `update-cloud.sh`, obtiene primero esta entrega con el comando anterior, desde la rama indicada:
 
 ```bash
 git pull --ff-only origin codex/studio-de-anto-modelo-real &&
 bash studio-de-anto/scripts/start-cloud.sh --background
 ```
 
-Recarga la aplicación. Si una entrega cambia dependencias o configuración del contenedor, sus instrucciones indicarán cuándo reconstruirlo. Esta ampliación de PDF/imágenes y continuidad no añade dependencias.
+Recarga la aplicación. Si una entrega cambia dependencias o configuración del contenedor, sus instrucciones indicarán cuándo reconstruirlo. Estas mejoras no añaden dependencias.
+
+Tras actualizar se muestran el commit anterior, el nuevo y un comando concreto para volver al código anterior con `git switch --detach`. Ese comando solo se muestra: revisa los cambios y ejecútalo únicamente si deseas volver. No borra el historial, proyectos ni claves; tampoco revierte datos o migraciones. En ese estado separado el actualizador se detiene. Para recuperar la rama normal, guarda cualquier cambio propio y usa `git switch codex/studio-de-anto-modelo-real` antes de volver a actualizar.
 
 Actualiza cuando no haya una respuesta en curso: el servidor espera hasta 15 segundos y después interrumpe las peticiones pendientes para que una pestaña abierta no impida reiniciar. No repite inferencias automáticamente; conserva proyectos, claves y resultados ya guardados. Al actualizar por primera vez desde un servidor sin este límite, cierra las pestañas de la aplicación y repite el arranque si sigue apagándose; como alternativa, detén y reabre el mismo Codespace.
 

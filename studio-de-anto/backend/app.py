@@ -6,7 +6,7 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr, field_validator
 from . import store,models,engine,cloud,runtime,credential_store,attachments,usage,backups
 from .schemas import Plan,Analysis,Task,Strict
 from .data_tools import load,inspect
@@ -88,12 +88,30 @@ def need_run(rid):
     if not r: raise HTTPException(404,'Ejecución inexistente')
     return r
 class Name(Strict): name:str=Field(min_length=1,max_length=120)
+class ProjectName(Name):
+    @field_validator('name')
+    @classmethod
+    def clean_name(cls,value):
+        value=value.strip()
+        if not value or any(ord(character)<32 or character in '\x7f\u2028\u2029' for character in value):
+            raise ValueError('Escribe un nombre de proyecto de una sola línea, entre 1 y 120 caracteres.')
+        return value
+
 @app.get('/api/projects')
 def projects(): return store.rows('SELECT * FROM projects ORDER BY created')
 @app.post('/api/projects')
-def project(body:Name):
+def project(body:ProjectName):
     pid=store.uid()
     with store.db() as c: c.execute('INSERT INTO projects VALUES(?,?,?)',(pid,body.name,store.now()))
+    return {'id':pid,'name':body.name}
+
+@app.put('/api/projects/{pid}')
+def rename_project(pid:str,body:ProjectName):
+    # Rename in place: every conversation, original, run and memory keeps its ID.
+    with store.db() as connection:
+        result=connection.execute('UPDATE projects SET name=? WHERE id=?',(body.name,pid))
+        if result.rowcount!=1:
+            raise HTTPException(404,'Proyecto inexistente')
     return {'id':pid,'name':body.name}
 
 class ProjectMemory(Strict):

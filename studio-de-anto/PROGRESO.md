@@ -1,4 +1,6 @@
-# STUDIO DE ANTO · versión1.1
+# STUDIO DE ANTO · versión1.2
+
+Ampliación del 25 de octubre de 2026: dictado y lectura de respuestas mediante navegador, búsquedas locales, renombrado conservando el identificador del proyecto, copia y exportación Markdown, reutilización de mensajes sin envío automático y protección de borradores de límites/notas. Actualizador con comprobación, avance directo y recuperación de código documentada. No añade dependencias ni llamadas de IA automáticas. El entorno objetivo sigue siendo el Codespace `improved-tribble-5gprq56p7qpgf7xgq`; la integración devuelve 403 al acceder a esa máquina, por lo que la aplicación remota no se declara actualizada. Guía: `docs/VOZ_Y_PRODUCTIVIDAD.md`; pendientes actuales: `docs/QUE_FALTA.md`.
 
 Revisión del 25 de octubre de 2026: corregido el guardado prematuro de ajustes al comprobar Gemini y el cierre indefinido con Actividad abierta. PDF e imágenes conservan su comportamiento, ahora con prueba de navegador reproducible en `frontend/tests/attachments.cjs`. Las pruebas usan datos sintéticos y proveedores MOCK, sin llamadas de pago ni cambios en proyectos o claves reales. Ver detalle en `docs/VALIDACION.md`.
 

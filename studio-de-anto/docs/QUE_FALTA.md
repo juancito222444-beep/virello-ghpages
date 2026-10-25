@@ -2,8 +2,14 @@
 
 El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales.
 
+Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). La última consulta remota devuelve **403, Resource not accessible by integration**. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La versión ampliada se identifica en pantalla como **v1.2 · voz**.
+
 ## Entregado
 
+- Voz con controles explícitos: dictado en español al cuadro de mensaje y lectura de respuestas por fragmentos mediante el navegador. Se detienen al cambiar contexto; hay alternativas de texto y errores de permisos/compatibilidad. No hay envío automático ni nueva API de pago. Ver [guía de voz](VOZ_Y_PRODUCTIVIDAD.md).
+- Búsqueda por nombre en proyectos, archivos y entregables; renombrado que conserva proyecto e historial; copia de respuestas, exportación Markdown y reutilización del último mensaje para revisar antes de enviar.
+- Los límites pendientes se conservan al actualizar uso; notas con borradores separados por proyecto mientras Configuración permanece abierta, sin aceptar respuestas atrasadas de otro proyecto.
+- Actualizador `update-cloud.sh` con `--check`, avance directo, protección de cambios locales/archivos privados y comando de recuperación del código anterior. No reinstala ni ejecuta inferencias.
 - Revisados Gemini, PDF/imágenes e inicio automático sin llamadas de pago. El catálogo no guarda borradores; conectar guarda solo tras una respuesta completa. El cierre del servidor tiene un límite para que Actividad no bloquee el reinicio. Evidencia y límites: [validación](VALIDACION.md).
 - PDF, JPG/JPEG, PNG y WebP: carga, biblioteca, vista previa segura y consulta con adjuntos nativos de Gemini.
 - CSV/XLSX: cálculos, revisión matemática, aprobación y entregables conservados.
@@ -17,11 +23,11 @@ El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en
 
 ## Límites y próximos pasos
 
-1. Comprobar documentos propios con la cuenta real de Gemini; las nuevas pruebas de protocolo/navegador son MOCK. Un PDF no se convierte automáticamente en tabla calculable; documentos protegidos o ilegibles pueden ser rechazados.
+1. Aplicar la versión 1.2 en el Codespace objetivo y comprobar allí documentos propios con la cuenta real de Gemini. Las pruebas de protocolo/navegador son MOCK; la voz también requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable; documentos protegidos o ilegibles pueden ser rechazados.
 2. Alojamiento permanente con URL estable: Codespaces sigue siendo el servidor privado actual y puede detenerse o agotar su cuota. No se contrató ni desplegó otro servicio.
 3. Acciones 3D más naturales: sentarse, usar objetos y mobiliario editable. La oficina actual es un diorama estilizado con personajes originales.
 4. Resumen automático de proyectos largos y recuperación documental con referencias más precisas; la memoria compartida actual la escribe y revisa el usuario.
-5. Actualización de la aplicación con revisión y reversión más sencillas. Los cambios actuales se aplican con git pull y el arranque habitual, sin reinstalar dependencias.
+5. Conversación de voz continua, voces propias por personaje y calidad homogénea en navegadores. La entrega actual ofrece dictado y lectura con voces del navegador; no es un agente de audio en tiempo real ni garantiza el mismo soporte en todos los dispositivos.
 6. Antes de ofrecer acceso público o varios usuarios: identidad propia, roles, aislamiento, cuotas por persona y gestión de secretos adecuada a ese despliegue. El uso actual es privado y de un propietario.
 
 Las cuotas del proveedor, GitHub Codespaces y Codex son independientes. No se garantiza gratuidad ilimitada ni reentrenamiento del modelo.

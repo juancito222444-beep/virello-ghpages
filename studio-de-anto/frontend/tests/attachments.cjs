@@ -1,12 +1,26 @@
 // Browser regression with synthetic files and intercepted APIs only. No provider calls.
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
+async function assertComposeFits(page){
+ const layout=await page.evaluate(()=>{
+  const panel=document.querySelector('.chat-panel').getBoundingClientRect();
+  const buttons=[...document.querySelectorAll('.chat-compose button')].filter(button=>button.title==='Enviar'||button.textContent.includes('Reutilizar último mensaje'));
+  return {count:buttons.length,inside:buttons.every(button=>{const rect=button.getBoundingClientRect();return rect.bottom<=panel.bottom&&rect.top>=panel.top;}),footerInside:document.querySelector('.chat-panel .privacy').getBoundingClientRect().bottom<=panel.bottom};
+ });
+ assert.equal(layout.count,2,'Send and reuse controls remain available');
+ assert.equal(layout.inside,true,'Voice, attachments and errors do not clip compose buttons');
+ assert.equal(layout.footerInside,true,'The chat footer remains inside its panel');
+}
 
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  try{
   const page=await browser.newPage({viewport:{width:1512,height:1050}}),errors=[],files=[],sent=[];
   page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(()=>{window.SpeechRecognition=class{
+   start(){this.onstart?.();this.onerror?.({error:'not-allowed'});}
+   stop(){this.onend?.();}abort(){}
+  };});
   const base=process.env.ANTO_TEST_URL||'http://127.0.0.1:8765';
   const agents=['anto','atlas','vera','bruno','iris','leo'].map(id=>({id,name:id.toUpperCase(),role:'MOCK',color:'#9684bc',model:'gemini-mock',instructions:'Prueba sintética',tools:[]}));
   const status={provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],endpoint:'MOCK',credential:{configured:true,valid_format:true,source:'MOCK',accepted_names:[]}};
@@ -54,6 +68,12 @@ const {chromium}=require('playwright');
   assert.deepEqual(sent[0].attachments,['mock-file-1','mock-file-2','mock-file-3']);
   assert.equal(await page.locator('.attachment-chip').count(),3,'Failed replies preserve the explicit selection');
   assert.equal(await page.getByLabel('Mensaje',{exact:true}).inputValue(),'MOCK: resume estos documentos.');
+  await page.getByRole('button',{name:'Dictar mensaje',exact:true}).click();
+  await page.locator('.voice-input [role=alert]').waitFor();
+  await assertComposeFits(page);
+  await page.setViewportSize({width:390,height:844});
+  await assertComposeFits(page);
+  await page.setViewportSize({width:1512,height:1050});
   await page.getByTitle('Enviar',{exact:true}).click();
   await page.getByText('MOCK: documentos recibidos',{exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelectorAll('.attachment-chip').length===0);

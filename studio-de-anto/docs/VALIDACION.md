@@ -1,4 +1,14 @@
-# Validación — versión 1.1
+# Validación — versión 1.2
+
+## Ampliación de voz y productividad · 25 de octubre de 2026
+
+- **391 pruebas pytest** y **17 pruebas Node** superadas, compilación TypeScript/Vite correcta. Vite conserva su aviso de tamaño del bundle.
+- Renombrado probado con proyectos y archivos sintéticos: conserva identificadores, conversaciones, memoria, originales y credenciales. Nombres vacíos o inválidos no modifican registros.
+- Actualizador probado con once casos sobre repositorios temporales y remoto local: avance directo, comprobación sin arranque, idempotencia, cambios locales, divergencias, errores y protección de archivos privados ignorados. Sin red externa ni inferencias.
+- Chromium MOCK cubre cinco recorridos: configuración de Gemini, PDF/imágenes, productividad, límites/notas y voz. Se verifican búsqueda, renombrado, exportación de respuestas incompletas, reutilización sin envío, borradores y respuestas atrasadas. El panel crece para conservar visibles Enviar y los controles con tres adjuntos y errores en escritorio/móvil.
+- Las APIs de voz simuladas comprueban texto provisional/final, ausencia de envío automático, edición manual, permiso denegado, cancelación al cambiar contexto, una sola lectura activa y lectura completa por fragmentos. No se capturó audio real ni se invocó Gemini/Groq.
+
+La versión se identifica como **v1.2 · voz**. La integración obtiene **403 Resource not accessible by integration** al consultar el Codespace `improved-tribble-5gprq56p7qpgf7xgq`; no se declara actualizada esa instancia ni se certifican su micrófono o la inferencia de su cuenta. Pasos de aplicación y límites: [voz y productividad](VOZ_Y_PRODUCTIVIDAD.md).
 
 ## Revisión del 25 de octubre de 2026
 

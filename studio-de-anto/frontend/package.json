@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,7 +12,10 @@
     "test:feedback": "node tests/feedback.cjs",
     "test:api": "node --test tests/api.test.cjs",
     "test:settings": "node tests/model-settings.cjs",
-    "test:attachments": "node tests/attachments.cjs"
+    "test:attachments": "node tests/attachments.cjs",
+    "test:productivity": "node tests/productivity.cjs",
+    "test:studio-controls": "node tests/studio-controls.cjs",
+    "test:voice": "node tests/voice.cjs"
   },
   "dependencies": {
     "lucide-react": "0.511.0",
