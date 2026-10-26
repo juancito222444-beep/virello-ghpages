@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+La **versión 1.3** permite preparar un contexto de continuidad con extractos recientes del proyecto, fuentes visibles y revisión antes de guardarlo en la nota compartida. Se prepara localmente, sin consumir llamadas de IA. Pasos y límites: [voz, productividad y contexto](docs/VOZ_Y_PRODUCTIVIDAD.md).
+
 Oficina 3D interactiva con seis agentes, conversación con historial, proyectos, análisis de CSV/XLSX y entregables verificables. La IA utiliza **APIs en la nube de Google Gemini o Groq**. No se descarga ni ejecuta un modelo en tu PC ni en el Codespace.
 
 Ahora puedes **subir PDF, JPG/JPEG, PNG y WebP y consultarlos en el chat de Gemini**. En Configuración también hay límites de uso, nota compartida del proyecto y respaldo/restauración ZIP. Las tareas interrumpidas se pueden retomar. Consulta [archivos y continuidad](docs/ARCHIVOS_Y_CONTINUIDAD.md) para pasos y límites.

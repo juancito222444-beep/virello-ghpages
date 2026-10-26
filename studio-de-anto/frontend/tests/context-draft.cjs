@@ -1,0 +1,80 @@
+/* Local extractive context workflow. All APIs mocked; other origins blocked. */
+const assert=require('node:assert/strict');
+const {chromium}=require('playwright');
+const base=process.env.ANTO_TEST_URL||'http://127.0.0.1:18767';
+if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error('Use an isolated loopback frontend');
+const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);return{promise,resolve};};
+const waitFor=async predicate=>{for(let i=0;i<100;i++){if(predicate())return;await new Promise(done=>setTimeout(done,20));}throw Error('Mock context request was not received');};
+const agents=['anto','atlas','vera','bruno','iris','leo'].map((id,i)=>({id,name:id.toUpperCase(),role:['Dirección','Coordinación','Análisis','Revisión','Visualización','Redacción'][i],color:'#b58aee',instructions:'MOCK',model:'gemini-2.5-flash-lite',tools:[]}));
+const credential={configured:true,valid_format:true,source:'app',accepted_names:[],saved_in_app:true};
+const notes={'project-a':'Mi nota original A','project-b':'Mi nota original B'},calls=[];
+const context=pid=>({draft:'[M1] Solicitud reciente de '+pid,sources:[{kind:'message',id:'message-'+pid,agent:'anto',created:'2026-10-25T18:30:00+00:00',excerpt:'Solicitud verificable de '+pid+' '+('X'.repeat(240)),reference:'[M1]'}],omitted:true,method:'extractive',max_characters:6000});
+let contextGate=null;
+(async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ try{
+  const page=await browser.newPage({viewport:{width:1500,height:1100}}),errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(()=>{const original=window.fetch.bind(window);window.fetch=(input,init)=>{const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;return original(input,url.includes('/context-draft')&&init?{...init,signal:undefined}:init);};});
+  await page.route('**/*',async route=>{
+   const request=route.request(),url=new URL(request.url());
+   if(url.origin!==new URL(base).origin)return route.abort();
+   if(!url.pathname.startsWith('/api/'))return route.continue();
+   const path=url.pathname,method=request.method(),body=request.postDataJSON();calls.push({path,method,body});
+   const json=(value,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
+   if(path==='/api/projects')return json([{id:'project-a',name:'PRUEBA MOCK A'},{id:'project-b',name:'PRUEBA MOCK B'}]);
+   if(path==='/api/settings')return json({provider:'gemini',ollama_url:'http://127.0.0.1:11434',openai_url:'http://127.0.0.1:1234/v1',agents});
+   if(path==='/api/models')return json({provider:'gemini',connected:true,models:['gemini-2.5-flash-lite'],credential});
+   if(path.startsWith('/api/credentials/'))return json(credential);
+   if(path==='/api/usage')return json({day:'2026-10-25',attempted:0,remaining:100,input_tokens:0,output_tokens:0,total_tokens:0,unknown_attempts:0,policy:{daily_requests:100,max_output_tokens:1024,concise:true}});
+   const memory=path.match(/^\/api\/projects\/([^/]+)\/memory$/);
+   if(memory){const pid=memory[1];if(method==='PUT')notes[pid]=body.summary.trim();return json({summary:notes[pid]});}
+   const draft=path.match(/^\/api\/projects\/([^/]+)\/context-draft$/);
+   if(draft){const pid=draft[1],gate=pid==='project-a'?contextGate:null;if(gate){contextGate=null;await gate.promise;}return json(context(pid));}
+   if(path==='/api/events')return route.fulfill({contentType:'text/event-stream',body:': MOCK\n\n'});
+   if(path==='/api/chat'||path==='/api/connect'||path.startsWith('/api/models/'))throw Error('Context preparation must never call an AI endpoint');
+   return json([]);
+  });
+  await page.goto(base);await page.getByLabel('Proyecto activo').selectOption('project-a');
+  await page.getByRole('button',{name:'Configuración',exact:true}).click();
+  const note=page.getByLabel('Nota compartida del proyecto'),preview=page.getByLabel('Vista previa del contexto'),prepare=page.getByRole('button',{name:'Preparar contexto sin IA',exact:true});
+  await page.waitForFunction(()=>document.querySelector('[aria-label="Nota compartida del proyecto"]').value==='Mi nota original A');
+  const start=calls.length;await prepare.click();await preview.waitFor();
+  assert.equal(await note.inputValue(),'Mi nota original A','Preparing context must not change the note');
+  assert.equal(await preview.inputValue(),context('project-a').draft);
+  assert.equal(calls.slice(start).filter(call=>call.method!=='GET').length,0);
+  assert.equal(calls.slice(start).filter(call=>call.path.startsWith('/api/models')||call.path==='/api/chat'||call.path==='/api/connect').length,0);
+  await page.getByText('Ver fuentes (1)',{exact:true}).click();await page.getByText(context('project-a').sources[0].excerpt,{exact:true}).waitFor();
+  await preview.fill('[M1] Contexto revisado por mí');
+  await page.getByRole('button',{name:'Añadir a mi borrador',exact:true}).click();
+  const combined='Mi nota original A\n\n[M1] Contexto revisado por mí';
+  assert.equal(await note.inputValue(),combined);assert.equal(notes['project-a'],'Mi nota original A');
+  assert.equal(calls.filter(call=>call.method==='PUT').length,0,'Appending context must not save it');
+  await page.getByRole('button',{name:'Guardar nota',exact:true}).click();
+  await page.getByText('Nota guardada para este proyecto.',{exact:true}).waitFor();assert.equal(notes['project-a'],combined);
+  const put=calls.filter(call=>call.method==='PUT');assert.equal(put.length,1);assert.equal(put[0].path,'/api/projects/project-a/memory');assert.equal(put[0].body.summary,combined);
+  await page.setViewportSize({width:390,height:844});
+  const mobile=await page.evaluate(()=>({width:innerWidth,document:document.documentElement.scrollWidth,sourcesWidth:document.querySelector('.context-sources').clientWidth,sourcesScroll:document.querySelector('.context-sources').scrollWidth}));
+  assert(mobile.document<=mobile.width+1,'Mobile page must not overflow with long source excerpts');assert(mobile.sourcesScroll<=mobile.sourcesWidth+1,'Source details must wrap long words on mobile');
+  await page.setViewportSize({width:1500,height:1100});
+  const longNote='N'.repeat(5995);await note.fill(longNote);await preview.fill('Demasiado contexto para la nota');
+  await page.getByRole('button',{name:'Añadir a mi borrador',exact:true}).click();
+  await page.getByRole('alert').getByText('el máximo es 6000.',{exact:false}).waitFor();
+  assert.equal(await note.inputValue(),longNote,'An oversized append must never truncate or overwrite the note');assert.equal(calls.filter(call=>call.method==='PUT').length,1);
+  await preview.fill('X');await page.getByRole('button',{name:'Añadir a mi borrador',exact:true}).click();
+  const pending=longNote+'\n\nX';assert.equal(await note.inputValue(),pending);assert.equal(calls.filter(call=>call.method==='PUT').length,1);
+  const hold=deferred();contextGate=hold;const before=calls.filter(call=>call.path==='/api/projects/project-a/context-draft').length;
+  await prepare.click();await waitFor(()=>calls.filter(call=>call.path==='/api/projects/project-a/context-draft').length>before);
+  assert.equal(await page.getByRole('button',{name:'Preparando contexto…',exact:true}).isDisabled(),true);
+  await page.getByLabel('Proyecto activo').selectOption('project-b');await page.waitForFunction(()=>document.querySelector('[aria-label="Nota compartida del proyecto"]').value==='Mi nota original B');
+  assert.equal(await preview.count(),0);
+  await prepare.click();await preview.waitFor();assert.equal(await preview.inputValue(),context('project-b').draft);
+  const late=page.waitForResponse(response=>response.url().endsWith('/api/projects/project-a/context-draft'));hold.resolve();await late;
+  await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+  assert.equal(await preview.inputValue(),context('project-b').draft,'A late context response must not replace another project preview');assert.equal(await note.inputValue(),'Mi nota original B');
+  await page.getByLabel('Proyecto activo').selectOption('project-a');await page.waitForFunction(expected=>document.querySelector('[aria-label="Nota compartida del proyecto"]').value===expected,pending);
+  assert.equal(await preview.count(),0);assert.equal(calls.filter(call=>call.method==='PUT').length,1);
+  assert.deepEqual(errors,[]);
+  console.log('PASS MOCK: contexto local revisable sin IA ni guardado automático, fuentes visibles, adición conservadora, guardado explícito, límite sin truncado y respuestas tardías aisladas.');
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

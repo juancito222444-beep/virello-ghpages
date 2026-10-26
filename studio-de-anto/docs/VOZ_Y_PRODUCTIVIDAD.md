@@ -1,4 +1,4 @@
-# Voz y productividad · versión 1.2
+# Voz, productividad y contexto · versión 1.3
 
 La IA sigue usando las claves de Gemini o Groq ya configuradas en el servidor. La ampliación no añade proveedores, suscripciones ni dependencias. Los créditos de ChatGPT/Codex no se convierten en saldo para esas APIs.
 
@@ -29,6 +29,14 @@ Actualizar los contadores de uso conserva los límites que estés editando. Guar
 
 Mientras permanezcas en Configuración, las notas pendientes se separan por proyecto y se recuperan al volver a seleccionarlo. Guarda las notas antes de salir de Configuración o cerrar la página. Una respuesta de red atrasada de otro proyecto no reemplaza la nota visible. Si la carga falla, usa **Volver a cargar nota**.
 
+## Preparar contexto sin consumir IA
+
+En **Configuración → Preparar contexto desde la actividad**, pulsa **Preparar contexto sin IA**. Se reúnen hasta cuatro solicitudes recientes, cuatro estados guardados de trabajos y cuatro nombres de archivos del proyecto. La selección se genera localmente, con consultas acotadas; no lee el contenido de los archivos ni convierte una solicitud en un resultado confirmado.
+
+Revisa las fuentes, edita la vista previa y pulsa **Añadir a mi borrador**. Esto conserva la nota que ya estabas editando. Si juntas superan 6000 caracteres, debes recortarlas: no se reemplazan ni truncan automáticamente. Después pulsa **Guardar nota** para que los agentes reciban ese contexto en sus próximas conversaciones y se incluya en el respaldo del proyecto. Preparar o añadir por sí solos no guarda ni llama a una IA.
+
+Los borradores de continuidad tienen hasta 4500 caracteres y pueden abreviar u omitir registros; se indica cuando la selección es parcial. No son un resumen semántico de todo el proyecto ni una lectura documental. Las fuentes originales se muestran durante la revisión; guarda tu nota antes de salir de Configuración.
+
 ## Aplicar la entrega en tu Codespace
 
 La URL `improved-tribble-5gprq56p7qpgf7xgq.github.dev` abre el editor. La aplicación se abre desde **Puertos → 8765 → Abrir en navegador**, manteniendo el puerto privado.
@@ -42,4 +50,4 @@ git pull --ff-only origin codex/studio-de-anto-modelo-real &&
 bash studio-de-anto/scripts/update-cloud.sh
 ```
 
-Recarga la aplicación y comprueba **v1.2 · voz** en el pie. El comando se detiene si estás en otra rama; no uses `reset --hard` ni elimines el Codespace. Las actualizaciones futuras y la recuperación de código se describen en [Actualizaciones](ACTUALIZACIONES.md).
+Recarga la aplicación y comprueba **v1.3 · contexto** en el pie. El comando se detiene si estás en otra rama; no uses `reset --hard` ni elimines el Codespace. Las actualizaciones futuras y la recuperación de código se describen en [Actualizaciones](ACTUALIZACIONES.md).

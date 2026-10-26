@@ -1,4 +1,12 @@
-# Validación — versión 1.2
+# Validación — versión 1.3
+
+## Continuidad revisable del proyecto · 26 de octubre de 2026
+
+**396 pruebas pytest** y **17 pruebas Node** superadas; compilación TypeScript/Vite correcta, con el aviso de tamaño del bundle anterior. Cinco regresiones nuevas comprueban aislamiento, referencias, límites, orden estable, proyecto vacío y ausencia de cambios en notas, uso o claves al preparar. Un chat MOCK verifica que el contexto llega a otro agente únicamente después de guardarlo explícitamente como nota.
+
+La preparación es extractiva y local: hasta cuatro mensajes de usuario, cuatro estados de trabajos y cuatro nombres de archivos; lecturas SQL acotadas en un snapshot y borrador de hasta 4500 caracteres. No lee archivos, resultados libres de modelos ni configuración privada; no consulta proveedores ni reserva intentos de IA. Si hay abreviaciones u omisiones, se indican.
+
+El recorrido Chromium MOCK de contexto cubre preparación sin guardado, fuentes, edición, adición que conserva la nota, límite sin truncado, guardado explícito, respuestas atrasadas y móvil de 390 px con fuentes largas. También se repite el recorrido de límites/notas. La nota final conserva el límite de 6000 y requiere revisión del propietario. No sustituye un resumen semántico completo ni una búsqueda documental. La actualización del Codespace del usuario sigue sin verificarse; la comprobación anterior de acceso devolvió 403.
 
 ## Ampliación de voz y productividad · 25 de octubre de 2026
 

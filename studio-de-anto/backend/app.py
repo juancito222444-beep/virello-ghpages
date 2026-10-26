@@ -12,7 +12,7 @@ from .schemas import Plan,Analysis,Task,Strict
 from .data_tools import load,inspect
 from .access import access_error
 from .planning import propose_plan
-from . import conversation
+from . import conversation,project_context
 
 @asynccontextmanager
 async def lifespan(app):
@@ -116,6 +116,11 @@ def rename_project(pid:str,body:ProjectName):
 
 class ProjectMemory(Strict):
     summary:str=Field(default='',max_length=6000)
+
+@app.get('/api/projects/{pid}/context-draft')
+def context_draft(pid:str):
+    try:return project_context.prepare(pid)
+    except KeyError:raise HTTPException(404,'Proyecto inexistente') from None
 
 @app.get('/api/projects/{pid}/memory')
 def project_memory(pid:str):

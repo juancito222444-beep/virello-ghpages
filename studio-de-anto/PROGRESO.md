@@ -1,4 +1,6 @@
-# STUDIO DE ANTO · versión1.2
+# STUDIO DE ANTO · versión1.3
+
+26 de octubre de 2026: borrador extractivo de continuidad por proyecto, sin IA ni lectura de archivos. Reúne solicitudes recientes, estados de trabajos y nombres de archivos, con referencias visibles. Preparar no guarda; añadir conserva la nota anterior y respeta su límite; guardar sigue siendo explícito. Las fuentes están acotadas y aisladas por proyecto. No cambia claves ni dependencias. Validación actual: `docs/VALIDACION.md`.
 
 Ampliación del 25 de octubre de 2026: dictado y lectura de respuestas mediante navegador, búsquedas locales, renombrado conservando el identificador del proyecto, copia y exportación Markdown, reutilización de mensajes sin envío automático y protección de borradores de límites/notas. Actualizador con comprobación, avance directo y recuperación de código documentada. No añade dependencias ni llamadas de IA automáticas. El entorno objetivo sigue siendo el Codespace `improved-tribble-5gprq56p7qpgf7xgq`; la integración devuelve 403 al acceder a esa máquina, por lo que la aplicación remota no se declara actualizada. Guía: `docs/VOZ_Y_PRODUCTIVIDAD.md`; pendientes actuales: `docs/QUE_FALTA.md`.
 
