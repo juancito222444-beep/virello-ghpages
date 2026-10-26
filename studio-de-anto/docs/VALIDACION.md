@@ -1,4 +1,16 @@
-# Validación — versión 1.3
+# Validación — versión 1.4
+
+## Director con delegación automática de texto · 26 de octubre de 2026
+
+**423 pruebas pytest**, **17 pruebas Node** y compilación TypeScript/Vite superadas. La compilación conserva el aviso anterior sobre tamaño del bundle. Las pruebas nuevas usan modelos simulados, incluido protocolo HTTP Gemini con contabilidad real del estudio sobre respuestas MOCK: no se invocó la cuenta del usuario.
+
+- Un objetivo genera un reparto con especialistas únicos y dependencias válidas, ejecuta únicamente aportes de texto y termina con una síntesis de ANTO. El Director recibe un contrato JSON explícito también en el prompt, porque el modo JSON de Gemini por sí solo no transmite el esquema de Python.
+- La validación rechaza adjuntos, herramientas externas, gráficos/cálculos, ciclos, roles/dependencias duplicados y ausencia de activación explícita antes de ejecutar especialistas. Los repartos inválidos o incompletos no disparan reparaciones automáticas.
+- La reserva SQLite del identificador del envío precede a la planificación. Repetir un envío, perder una respuesta o reiniciar durante la planificación no repite silenciosamente esa llamada; un proyecto solo admite un encargo activo del Director.
+- Hasta una planificación y seis intentos de ejecución. Se comprueban cuota diaria, límites de tokens, snapshots por rol y presupuesto de intentos en checkpoints, incluso al restaurar un ZIP que no incluye ajustes globales. La síntesis conserva todos los aportes, abreviados cuando hace falta para respetar el límite del adaptador.
+- Cancelación, rollback de publicación y restauración de un trabajo interrumpido conservan los resultados completos. Respuesta final, procedencia, JSON y Markdown se publican sin duplicados; la respuesta importada mantiene su enlace tras remapear identificadores. El resultado textual sigue identificado como propuesta, sin certificación matemática.
+
+El recorrido Chromium MOCK del Director comprueba activación, presupuesto visible, bloqueo de adjuntos, tareas con revisión, identidad conservada tras fallo de red, nuevo intento explícito tras rechazo, progreso por eventos, síntesis única, cancelación, cambio de contexto y móvil. Se repiten los recorridos de adjuntos, voz, productividad y configuración contra el cliente compilado. La delegación real con la cuenta del usuario y su instalación en el Codespace siguen pendientes; la última consulta de acceso remoto devolvió 403. Uso y límites: [Director](DIRECTOR.md).
 
 ## Continuidad revisable del proyecto · 26 de octubre de 2026
 

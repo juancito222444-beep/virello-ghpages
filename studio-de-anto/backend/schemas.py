@@ -37,7 +37,7 @@ class Task(Strict):
         if len(self.tools)!=len(set(self.tools)): raise ValueError('Herramientas duplicadas en una tarea')
         return self
 class Plan(Strict):
-    mode: Literal['real','tools']='real'
+    mode: Literal['real','tools','director']='real'
     objective: str=Field(min_length=3,max_length=2000)
     clarification: str|None=None
     analysis: Analysis|None=None
@@ -51,6 +51,17 @@ class Plan(Strict):
             for t in self.tasks:
                 if set(t.depends_on)<=done: done.add(t.id)
         if set(ids)!=done: raise ValueError('Dependencias desconocidas o ciclo')
+        if self.mode=='director':
+            if self.analysis is not None or self.clarification is not None or not 2<=len(self.tasks)<=6:
+                raise ValueError('El Director requiere de uno a cinco especialistas y una síntesis, sin análisis de archivos.')
+            specialists=self.tasks[:-1];final=self.tasks[-1]
+            if any(task.tools!=['reason'] for task in self.tasks):
+                raise ValueError('La delegación automática solo permite aportes de texto.')
+            if (final.agent!='anto' or any(task.agent=='anto' for task in specialists)
+                    or len({task.agent for task in specialists})!=len(specialists)
+                    or set(final.depends_on)!={task.id for task in specialists}):
+                raise ValueError('Cada especialista participa una vez y ANTO sintetiza todos sus aportes al final.')
+            return self
         analysis_ids={t.id for t in self.tasks if 'analyze' in t.tools}
         if self.analysis is not None and not analysis_ids: raise ValueError('Falta tarea de análisis')
         if analysis_ids and self.analysis is None: raise ValueError('La tarea analyze requiere argumentos en analysis')

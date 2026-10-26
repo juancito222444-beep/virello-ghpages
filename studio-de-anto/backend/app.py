@@ -12,13 +12,13 @@ from .schemas import Plan,Analysis,Task,Strict
 from .data_tools import load,inspect
 from .access import access_error
 from .planning import propose_plan
-from . import conversation,project_context
+from . import conversation,project_context,director
 
 @asynccontextmanager
 async def lifespan(app):
     global SETUP_LOCK
     SETUP_LOCK=asyncio.Lock()
-    store.init(); engine.QUEUE=asyncio.Queue(); models.LOCK=asyncio.Lock(); worker=asyncio.create_task(engine.worker())
+    store.init();director.init(); engine.QUEUE=asyncio.Queue(); models.LOCK=asyncio.Lock(); worker=asyncio.create_task(engine.worker())
     yield
     for task in list(engine.ACTIVE.values()): task.cancel()
     worker.cancel()
@@ -508,6 +508,20 @@ class PlanRequest(Strict):
     file:str|None=None
 class ToolRequest(PlanRequest): analysis:Analysis
 
+@app.post('/api/director')
+async def delegate_director(body:director.DirectorRequest):
+    need_project(body.project)
+    existing=director.reserve(body)
+    if existing:return run_detail(existing)
+    try:
+        proposed,selected=await director.propose(body)
+        rid=director.save(body,proposed,selected)
+        await engine.QUEUE.put(rid)
+    except BaseException as error:
+        director.fail(body,error)
+        raise
+    return run_detail(rid)
+
 def save_run(body,plan):
     need_project(body.project); rid=store.uid()
     if body.file and not store.one('SELECT id FROM files WHERE id=? AND project=?',(body.file,body.project)): raise ValueError('Archivo ajeno o inexistente')
@@ -546,11 +560,11 @@ def tool_plan(body:ToolRequest):
         tasks.append(Task(id=tid,agent=agent,description={'analyze':'Calcular operaciones seleccionadas','review':'Recalcular y verificar resultados','chart':'Generar gráfico con datos verificados','report':'Exportar evidencia e informe'}[tid],tools=[tool],depends_on=deps,outputs=[tool+'-v1'],acceptance=['Operación válida y evidencia verificable']))
     return save_run(body,Plan(mode='tools',objective=body.request,analysis=body.analysis,tasks=tasks))
 @app.get('/api/runs')
-def runs(project:str): return store.rows('SELECT * FROM runs WHERE project=? ORDER BY created DESC',(project,))
+def runs(project:str): return [director.decorate(run) for run in store.rows('SELECT * FROM runs WHERE project=? ORDER BY created DESC',(project,))]
 @app.get('/api/runs/{rid}')
 def run_detail(rid:str):
     r=need_run(rid)
-    return {**r,'tasks':store.rows('SELECT * FROM tasks WHERE run=? ORDER BY position',(rid,)),'reviews':store.rows('SELECT * FROM reviews WHERE run=?',(rid,))}
+    return {**director.decorate(r),'tasks':store.rows('SELECT * FROM tasks WHERE run=? ORDER BY position',(rid,)),'reviews':store.rows('SELECT * FROM reviews WHERE run=?',(rid,))}
 @app.post('/api/runs/{rid}/approve')
 async def approve(rid:str):
     r=need_run(rid)

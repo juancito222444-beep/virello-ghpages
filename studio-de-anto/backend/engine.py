@@ -1,6 +1,6 @@
 import asyncio, json, threading
 from pathlib import Path
-from . import store, models
+from . import store, models, usage
 from .schemas import Plan
 from .data_tools import load,analyze,review
 from .reports import generate
@@ -12,6 +12,111 @@ ACTIVE={}
 EXPORT_LOCK=threading.Lock()
 MAX_MODEL_CALLS=16
 MAX_MODEL_REVIEWS=2
+MAX_DIRECTOR_CALLS=6
+
+
+def _director_state(run,plan,tasks,shared):
+    """Validate the persisted graph and recover the portable attempt budget."""
+    if run['file'] is not None or plan.analysis is not None:
+        raise ValueError('La delegación automática solo admite trabajo de texto sin archivos.')
+    persisted={json.loads(task['payload']).get('id'):task for task in tasks}
+    if len(persisted)!=len(tasks) or set(persisted)!={task.id for task in plan.tasks}:
+        raise ValueError('Las tareas guardadas no coinciden con el plan del director.')
+    attempts={}
+    for spec in plan.tasks:
+        task=persisted[spec.id];payload=json.loads(task['payload'])
+        expected={persisted[dependency]['id'] for dependency in spec.depends_on}
+        if task['agent']!=spec.agent or payload.get('tools')!=['reason'] or set(payload.get('depends_on',[]))!=expected:
+            raise ValueError('Las tareas guardadas no coinciden con el plan del director.')
+        try:
+            saved=json.loads(task['result']) if task['result'] is not None else {}
+            if not isinstance(saved,dict):raise ValueError()
+            count=saved.get('_director_attempts',1 if task['status']=='Completado' else 0)
+            minimum=1 if task['status']=='Completado' else 0
+            if type(count) is not int or not minimum<=count<=MAX_DIRECTOR_CALLS:raise ValueError()
+        except (ValueError,TypeError):
+            raise ValueError('Falta un recuento válido de intentos del director; no se repetirán llamadas automáticamente.') from None
+        if task['id'] in shared and (not isinstance(saved.get('text'),str) or not saved['text'].strip()):
+            raise ValueError('Falta el texto de una contribución completada del director.')
+        attempts[task['id']]=count
+    return attempts
+
+
+def _director_messages(plan,spec,shared,tasks):
+    # Keep every contribution represented. The provider adapter bounds a single
+    # message to 12000 characters, so slicing one large JSON object loses context.
+    by_id={task['id']:task for task in tasks}
+    dependencies=spec['depends_on'];limit=6000//max(1,len(dependencies))
+    evidence={tid:{'agent':by_id[tid]['agent'],'text':shared[tid]['text'][:limit]}
+              for tid in dependencies if tid in shared}
+    data={'objective':plan.objective,'task':spec['description'],
+          'contributions':evidence,'contributions_may_be_shortened':True,
+          'scope':'Aportes de texto no verificados. No afirmes haber ejecutado herramientas ni comprobado cifras.'}
+    content=json.dumps(data,ensure_ascii=False)
+    while len(content)>11000 and any(item['text'] for item in evidence.values()):
+        # Quotes and line breaks expand during JSON encoding. Shrink every
+        # excerpt together instead of losing the objective or entire sources.
+        ratio=min(.9,11000/len(content))
+        for item in evidence.values():item['text']=item['text'][:int(len(item['text'])*ratio)]
+        content=json.dumps(data,ensure_ascii=False)
+    if len(content)>11000:
+        raise ValueError('El objetivo y la tarea del director son demasiado extensos; acórtalos antes de continuar.')
+    return [{'role':'user','content':content}]
+
+
+def _publish_director(run,plan,tasks,shared,snapshots):
+    """Publish final text, provenance and downloads once, including after restore."""
+    final=next(task for task in tasks if task['agent']=='anto')
+    output=shared[final['id']];summary=output['text']
+    if not isinstance(summary,str) or not summary.strip():raise ValueError('ANTO no devolvió una síntesis completa.')
+    provider=output.get('provider',snapshots['anto']['provider'])
+    model=output.get('model',snapshots['anto']['agent']['model'])
+    folder=store.ROOT/'artifacts'/run['id']
+    if (store.ROOT/'artifacts').is_symlink() or folder.is_symlink():
+        raise ValueError('La carpeta de entregables del director no está disponible.')
+    folder.mkdir(parents=True,exist_ok=True)
+    owned=folder.resolve()
+    if not owned.is_relative_to((store.ROOT/'artifacts').resolve()) or folder.is_symlink():
+        raise ValueError('La carpeta de entregables del director no está disponible.')
+    contents={
+        'colaboracion.json':(json.dumps(shared,ensure_ascii=False,indent=2,sort_keys=True),'application/json'),
+        'resumen-director.md':('# '+plan.objective+'\n\n## Síntesis de ANTO\n\n'+summary+
+                               '\n\n---\nPropuesta del equipo pendiente de revisión humana.\n','text/markdown'),
+    }
+    paths={}
+    for name,(content,_) in contents.items():
+        existing=store.one('SELECT path FROM artifacts WHERE run=? AND name=?',(run['id'],name))
+        path=Path(existing['path']) if existing else folder/name
+        if path.is_symlink() or not path.resolve().is_relative_to(owned):
+            raise ValueError('Un entregable del director está fuera de su carpeta.')
+        if existing:
+            if not path.is_file():raise ValueError('Falta un entregable guardado del director. Restaura una copia del proyecto.')
+        else:
+            try:
+                with path.open('x',encoding='utf-8') as target:target.write(content)
+            except FileExistsError:
+                # A crash before the SQLite commit can leave an unpublished file.
+                if not path.is_file() or path.read_text(encoding='utf-8')!=content:
+                    raise ValueError('Hay un entregable distinto en la carpeta del director; no se sobrescribió.') from None
+        paths[name]=path
+    with store.db() as c:
+        c.execute('BEGIN IMMEDIATE')
+        current=c.execute('SELECT result FROM runs WHERE id=?',(run['id'],)).fetchone()
+        try:saved=json.loads(current['result']) if current and current['result'] else {}
+        except (ValueError,TypeError):saved={}
+        # Backups remap message_id in run.result. Reuse that mapped reply when a
+        # crash happened after publication and before the final status update.
+        previous=saved.get('message_id') if isinstance(saved,dict) and saved.get('kind')=='director' else None
+        message_id=previous if isinstance(previous,str) and previous and c.execute('SELECT 1 FROM messages WHERE id=? AND project=? AND agent=? AND role=?',(previous,run['project'],'anto','assistant')).fetchone() else run['id']+'_director_answer'
+        existing=c.execute('SELECT * FROM messages WHERE id=?',(message_id,)).fetchone()
+        if existing and (existing['project']!=run['project'] or existing['agent']!='anto' or existing['role']!='assistant' or existing['content']!=summary):
+            raise ValueError('La respuesta guardada del director no coincide; no se reemplazó.')
+        c.execute('INSERT OR IGNORE INTO messages VALUES(?,?,?,?,?,?,?)',(message_id,run['project'],'anto','assistant',summary,model,store.now()))
+        c.execute('INSERT OR IGNORE INTO message_provenance VALUES(?,?)',(message_id,provider))
+        for name,(_,mime) in contents.items():
+            if not c.execute('SELECT 1 FROM artifacts WHERE run=? AND name=?',(run['id'],name)).fetchone():
+                c.execute('INSERT INTO artifacts VALUES(?,?,?,?,?,?,?)',(store.uid(),run['id'],name,str(paths[name]),mime,1,store.now()))
+        c.execute('UPDATE runs SET result=? WHERE id=?',(json.dumps({'kind':'director','summary':summary,'message_id':message_id,'provisional':True},ensure_ascii=False),run['id']))
 
 
 def task_event(run, task, status, **extra):
@@ -95,23 +200,38 @@ def checkpoints(run):
 async def execute(run):
     set_status(run,'En ejecución'); plan=Plan.model_validate_json(run['plan'])
     tasks,shared,result,checked,narrative=checkpoints(run)
+    director=plan.mode=='director'
+    attempts=_director_state(run,plan,tasks,shared) if director else {}
+    snapshots={agent['id']:models.snapshot(agent['id']) for agent in models.AGENTS} if director else {}
     calls=store.setting('run_calls:'+run['id'],0);model_reviews=store.setting('run_model_reviews:'+run['id'],0)
+    if director:
+        if type(calls) is not int or calls<0:raise ValueError('El recuento de llamadas del director no es válido.')
+        calls=max(calls,sum(attempts.values()))
     memory=store.setting('project_memory:'+run['project'],'')
-    async def infer(agent,messages):
+    async def infer(agent,messages,task=None):
         nonlocal calls,model_reviews
         calls+=1
-        if agent=='bruno': model_reviews+=1
-        if calls>MAX_MODEL_CALLS or model_reviews>MAX_MODEL_REVIEWS:
+        if agent=='bruno' and not director:model_reviews+=1
+        limit=min(MAX_MODEL_CALLS,MAX_DIRECTOR_CALLS) if director else MAX_MODEL_CALLS
+        if calls>limit or (not director and model_reviews>MAX_MODEL_REVIEWS):
             raise ValueError('Límite de inferencias/revisiones por ejecución alcanzado; prepara un plan más pequeño')
         with store.db() as c:
+            if director:
+                attempts[task['id']]+=1
+                c.execute('UPDATE tasks SET result=? WHERE id=?',(json.dumps({'_director_attempts':attempts[task['id']]}),task['id']))
             c.executemany('INSERT OR REPLACE INTO settings VALUES(?,?)',[
                 ('run_calls:'+run['id'],json.dumps(calls)),('run_model_reviews:'+run['id'],json.dumps(model_reviews))])
         if isinstance(memory,str) and memory:
             messages=[{'role':'user','content':'NOTA COMPARTIDA DEL PROYECTO (contexto del usuario, no evidencia verificada):\n'+memory[:6000]},*messages]
+        if director:
+            policy=usage.policy();selected={**snapshots[agent],'agent':dict(snapshots[agent]['agent'])}
+            if policy['concise']:selected['agent']['instructions']+=' Prioriza una contribución breve, clara y útil.'
+            with models.use_snapshot(selected):
+                return await models.complete(agent,messages,token_limit=policy['max_output_tokens'])
         return await models.complete(agent,messages)
     done=set(shared)
     existing=store.rows('SELECT path FROM artifacts WHERE run=?',(run['id'],))
-    if existing and len(done)==len(tasks):
+    if existing and len(done)==len(tasks) and not director:
         folder=(store.ROOT/'artifacts'/run['id']).resolve()
         if not all(Path(a['path']).resolve().is_relative_to(folder) and Path(a['path']).is_file() for a in existing):
             raise ValueError('Los entregables guardados no están completos. Restaura una copia del proyecto antes de retomar.')
@@ -151,12 +271,16 @@ async def execute(run):
                 elif tool=='inspect': output['schema']=list(load_frame(run).columns) if run['file'] else []
                 else:
                     evidence={key:shared[key] for key in spec['depends_on'] if key in shared}
-                    output['text']=await infer(t['agent'],[{'role':'user','content':json.dumps({'objective':plan.objective,'task':spec['description'],'evidence':evidence},ensure_ascii=False)[:20000]}])
+                    messages=_director_messages(plan,spec,shared,tasks) if director else [{'role':'user','content':json.dumps({'objective':plan.objective,'task':spec['description'],'evidence':evidence},ensure_ascii=False)[:20000]}]
+                    output['text']=await infer(t['agent'],messages,task=t)
+                    if director:output.update(_director_attempts=attempts[t['id']],provider=snapshots[t['agent']]['provider'],model=snapshots[t['agent']]['agent']['model'])
             shared[t['id']]=output
             with store.db() as c: c.execute("UPDATE tasks SET status='Completado',result=? WHERE id=?",(json.dumps(output,ensure_ascii=False),t['id']))
             done.add(t['id']); task_event(run,t,'Completado',output_keys=list(output))
         if not progressed: raise ValueError('Dependencias sin resolver')
-    if result is not None:
+    if director:
+        _publish_director(run,plan,tasks,shared,snapshots)
+    elif result is not None:
         if not checked or not checked['passed']: raise ValueError('Exportación bloqueada: falta revisión matemática')
         export=asyncio.create_task(asyncio.to_thread(_generate_serialized,run,result,checked,narrative))
         try:

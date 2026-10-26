@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,7 +16,8 @@
     "test:productivity": "node tests/productivity.cjs",
     "test:studio-controls": "node tests/studio-controls.cjs",
     "test:voice": "node tests/voice.cjs",
-    "test:context": "node tests/context-draft.cjs"
+    "test:context": "node tests/context-draft.cjs",
+    "test:director": "node tests/director.cjs"
   },
   "dependencies": {
     "lucide-react": "0.511.0",

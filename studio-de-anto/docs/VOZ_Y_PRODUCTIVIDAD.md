@@ -1,4 +1,6 @@
-# Voz, productividad y contexto · versión 1.3
+# Voz, productividad y contexto
+
+La versión actual añade el [Director con delegación automática de texto](DIRECTOR.md).
 
 La IA sigue usando las claves de Gemini o Groq ya configuradas en el servidor. La ampliación no añade proveedores, suscripciones ni dependencias. Los créditos de ChatGPT/Codex no se convierten en saldo para esas APIs.
 
@@ -50,4 +52,4 @@ git pull --ff-only origin codex/studio-de-anto-modelo-real &&
 bash studio-de-anto/scripts/update-cloud.sh
 ```
 
-Recarga la aplicación y comprueba **v1.3 · contexto** en el pie. El comando se detiene si estás en otra rama; no uses `reset --hard` ni elimines el Codespace. Las actualizaciones futuras y la recuperación de código se describen en [Actualizaciones](ACTUALIZACIONES.md).
+Recarga la aplicación y comprueba **v1.4 · Director** en el pie. El comando se detiene si estás en otra rama; no uses `reset --hard` ni elimines el Codespace. Las actualizaciones futuras y la recuperación de código se describen en [Actualizaciones](ACTUALIZACIONES.md).
