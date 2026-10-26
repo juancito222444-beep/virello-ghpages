@@ -4,8 +4,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 from typing import Literal
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
+from fastapi.routing import APIRoute
 from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.routing import Match
 from pydantic import BaseModel, Field, SecretStr, field_validator
 from . import store,models,engine,cloud,runtime,credential_store,attachments,usage,backups
 from .schemas import Plan,Analysis,Task,Strict
@@ -26,10 +28,22 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
+APP_RELEASE='1.4.1'
+API_VERSION='1'
+
+
+def registered_feature(path,method):
+    return any(isinstance(route,APIRoute) and route.path==path and method in route.methods
+               for route in app.router.routes)
 
 @app.get('/api/health')
 def health():
-    return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid()}
+    supported=[feature for feature,path,method in (
+        ('director-v1','/api/director','POST'),
+        ('context-draft-v1','/api/projects/{pid}/context-draft','GET'),
+    ) if registered_feature(path,method)]
+    return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid(),
+            'release':APP_RELEASE,'api_version':API_VERSION,'features':supported}
 
 
 def internal_error(request,exc,detail=None,error_code='INTERNAL_ERROR',status=500):
@@ -71,6 +85,23 @@ async def local_only(request,call_next):
     denied=access_error(request.headers.get('host',''),request.headers.get('origin'))
     if denied:
         return __import__('starlette.responses',fromlist=['JSONResponse']).JSONResponse({'detail':denied},status_code=403)
+    if request.url.path.startswith('/api/'):
+        # Never pass unknown API paths to StaticFiles('/'). That fallback turns
+        # a missing POST endpoint into a misleading "Method Not Allowed".
+        found=False;allowed=set()
+        for route in app.router.routes:
+            if not isinstance(route,APIRoute) or not route.path.startswith('/api/'):continue
+            matched,_=route.matches(request.scope)
+            if matched==Match.FULL:found=True;break
+            if matched==Match.PARTIAL:allowed.update(route.methods)
+        if not found:
+            from fastapi.responses import JSONResponse
+            status=405 if allowed else 404
+            headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}
+            if allowed:headers['Allow']=', '.join(sorted(allowed))
+            return JSONResponse({'detail':'La operación no está disponible en este servidor. Actualiza y reinicia STUDIO DE ANTO y recarga la página; tu mensaje se conserva.',
+                                 'error_code':'API_METHOD_NOT_ALLOWED' if allowed else 'API_NOT_FOUND'},
+                                status_code=status,headers=headers)
     try:response=await call_next(request)
     except Exception as exc:return internal_error(request,exc)
     response.headers['X-Content-Type-Options']='nosniff'

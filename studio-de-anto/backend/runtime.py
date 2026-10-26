@@ -6,6 +6,29 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 SECRET_NAMES=('STUDIO_GEMINI_API_KEY','GEMINI_API_KEY','GOOGLE_API_KEY','STUDIO_GROQ_API_KEY','GROQ_API_KEY')
 ENV_NAMES=(*SECRET_NAMES,'STUDIO_CLOUD_ONLY','STUDIO_AI_PROVIDER')
+REQUIRED_API_OPERATIONS={'/api/chat':'post','/api/director':'post'}
+
+
+def api_capabilities_match(document):
+    """A served interface is usable only when its backend has the needed routes."""
+    if not isinstance(document,dict):return False
+    info=document.get('info')
+    paths=document.get('paths')
+    return (
+        isinstance(info,dict) and info.get('title')=='STUDIO DE ANTO'
+        and isinstance(paths,dict)
+        and all(isinstance(paths.get(path),dict) and isinstance(paths[path].get(method),dict)
+                for path,method in REQUIRED_API_OPERATIONS.items())
+    )
+
+
+def health_capabilities_match(document):
+    """Check the running backend's protocol separately from its file hash/PID."""
+    return (
+        isinstance(document,dict) and document.get('api_version')=='1'
+        and isinstance(document.get('features'),list)
+        and 'director-v1' in document['features']
+    )
 
 
 def code_version(root=ROOT):
@@ -62,7 +85,7 @@ def stop_owned_server(pidfile,root=ROOT,timeout=20):
         deadline=time.monotonic()+timeout
         while owned_server(pid,root):
             if time.monotonic()>=deadline:
-                raise ValueError('El servidor sigue terminando peticiones. Espera y vuelve a abrir el Codespace; no se forzó su cierre.')
+                raise ValueError('El servidor anterior sigue terminando peticiones. Cierra las pestañas de la aplicación y repite el arranque. Si persiste, detén y reabre el mismo Codespace; no lo elimines. No se forzó el cierre de ningún proceso.')
             time.sleep(.2)
         return True
     except ProcessLookupError:return False

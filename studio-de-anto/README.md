@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+Si Director muestra **Method Not Allowed**, aplica la [corrección 1.4.1 y reinicia el servidor](docs/METHOD_NOT_ALLOWED.md). Esta entrega detecta incompatibilidades entre interfaz y backend antes de delegar y conserva tu mensaje.
+
 La **versión 1.4** añade **Delegar al equipo** en el chat de ANTO: un objetivo se reparte en subtareas de texto, el equipo las realiza y el Director reúne sus resultados. Incluye progreso, cancelación, reanudación y hasta siete llamadas por encargo. Guía: [Director automático](docs/DIRECTOR.md).
 
 La **versión 1.3** permite preparar un contexto de continuidad con extractos recientes del proyecto, fuentes visibles y revisión antes de guardarlo en la nota compartida. Se prepara localmente, sin consumir llamadas de IA. Pasos y límites: [voz, productividad y contexto](docs/VOZ_Y_PRODUCTIVIDAD.md).

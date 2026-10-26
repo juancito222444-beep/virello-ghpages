@@ -1,4 +1,4 @@
-import asyncio, json, threading
+import asyncio, json, os, tempfile, threading
 from pathlib import Path
 from . import store, models, usage
 from .schemas import Plan
@@ -13,6 +13,20 @@ EXPORT_LOCK=threading.Lock()
 MAX_MODEL_CALLS=16
 MAX_MODEL_REVIEWS=2
 MAX_DIRECTOR_CALLS=6
+
+
+def _write_director_artifact(path,content):
+    """Complete writes before publishing the final name; never replace a file."""
+    staged=None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=path.parent,
+                                         prefix='.director-',suffix='.tmp',delete=False) as target:
+            staged=Path(target.name);target.write(content);target.flush();os.fsync(target.fileno())
+        # Same-directory hard links publish a complete file exclusively. A
+        # storage/write failure leaves no partial final name to block resume.
+        os.link(staged,path)
+    finally:
+        if staged is not None:staged.unlink(missing_ok=True)
 
 
 def _director_state(run,plan,tasks,shared):
@@ -93,10 +107,10 @@ def _publish_director(run,plan,tasks,shared,snapshots):
             if not path.is_file():raise ValueError('Falta un entregable guardado del director. Restaura una copia del proyecto.')
         else:
             try:
-                with path.open('x',encoding='utf-8') as target:target.write(content)
+                _write_director_artifact(path,content)
             except FileExistsError:
                 # A crash before the SQLite commit can leave an unpublished file.
-                if not path.is_file() or path.read_text(encoding='utf-8')!=content:
+                if path.is_symlink() or not path.is_file() or path.read_text(encoding='utf-8')!=content:
                     raise ValueError('Hay un entregable distinto en la carpeta del director; no se sobrescribió.') from None
         paths[name]=path
     with store.db() as c:

@@ -129,8 +129,19 @@ async def propose(body):
         'project_note_untrusted':memory[:2000] if isinstance(memory,str) else '',
         'recent_director_conversation_untrusted':history,
     }
+    content=json.dumps(prompt,ensure_ascii=False)
+    while len(content)>11000 and (prompt['project_note_untrusted'] or any(item['content'] for item in history)):
+        # Bound the encoded prompt: escaping quotes/newlines can otherwise make
+        # the provider adapter discard the objective and the JSON contract.
+        ratio=min(.9,11000/len(content))
+        prompt['project_note_untrusted']=prompt['project_note_untrusted'][:int(len(prompt['project_note_untrusted'])*ratio)]
+        for item in history:item['content']=item['content'][:int(len(item['content'])*ratio)]
+        prompt['context_may_be_shortened']=True
+        content=json.dumps(prompt,ensure_ascii=False)
+    if len(content)>11000:
+        raise ValueError('El contexto del Director es demasiado extenso. Reduce el objetivo antes de volver a delegar.')
     with models.use_snapshot(selected):
-        answer=await models.complete('anto',[{'role':'user','content':json.dumps(prompt,ensure_ascii=False)}],
+        answer=await models.complete('anto',[{'role':'user','content':content}],
                                      Brief.model_json_schema(),token_limit=usage.policy()['max_output_tokens'])
     try:
         brief=Brief.model_validate_json(answer)

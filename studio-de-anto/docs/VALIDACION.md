@@ -1,4 +1,12 @@
-# Validación — versión 1.4
+# Validación — versión 1.4.1
+
+## Corrección de «Method Not Allowed» al delegar
+
+El error se reprodujo con el backend real de `6b36065` sirviendo una interfaz posterior: HTTP200 para la página y HTTP405 `Method Not Allowed` al hacer POST a `/api/director`, que no estaba registrado. No se pudo inspeccionar el proceso de la instancia privada del propietario; esta reproducción establece el mecanismo y los pasos de recuperación, sin atribuir una versión remota no comprobada.
+
+Resultado: **448 pruebas pytest**, **20 pruebas Node**, compilación TypeScript/Vite y recorridos Chromium MOCK de compatibilidad/Director. Se comprueban capacidades reales sin claves, rutas API desconocidas sin fallback estático, bloqueo del envío al servidor antiguo, preservación de objetivo/identificador, comando copiable sin ejecución y comprobación manual sin reenvío. El arranque verifica operaciones, protocolo, hash cargado, PID y entorno. Vite mantiene su aviso previo de tamaño del bundle.
+
+Dos regresiones adicionales reproducidas y corregidas: el prompt serializado mantiene objetivo/contrato al abreviar únicamente nota e historial; un fallo de escritura de un entregable no publica un archivo parcial y la reanudación posterior aprovecha los resultados ya completados. Las pruebas usan modelos HTTP simulados y datos temporales; no se usaron claves ni cuotas reales. Pasos para el Codespace: [recuperación del Director](METHOD_NOT_ALLOWED.md).
 
 ## Director con delegación automática de texto · 26 de octubre de 2026
 

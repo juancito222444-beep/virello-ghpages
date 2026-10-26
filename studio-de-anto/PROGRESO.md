@@ -1,4 +1,6 @@
-# STUDIO DE ANTO · versión1.4
+# STUDIO DE ANTO · versión1.4.1
+
+Corrección del 405: reproducido con backend antiguo e interfaz nueva. Preflight gratuito de capacidades, diagnóstico con comando copiable y texto/identificador conservados; API desconocida sin fallback estático y arranque que verifica operaciones/protocolo cargados. Además, contexto serializado acotado sin perder objetivo y publicación completa de entregables para no bloquear reanudaciones tras fallos de escritura. Pasos concretos del mismo Codespace: `docs/METHOD_NOT_ALLOWED.md`. Sin inferencias reales ni cambios en claves/proyectos.
 
 26 de octubre de 2026: ANTO puede delegar objetivos de texto a especialistas y sintetizar sus aportes. Activación explícita, un encargo activo por proyecto, hasta siete llamadas incluida planificación, sin reintentos automáticos. Persistencia antes de encolar, identificadores de envío que evitan repetir planificaciones y checkpoints/presupuesto portátiles en respaldos. Publicación idempotente de respuesta y entregables; cálculos/archivos conservan el flujo de revisión. Guía: `docs/DIRECTOR.md`.
 

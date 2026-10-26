@@ -1,5 +1,7 @@
 # Un objetivo para el Director · versión 1.4
 
+**Corrección 1.4.1:** si aparece «Method Not Allowed», la interfaz puede estar conectada a un backend anterior sin Director. Sigue [estos pasos de actualización y reinicio](METHOD_NOT_ALLOWED.md). El nuevo preflight no consume IA ni borra tu objetivo.
+
 En Oficina, selecciona **ANTO · Dirección**, activa **Delegar al equipo**, escribe tu objetivo y pulsa Enviar. También puedes dictar el texto y revisarlo antes de enviarlo.
 
 Ejemplo: «Prepara una propuesta para lanzar mi tienda de productos artesanales: define público, propuesta de valor, riesgos, contenidos y próximos pasos».
@@ -25,6 +27,6 @@ Desde la raíz de la misma rama:
 bash studio-de-anto/scripts/update-cloud.sh
 ```
 
-Recarga la aplicación y comprueba **v1.4 · Director**. Los proyectos y las claves se conservan y no se añaden dependencias. Si aún no tienes el actualizador, usa los pasos de [actualización inicial](VOZ_Y_PRODUCTIVIDAD.md#aplicar-la-entrega-en-tu-codespace).
+Recarga la aplicación y comprueba **v1.4.1 · Director**. Los proyectos y las claves se conservan y no se añaden dependencias. Si aún no tienes el actualizador, usa los pasos de [actualización inicial](VOZ_Y_PRODUCTIVIDAD.md#aplicar-la-entrega-en-tu-codespace).
 
 Las pruebas de esta entrega usan respuestas HTTP y eventos simulados. No se utilizó tu cuenta de Gemini/Groq ni se verificó la instalación de esta versión en tu Codespace; la última consulta remota de acceso devolvió 403.

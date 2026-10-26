@@ -1,6 +1,7 @@
 """Director execution uses isolated data and explicit mock inference only."""
 import asyncio
 import contextlib
+import io
 import json
 from pathlib import Path
 
@@ -196,6 +197,35 @@ def test_publication_database_failure_rolls_back_message_and_artifacts(monkeypat
     assert [agent for agent,_ in seen]==['atlas','bruno','anto']
     assert len(store.rows("SELECT * FROM messages WHERE role='assistant'"))==1
     assert len(store.rows('SELECT * FROM artifacts WHERE run=?',(run['id'],)))==2
+
+
+def test_partial_artifact_write_can_resume_without_more_inference(monkeypatch):
+    run=create_run(('atlas',));seen=protocol(monkeypatch)
+    folder=store.ROOT/'artifacts'/run['id'];original_open=io.open;failed=[False]
+    class InterruptedWrite:
+        def __init__(self,target):self.target=target
+        def __getattr__(self,name):return getattr(self.target,name)
+        def __enter__(self):return self
+        def __exit__(self,*args):return self.target.__exit__(*args)
+        def write(self,value):
+            self.target.write(value[:12]);self.target.flush()
+            raise OSError(28,'MOCK: artifact storage is full')
+    def interrupted_open(file,mode='r',*args,**kwargs):
+        target=original_open(file,mode,*args,**kwargs)
+        if not failed[0] and isinstance(file,(str,Path)) and mode[0] in {'x','w'} and (Path(file)==folder or Path(file).parent==folder):
+            failed[0]=True;return InterruptedWrite(target)
+        return target
+    monkeypatch.setattr(io,'open',interrupted_open)
+    with pytest.raises(OSError,match='MOCK: artifact storage is full'):
+        asyncio.run(engine.execute(run))
+    assert failed[0] and all(task['status']=='Completado' for task in tasks(run))
+    assert not store.rows('SELECT * FROM artifacts WHERE run=?',(run['id'],))
+    assert not store.rows("SELECT * FROM messages WHERE role='assistant'")
+    monkeypatch.setattr(io,'open',original_open)
+    asyncio.run(engine.execute(store.one('SELECT * FROM runs WHERE id=?',(run['id'],))))
+    assert [agent for agent,_ in seen]==['atlas','anto']
+    assert len(store.rows('SELECT * FROM artifacts WHERE run=?',(run['id'],)))==2
+    assert len(store.rows("SELECT * FROM messages WHERE role='assistant'"))==1
 
 
 def test_cancellation_preserves_checkpoint_attempts_and_never_publishes(monkeypatch):

@@ -26,6 +26,7 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
    if(!path.startsWith('/api/'))return route.continue();
    const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
    if(method==='POST')posts.push({path,body:request.postDataJSON()});
+   if(path==='/api/health')return json({app:'STUDIO DE ANTO',api_version:'1',release:'1.4.1',features:['director-v1','context-draft-v1']});
    if(path==='/api/projects')return json([{id:'mock-project',name:'PRUEBA MOCK · Director'},{id:'other-project',name:'Otro proyecto'}]);
    if(path==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:''});
    if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],endpoint:'MOCK',credential:{configured:true,valid_format:true,source:'MOCK',accepted_names:[]}});
@@ -86,7 +87,8 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
   for(const task of first.tasks)task.status='Completado';
   messages.push({id:first.director.assistant_message_id,role:'assistant',agent:'anto',content:'MOCK: síntesis única del equipo',model:'gemini-mock',provider:'gemini'});
   await emit(first,'Completado');
-  await page.locator('.message.assistant').getByText('MOCK: síntesis única del equipo',{exact:true}).waitFor();
+  try{await page.locator('.message.assistant').getByText('MOCK: síntesis única del equipo',{exact:true}).waitFor();}
+  catch(error){console.error('Director MOCK final UI:',await page.locator('.chat-body').innerText());throw error;}
   await emit(first,'Completado');
   await page.getByRole('button',{name:'Ver tareas',exact:true}).first().click();
   assert.equal(await page.getByText(/Estadístico:/).count(),0,'Textual director results are not presented as statistics');

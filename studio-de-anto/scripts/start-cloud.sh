@@ -26,21 +26,24 @@ ready() {
   .venv/bin/python - <<'PY' >/dev/null 2>&1
 import json, urllib.request
 from backend.access import codespace_host
-from backend.runtime import code_version, environment_matches
+from backend.runtime import api_capabilities_match, health_capabilities_match, code_version, environment_matches
 host = codespace_host()
 assert host
 headers = {'Host': host, 'Origin': 'https://' + host}
+# Read our loopback listener directly even when this shell has proxy variables.
+opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 request = urllib.request.Request('http://127.0.0.1:8765/openapi.json', headers=headers)
-with urllib.request.urlopen(request, timeout=2) as response:
+with opener.open(request, timeout=2) as response:
     data = json.load(response)
-assert data.get('info', {}).get('title') == 'STUDIO DE ANTO'
+assert api_capabilities_match(data)
 request = urllib.request.Request('http://127.0.0.1:8765/api/health', headers=headers)
-with urllib.request.urlopen(request, timeout=2) as response:
+with opener.open(request, timeout=2) as response:
     health = json.load(response)
+assert health_capabilities_match(health)
 assert health.get('code_version') == code_version()
 assert environment_matches(health.get('pid'))
 request = urllib.request.Request('http://127.0.0.1:8765/api/projects', headers=headers)
-with urllib.request.urlopen(request, timeout=2) as response:
+with opener.open(request, timeout=2) as response:
     assert isinstance(json.load(response), list)
 PY
 }
