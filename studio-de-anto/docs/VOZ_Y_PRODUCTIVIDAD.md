@@ -52,4 +52,4 @@ git pull --ff-only origin codex/studio-de-anto-modelo-real &&
 bash studio-de-anto/scripts/update-cloud.sh
 ```
 
-Recarga la aplicación y comprueba **v1.4.1 · Director** en el pie. El comando se detiene si estás en otra rama; no uses `reset --hard` ni elimines el Codespace. Las actualizaciones futuras y la recuperación de código se describen en [Actualizaciones](ACTUALIZACIONES.md).
+Recarga la aplicación y comprueba **v1.4.2 · borradores** en el pie. El comando se detiene si estás en otra rama; no uses `reset --hard` ni elimines el Codespace. Las actualizaciones futuras y la recuperación de código se describen en [Actualizaciones](ACTUALIZACIONES.md).

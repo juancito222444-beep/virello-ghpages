@@ -1,4 +1,6 @@
-# STUDIO DE ANTO · versión1.4.1
+# STUDIO DE ANTO · versión1.4.2
+
+Borradores locales por proyecto y agente: recuperación tras recargar, última selección válida, descarte selectivo y aviso si falla el almacenamiento. El Director conserva el identificador pendiente tras recarga, sin activar ni enviar automáticamente. El chat conserva texto hasta completar la respuesta y protege lo escrito durante la generación. Sin copiar ajustes/claves ni añadir dependencias o inferencias. Guía: `docs/BORRADORES.md`.
 
 Corrección del 405: reproducido con backend antiguo e interfaz nueva. Preflight gratuito de capacidades, diagnóstico con comando copiable y texto/identificador conservados; API desconocida sin fallback estático y arranque que verifica operaciones/protocolo cargados. Además, contexto serializado acotado sin perder objetivo y publicación completa de entregables para no bloquear reanudaciones tras fallos de escritura. Pasos concretos del mismo Codespace: `docs/METHOD_NOT_ALLOWED.md`. Sin inferencias reales ni cambios en claves/proyectos.
 

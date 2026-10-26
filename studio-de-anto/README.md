@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+**1.4.2:** [borradores recuperables por proyecto y agente](docs/BORRADORES.md), sin llamadas de IA. Incluye la corrección de compatibilidad del Director.
+
 Si Director muestra **Method Not Allowed**, aplica la [corrección 1.4.1 y reinicia el servidor](docs/METHOD_NOT_ALLOWED.md). Esta entrega detecta incompatibilidades entre interfaz y backend antes de delegar y conserva tu mensaje.
 
 La **versión 1.4** añade **Delegar al equipo** en el chat de ANTO: un objetivo se reparte en subtareas de texto, el equipo las realiza y el Director reúne sus resultados. Incluye progreso, cancelación, reanudación y hasta siete llamadas por encargo. Guía: [Director automático](docs/DIRECTOR.md).

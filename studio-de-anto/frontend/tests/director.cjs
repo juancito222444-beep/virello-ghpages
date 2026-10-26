@@ -53,8 +53,9 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
   await input.fill('Borrador conservado al cambiar de agente');
   await page.locator('.team-person').filter({hasText:'VERA'}).click();
   assert.equal(await toggle.count(),0,'Delegation belongs only to ANTO');
-  assert.equal(await input.inputValue(),'Borrador conservado al cambiar de agente');
+  assert.equal(await input.inputValue(),'','Each agent keeps a separate draft');
   await page.locator('.team-person').filter({hasText:'ANTO'}).click();
+  assert.equal(await input.inputValue(),'Borrador conservado al cambiar de agente','Returning to ANTO restores its unsent draft');
   await toggle.check();
   await page.getByText(/máximo 7 llamadas a tu API/).waitFor();
   assert.equal(await input.getAttribute('maxlength'),'2000');
@@ -109,8 +110,10 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
   await input.fill('Texto pendiente sin enviar');
   await page.getByLabel('Proyecto activo').selectOption('other-project');
   await page.waitForFunction(()=>document.querySelectorAll('.director-run').length===0);
-  assert.equal(await input.inputValue(),'Texto pendiente sin enviar');
+  assert.equal(await input.inputValue(),'','Another project never inherits the pending objective');
   assert.equal(await toggle.isChecked(),false);
+  await page.getByLabel('Proyecto activo').selectOption('mock-project');
+  assert.equal(await input.inputValue(),'Texto pendiente sin enviar','Returning to the original project restores its own draft');
   assert.equal(posts.filter(item=>item.path==='/api/director').length,4,'Context changes never send the preserved draft');
   await page.setViewportSize({width:390,height:844});await toggle.check();
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Director controls fit mobile');

@@ -88,10 +88,11 @@ function installSpeechMocks(){
   await page.getByRole('button',{name:'VERA Análisis',exact:true}).click();
   await page.getByRole('heading',{name:'VERA',exact:false}).waitFor();
   await page.evaluate(()=>window.__voiceMock.heldResult({resultIndex:0,results:[{isFinal:true,0:{transcript:'NO MEZCLAR CONTEXTO'}}]}));
-  assert.equal(await message.inputValue(),'Edición manual conservada otra frase');
+  assert.equal(await message.inputValue(),'','Late dictation never enters the other agent draft');
   assert(await page.evaluate(()=>window.__voiceMock.recognitions.at(-1).aborts)>0);
 
   await page.getByRole('button',{name:'ANTO Dirección',exact:true}).click();
+  assert.equal(await message.inputValue(),'Edición manual conservada otra frase','Returning to ANTO restores its own draft');
   const speech=page.locator('.message.assistant .speech-control');await speech.nth(1).waitFor();
   await speech.nth(0).getByRole('button',{name:'Escuchar respuesta',exact:true}).click();
   await speech.nth(0).getByRole('button',{name:'Detener lectura',exact:true}).waitFor();

@@ -1,4 +1,8 @@
-# Validación — versión 1.4.1
+# Validación — versión 1.4.2
+
+## Recuperación de borradores
+
+25 pruebas Node (5 nuevas de almacenamiento) y compilación TypeScript/Vite superadas; se repiten 23 regresiones de capacidades y arranque del backend por el cambio de versión. Cinco recorridos Chromium MOCK superados: borradores, Director, compatibilidad del servidor, voz y PDF/imágenes. El recorrido de borradores verifica aislamiento, última selección tras recargar, descarte sin borrar historial, identidad del Director conservada tras fallo de red y recarga, ausencia de autoenvío, envío normal, edición durante respuesta, errores, almacenamiento bloqueado y móvil. Los modelos y archivos son sintéticos; no se usaron claves ni cuotas del usuario. Alcance local y uso: [borradores](BORRADORES.md).
 
 ## Corrección de «Method Not Allowed» al delegar
 
