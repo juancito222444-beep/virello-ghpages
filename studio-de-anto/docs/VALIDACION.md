@@ -1,4 +1,8 @@
-# Validación — versión 1.4.2
+# Validación — versión 1.4.3
+
+## Búsqueda dentro de conversaciones
+
+27 pruebas Node (2 nuevas sobre Unicode, texto literal y filtro por autor), 7 regresiones de capacidades del backend y compilación TypeScript/Vite superadas. Se repiten los recorridos Chromium MOCK de borradores y Director. El recorrido nuevo de búsqueda verifica tildes/mayúsculas, símbolos literales, filtros, navegación circular, teclado sin envío, mensajes resaltados visibles, selección conservada ante nuevas respuestas, exportación completa, borradores, cambios de contexto y móvil. La revisión añadió la recuperación de la coincidencia al volver a Oficina o reabrir el panel. Buscar no hace peticiones al proveedor ni guarda la consulta. Datos sintéticos y APIs simuladas, sin cuotas ni claves reales. Uso y alcance: [búsqueda](BUSQUEDA.md).
 
 ## Recuperación de borradores
 

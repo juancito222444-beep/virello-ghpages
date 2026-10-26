@@ -1,4 +1,6 @@
-# STUDIO DE ANTO · versión1.4.2
+# STUDIO DE ANTO · versión1.4.3
+
+Búsqueda local en la conversación del agente/proyecto: texto literal sin distinguir tildes ni mayúsculas, filtro por autor, navegación circular, teclado y resaltado. Conserva historial, exportación y borradores; no envía consultas a proveedores. La búsqueda se reinicia al cambiar contexto y mantiene la selección ante mensajes nuevos. Guía: `docs/BUSQUEDA.md`.
 
 Borradores locales por proyecto y agente: recuperación tras recargar, última selección válida, descarte selectivo y aviso si falla el almacenamiento. El Director conserva el identificador pendiente tras recarga, sin activar ni enviar automáticamente. El chat conserva texto hasta completar la respuesta y protege lo escrito durante la generación. Sin copiar ajustes/claves ni añadir dependencias o inferencias. Guía: `docs/BORRADORES.md`.
 

@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,9 @@
     "test:director": "node tests/director.cjs",
     "test:compatibility": "node tests/server-compatibility.cjs",
     "test:drafts": "node --test tests/chat-drafts.test.cjs",
-    "test:drafts-browser": "node tests/chat-drafts.cjs"
+    "test:drafts-browser": "node tests/chat-drafts.cjs",
+    "test:search": "node --test tests/conversation-search.test.cjs",
+    "test:search-browser": "node tests/conversation-search.cjs"
   },
   "dependencies": {
     "lucide-react": "0.511.0",

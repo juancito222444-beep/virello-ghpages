@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+**1.4.3:** [búsqueda en conversaciones](docs/BUSQUEDA.md) con filtro por autor, navegación y teclado, sin consumir IA.
+
 **1.4.2:** [borradores recuperables por proyecto y agente](docs/BORRADORES.md), sin llamadas de IA. Incluye la corrección de compatibilidad del Director.
 
 Si Director muestra **Method Not Allowed**, aplica la [corrección 1.4.1 y reinicia el servidor](docs/METHOD_NOT_ALLOWED.md). Esta entrega detecta incompatibilidades entre interfaz y backend antes de delegar y conserva tu mensaje.

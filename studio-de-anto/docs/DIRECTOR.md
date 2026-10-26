@@ -27,6 +27,6 @@ Desde la raíz de la misma rama:
 bash studio-de-anto/scripts/update-cloud.sh
 ```
 
-Recarga la aplicación y comprueba **v1.4.2 · borradores**. Los proyectos y las claves se conservan y no se añaden dependencias. Si aún no tienes el actualizador, usa los pasos de [actualización inicial](VOZ_Y_PRODUCTIVIDAD.md#aplicar-la-entrega-en-tu-codespace).
+Recarga la aplicación y comprueba **v1.4.3 · búsqueda**. Los proyectos y las claves se conservan y no se añaden dependencias. Si aún no tienes el actualizador, usa los pasos de [actualización inicial](VOZ_Y_PRODUCTIVIDAD.md#aplicar-la-entrega-en-tu-codespace).
 
 Las pruebas de esta entrega usan respuestas HTTP y eventos simulados. No se utilizó tu cuenta de Gemini/Groq ni se verificó la instalación de esta versión en tu Codespace; la última consulta remota de acceso devolvió 403.

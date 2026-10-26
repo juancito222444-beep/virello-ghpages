@@ -19,7 +19,7 @@ bash studio-de-anto/scripts/start-cloud.sh --background
 El comando exige la rama correcta y se detiene si no puede avanzar sin conflictos. No elimina proyectos, claves ni cambios propios y no reinstala dependencias. Si tienes cambios locales que impiden actualizar, revísalos y guárdalos; no uses `reset --hard` ni `git clean` para resolverlo.
 
 3. Espera el mensaje **STUDIO DE ANTO listo**. Si el proceso anterior no termina o no se puede identificar, detén y reabre **el mismo Codespace** y repite el arranque. No lo elimines ni crees otro para reemplazar sus datos.
-4. Abre **Puertos → 8765 → Abrir en navegador**, recarga y comprueba **v1.4.2 · borradores**. En ANTO activa **Delegar al equipo**, revisa el objetivo y pulsa Enviar.
+4. Abre **Puertos → 8765 → Abrir en navegador**, recarga y comprueba **v1.4.3 · búsqueda**. En ANTO activa **Delegar al equipo**, revisa el objetivo y pulsa Enviar.
 
 Actualizar solo los archivos no reinicia un proceso Python que ya estaba ejecutándose. La conexión de Gemini y sus claves no necesitan reemplazarse para reparar una ruta HTTP ausente.
 
