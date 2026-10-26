@@ -14,3 +14,6 @@ tools/
 # Private API keys (including custom data directories).
 **/private/credentials.json
 **/private/.credentials-*
+
+# Generated recovery archives can contain project content in custom data roots.
+**/recovery/

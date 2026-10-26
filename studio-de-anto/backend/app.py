@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.routing import Match
 from pydantic import BaseModel, Field, SecretStr, field_validator
-from . import store,models,engine,cloud,runtime,credential_store,attachments,usage,backups
+from . import store,models,engine,cloud,runtime,credential_store,attachments,usage,backups,auto_backups
 from .schemas import Plan,Analysis,Task,Strict
 from .data_tools import load,inspect
 from .access import access_error
@@ -21,14 +21,16 @@ async def lifespan(app):
     global SETUP_LOCK
     SETUP_LOCK=asyncio.Lock()
     store.init();director.init(); engine.QUEUE=asyncio.Queue(); models.LOCK=asyncio.Lock(); worker=asyncio.create_task(engine.worker())
-    yield
-    for task in list(engine.ACTIVE.values()): task.cancel()
-    worker.cancel()
-    with contextlib.suppress(asyncio.CancelledError): await worker
+    recovery_worker=asyncio.create_task(auto_backups.worker())
+    try:yield
+    finally:
+        for task in list(engine.ACTIVE.values()): task.cancel()
+        worker.cancel();recovery_worker.cancel()
+        await asyncio.gather(worker,recovery_worker,return_exceptions=True)
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.4.3'
+APP_RELEASE='1.5.0'
 API_VERSION='1'
 
 
@@ -41,6 +43,7 @@ def health():
     supported=[feature for feature,path,method in (
         ('director-v1','/api/director','POST'),
         ('context-draft-v1','/api/projects/{pid}/context-draft','GET'),
+        ('recovery-backups-v1','/api/projects/{pid}/snapshots','POST'),
     ) if registered_feature(path,method)]
     return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid(),
             'release':APP_RELEASE,'api_version':API_VERSION,'features':supported}
@@ -170,6 +173,37 @@ async def backup_project(pid:str):
     need_project(pid)
     data=await asyncio.to_thread(backups.export_project,pid)
     return Response(data,media_type='application/zip',headers={'Content-Disposition':f'attachment; filename="studio-project-{pid[:12]}.zip"'})
+
+class RecoveryPolicy(Strict):
+    enabled:bool=Field(strict=True)
+
+@app.get('/api/projects/{pid}/snapshots')
+def recovery_status(pid:str):
+    need_project(pid)
+    return auto_backups.status(pid)
+
+@app.put('/api/projects/{pid}/snapshots')
+def recovery_policy(pid:str,body:RecoveryPolicy):
+    need_project(pid)
+    return auto_backups.configure(pid,body.enabled)
+
+@app.post('/api/projects/{pid}/snapshots')
+async def create_recovery_copy(pid:str):
+    need_project(pid)
+    return await asyncio.to_thread(auto_backups.create,pid)
+
+@app.get('/api/projects/{pid}/snapshots/{snapshot_id}/download')
+async def download_recovery_copy(pid:str,snapshot_id:str):
+    need_project(pid)
+    try:data=await asyncio.to_thread(auto_backups.read,pid,snapshot_id)
+    except FileNotFoundError:raise HTTPException(404,'Copia de recuperación inexistente') from None
+    return Response(data,media_type='application/zip',headers={'Content-Disposition':f'attachment; filename="studio-recovery-{pid[:12]}-{snapshot_id}.zip"','Cache-Control':'no-store'})
+
+@app.post('/api/projects/{pid}/snapshots/{snapshot_id}/restore')
+async def restore_recovery_copy(pid:str,snapshot_id:str):
+    need_project(pid)
+    try:return await asyncio.to_thread(auto_backups.restore,pid,snapshot_id)
+    except FileNotFoundError:raise HTTPException(404,'Copia de recuperación inexistente') from None
 
 @app.post('/api/projects/import')
 async def import_project(file:UploadFile=File(...)):

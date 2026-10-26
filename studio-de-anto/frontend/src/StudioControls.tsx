@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {Download,RefreshCw,Save,Upload} from 'lucide-react';
 import {fetchApi,readApiResponse} from './api';
+import RecoveryBackups from './RecoveryBackups';
 
 type Project={id:string;name:string};
 type Policy={daily_requests:number;max_output_tokens:number;concise:boolean};
@@ -129,5 +130,7 @@ export default function StudioControls(p:Props){
   <div className="studio-divider"/>
   <h3>Copia del proyecto</h3><p className="muted">Descarga una copia ZIP para conservar el proyecto y sus archivos. Las claves de API no se incluyen. Al importar, se crea un proyecto nuevo y se conservan los existentes.</p>
   <div className="studio-actions backup-actions"><button className="button secondary" disabled={!p.project||!!busy} onClick={downloadBackup}><Download size={15}/>{busy==='backup'?'Preparando copia…':'Descargar copia ZIP'}</button><label className={'button secondary backup-upload '+(busy?'disabled':'')}><Upload size={15}/>{busy==='import'?'Importando…':'Importar como proyecto nuevo'}<input type="file" accept=".zip,application/zip" aria-label="Importar copia de proyecto" disabled={!!busy} onChange={e=>{const chosen=e.target.files?.[0];e.target.value='';if(chosen)importBackup(chosen);}}/></label></div><p className="caption">Copia ZIP de hasta 25 MB. Se validará su contenido antes de crear el proyecto.</p>
+  <div className="studio-divider"/>
+  <RecoveryBackups project={p.project} onImported={p.onImported} onNotice={p.onNotice} onError={p.onError}/>
  </section>;
 }

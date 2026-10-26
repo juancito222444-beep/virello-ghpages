@@ -1,11 +1,12 @@
 # Estado actual y pendientes
 
-El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión actual: **1.4.3 · búsqueda**, que incluye la corrección de compatibilidad 1.4.1.
+El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión actual: **1.5.0 · recuperación**, que incluye la corrección de compatibilidad 1.4.1.
 
-Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada sigue sin poder inspeccionarse desde esta integración. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La corrección actual se identifica como **v1.4.3 · búsqueda**: [pasos de recuperación](METHOD_NOT_ALLOWED.md).
+Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada sigue sin poder inspeccionarse desde esta integración. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La corrección actual se identifica como **v1.5.0 · recuperación**: [pasos de recuperación](METHOD_NOT_ALLOWED.md).
 
 ## Entregado
 
+- Copias de recuperación locales opcionales por proyecto: programación horaria mientras el servidor está encendido, tres versiones, validación antes de publicar/rotar, descarga y restauración como proyecto nuevo. Sin claves globales ni llamadas de IA. Ver [recuperación](RECUPERACION.md).
 - Búsqueda local en el texto de la conversación abierta: tildes/mayúsculas, filtro por autor, recorrido por coincidencias y teclado, conservando historial y borradores. Sin llamadas de IA. Ver [búsqueda](BUSQUEDA.md).
 - Borradores de chat recuperables por proyecto y agente en el mismo navegador: última selección válida, descarte selectivo, aviso de almacenamiento e identificador del Director conservado tras recarga. Nunca se reenvía ni se activa Director automáticamente. Ver [borradores](BORRADORES.md).
 - Corrección de compatibilidad al delegar: detección de servidor antiguo antes de POST, prompt conservado, recuperación guiada y arranque con comprobación de métodos/capacidades. Mejora de contexto largo y entregables completos ante fallos de almacenamiento.
@@ -28,13 +29,13 @@ Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tri
 
 ## Límites y próximos pasos
 
-1. Aplicar la versión 1.4.3 y comprobar una delegación real del Director y documentos propios con la cuenta del proveedor. El usuario ya comprobó el funcionamiento de la versión anterior; las pruebas nuevas de delegación/protocolo/navegador son MOCK. La voz requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable.
+1. Aplicar la versión 1.5.0 y comprobar una delegación real del Director y documentos propios con la cuenta del proveedor. El usuario ya comprobó el funcionamiento de la versión anterior; las pruebas nuevas de delegación/protocolo/navegador son MOCK. La voz requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable.
 2. Alojamiento permanente con URL estable: Codespaces sigue siendo el servidor privado actual y puede detenerse o agotar su cuota. No se contrató ni desplegó otro servicio.
 3. Acciones 3D más naturales: sentarse, usar objetos y mobiliario editable. La oficina actual es un diorama estilizado con personajes originales.
 4. Resumen semántico de historiales completos y recuperación documental con páginas/citas precisas. El borrador local actual selecciona extractos recientes sin IA; no analiza el contenido de documentos ni sustituye el historial. La nota que recibe el equipo la revisa y guarda el usuario.
 5. Conversación de voz continua, voces propias por personaje y calidad homogénea en navegadores. La entrega actual ofrece dictado y lectura con voces del navegador; no es un agente de audio en tiempo real ni garantiza el mismo soporte en todos los dispositivos.
 6. Antes de ofrecer acceso público o varios usuarios: identidad propia, roles, aislamiento, cuotas por persona y gestión de secretos adecuada a ese despliegue. El uso actual es privado y de un propietario.
-7. Respaldos automáticos con retención y recuperación probada; hoy el ZIP por proyecto se descarga explícitamente. Las acciones sobre servicios externos y una delegación automática con documentos requieren herramientas y permisos propios; el Director actual genera propuestas de texto.
+7. Respaldos en un almacenamiento externo: las copias horarias actuales viven en el mismo servidor y deben descargarse para protegerlas fuera del Codespace. Las acciones sobre servicios externos y una delegación automática con documentos requieren herramientas y permisos propios; el Director actual genera propuestas de texto.
 
 Las cuotas del proveedor, GitHub Codespaces y Codex son independientes. No se garantiza gratuidad ilimitada ni reentrenamiento del modelo.
 

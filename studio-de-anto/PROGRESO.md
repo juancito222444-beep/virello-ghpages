@@ -1,4 +1,6 @@
-# STUDIO DE ANTO · versión1.4.3
+# STUDIO DE ANTO · versión1.5.0
+
+Copias de recuperación opcionales por proyecto: programación horaria con tres versiones, creación manual, descarga y restauración como proyecto nuevo. Valida el ZIP antes de publicarlo/rotar; un fallo de escritura conserva copias anteriores y usa mensajes seguros. Sin claves globales, dependencias nuevas ni llamadas de IA. Se omiten proyectos con trabajo activo y se permite terminar la copia actual al cerrar, sin comenzar otro proyecto. Guía: `docs/RECUPERACION.md`.
 
 Búsqueda local en la conversación del agente/proyecto: texto literal sin distinguir tildes ni mayúsculas, filtro por autor, navegación circular, teclado y resaltado. Conserva historial, exportación y borradores; no envía consultas a proveedores. La búsqueda se reinicia al cambiar contexto y mantiene la selección ante mensajes nuevos. Guía: `docs/BUSQUEDA.md`.
 

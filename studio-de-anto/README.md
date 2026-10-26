@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+**1.5.0:** [copias de recuperación](docs/RECUPERACION.md) opcionales por proyecto, con historial, descarga y restauración como proyecto nuevo, sin consumir IA.
+
 **1.4.3:** [búsqueda en conversaciones](docs/BUSQUEDA.md) con filtro por autor, navegación y teclado, sin consumir IA.
 
 **1.4.2:** [borradores recuperables por proyecto y agente](docs/BORRADORES.md), sin llamadas de IA. Incluye la corrección de compatibilidad del Director.

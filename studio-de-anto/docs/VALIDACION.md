@@ -1,4 +1,10 @@
-# Validación — versión 1.4.3
+# Validación — versión 1.5.0
+
+## Copias de recuperación opcionales
+
+**466 pruebas pytest**, **27 pruebas Node** y compilación TypeScript/Vite superadas. Se repiten los recorridos Chromium MOCK de notas/límites y contexto; el nuevo recorrido de recuperación comprueba activación explícita, panel cerrado sin peticiones, configuración confirmada tras errores, creación sin doble envío, descarga por enlace con nombre/contenido/ruta, restauración como proyecto nuevo, respuestas atrasadas aisladas y móvil. La descarga usa un servidor fixture de loopback porque Chromium omite la interceptación del enlace `download`; el servidor se cierra al terminar. No se consultaron proveedores reales.
+
+Las 18 regresiones nuevas del backend ejercitan ZIPs y registros reales temporales: exportación/restauración sin secretos globales, originales conservados, configuración estricta, aislamiento, activación/horario/cooldown, trabajos activos, retención posterior a validación/publicación, espacio insuficiente, escritura parcial, archivos ajenos/enlaces, archivo sustituido por otro proyecto y cierre que termina la copia actual sin iniciar otra. Las pruebas no abren ni modifican proyectos o claves del propietario. Las copias viven en el mismo servidor y están desactivadas inicialmente; la aplicación privada aún necesita actualizarse. Uso y límites: [recuperación](RECUPERACION.md).
 
 ## Búsqueda dentro de conversaciones
 
