@@ -14,4 +14,4 @@ Las copias contienen los datos portátiles del proyecto: conversaciones guardada
 
 La función no usa IA, no requiere servicios nuevos ni añade dependencias. Las fechas del panel se muestran en hora de Lima. Su funcionamiento se prueba con datos temporales y proveedores simulados, sin acceder a claves reales.
 
-Para aplicar la versión en el mismo Codespace, sigue la [guía de actualización y reinicio](METHOD_NOT_ALLOWED.md). El pie debe indicar **v1.5.0 · recuperación**.
+Para aplicar la versión en el mismo Codespace, sigue la [guía de actualización y reinicio](METHOD_NOT_ALLOWED.md). El pie debe indicar **v1.6.0 · encargos**.

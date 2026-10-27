@@ -1,4 +1,8 @@
-# Validación — versión 1.5.0
+# Validación — versión 1.6.0
+
+## Encargos y correcciones de la auditoría
+
+489 pruebas pytest (23 nuevas) y 27 Node superadas; TypeScript/Vite compilados. Se cubren cursores SSE, cancelaciones repetidas durante lectura/validación/cierre y colisiones sin sobrescribir originales, migración aditiva de uso con tokens y cuota conservados y recuperación solo al arrancar. Datos sintéticos, sin claves reales ni proveedores. Cuatro recorridos Chromium MOCK superados: ficha de encargo, continuidad de Configuración, voz y Director. Se comprueban vista previa sin envío, límites sin recortar el objetivo, borradores entre pantallas/proyectos, limpieza de claves sin enviar, clip por teclado, dictado 2000/12000 y rechazo de secuencias duplicadas sin refresco adicional. No se capturó audio real. Uso: [encargos](ENCARGOS.md).
 
 ## Copias de recuperación opcionales
 

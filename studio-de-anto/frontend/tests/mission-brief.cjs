@@ -1,0 +1,66 @@
+// The brief is prepared locally. All APIs are MOCK and external origins blocked.
+const assert=require('node:assert/strict');
+const {chromium}=require('playwright');
+const base=process.env.ANTO_TEST_URL||'http://127.0.0.1:8791';
+if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error('Use an isolated loopback frontend');
+(async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox']});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:1050},reducedMotion:'reduce'}),errors=[],writes=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(()=>{window.EventSource=class{close(){}};});
+  const agents=['anto','vera'].map(id=>({id,name:id.toUpperCase(),role:'MOCK',color:'#9684bc',model:'gemini-mock',instructions:'MOCK-private-brief-key',tools:[]}));
+  await page.route('**/*',async route=>{
+   const request=route.request(),url=new URL(request.url()),path=url.pathname;
+   if(url.origin!==new URL(base).origin)return route.abort();
+   if(!path.startsWith('/api/'))return route.continue();
+   const json=body=>route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
+   if(request.method()!=='GET')writes.push({path,method:request.method(),body:request.postDataJSON()});
+   if(path==='/api/projects')return json([{id:'brief-project',name:'Proyecto de encargos'},{id:'other-project',name:'Otro proyecto'}]);
+   if(path==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:'',api_key:'MOCK-private-brief-key'});
+   if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],endpoint:'MOCK',credential:{configured:true,valid_format:true,source:'MOCK',accepted_names:[]}});
+   if(['/api/messages','/api/feedback','/api/runs','/api/files','/api/artifacts'].includes(path))return json([]);
+   throw Error('Unexpected mission brief API request: '+request.method()+' '+path);
+  });
+  await page.goto(base);
+  const input=page.getByLabel('Mensaje',{exact:true}),section=page.getByRole('region',{name:'Ficha de encargo',exact:true});
+  const toggle=section.getByRole('button',{name:'Ficha de encargo',exact:true}),result=section.getByLabel('Resultado esperado',{exact:true}),criteria=section.getByLabel('Criterios de éxito',{exact:true}),preview=section.getByLabel('Vista previa del encargo',{exact:true}),apply=section.getByRole('button',{name:'Añadir ficha al mensaje',exact:true});
+  await toggle.waitFor();assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+  const goal='MOCK: prepara un informe de ventas con mis datos';
+  await input.fill(goal);await toggle.click();
+  assert.equal(await result.getAttribute('maxlength'),'500');assert.equal(await criteria.getAttribute('maxlength'),'700');
+  assert.notEqual(await preview.getAttribute('readonly'),null);
+  await result.fill('Un informe breve y una lista de próximos pasos.');await criteria.fill('Indicar los datos que faltan y separar hechos de supuestos.');
+  const expected=goal+'\n\nResultado esperado: Un informe breve y una lista de próximos pasos.\nCriterios de éxito: Indicar los datos que faltan y separar hechos de supuestos.';
+  assert.equal(await preview.inputValue(),expected);assert.equal(await input.inputValue(),goal,'Preparing preserves the original prompt');assert.deepEqual(writes,[]);
+  await apply.evaluate(button=>{button.click();button.click();});
+  assert.equal(await input.inputValue(),expected);assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+  await toggle.click();assert.equal(await result.inputValue(),'');assert.equal(await criteria.inputValue(),'');assert.equal(await apply.isDisabled(),true,'A completed brief cannot be applied twice without new fields');
+  await result.fill('Un informe breve y una lista de próximos pasos.');await criteria.fill('Indicar los datos que faltan y separar hechos de supuestos.');
+  await section.getByRole('status',{name:'Estado de la ficha',exact:true}).getByText('Esta ficha ya está incluida en el mensaje.',{exact:true}).waitFor();
+  assert.equal(await apply.isDisabled(),true,'The same brief cannot be appended repeatedly');
+  await input.fill('MOCK: planifica una campaña pequeña');
+  await section.getByLabel('Tipo de encargo',{exact:true}).selectOption('campaña');
+  assert.ok((await result.inputValue()).includes('campaña'));assert.ok((await criteria.inputValue()).includes('métricas'));
+  await result.fill('Una campaña específica de prueba');await criteria.fill('Debe incluir un calendario de dos semanas.');
+  assert.equal(await preview.inputValue(),'MOCK: planifica una campaña pequeña\n\nResultado esperado: Una campaña específica de prueba\nCriterios de éxito: Debe incluir un calendario de dos semanas.');
+  await apply.click();assert.ok((await input.inputValue()).startsWith('MOCK: planifica una campaña pequeña\n\n'));
+  assert.deepEqual(writes,[],'Templates and applying the brief never call an API');
+  const longGoal='x'.repeat(1980);await input.fill(longGoal);
+  await page.getByRole('checkbox',{name:'Delegar al equipo',exact:true}).check();await toggle.click();
+  await result.fill('Un resultado que añade suficientes caracteres para superar el límite del Director.');
+  await section.getByRole('status',{name:'Estado de la ficha',exact:true}).getByText(/supera el límite de 2000 caracteres/).waitFor();
+  assert.equal(await apply.isDisabled(),true);assert.equal(await input.inputValue(),longGoal);assert.ok((await preview.inputValue()).length>2000,'Overflow is shown without truncating the preview');
+  assert.deepEqual(writes,[],'An oversized brief never sends a Director prompt');
+  await page.locator('.team-person').filter({hasText:'VERA'}).click();
+  assert.equal(await toggle.getAttribute('aria-expanded'),'false');await toggle.click();
+  assert.equal(await result.inputValue(),'');assert.equal(await criteria.inputValue(),'');
+  await result.fill('Borrador temporal exclusivo de VERA');await page.getByLabel('Proyecto activo').selectOption('other-project');
+  assert.equal(await toggle.getAttribute('aria-expanded'),'false');await toggle.click();assert.equal(await result.inputValue(),'');
+  await page.setViewportSize({width:390,height:844});await input.fill('MOCK: revisar en móvil');
+  await result.fill('Una propuesta legible');await criteria.fill('Mostrar supuestos y próximos pasos.');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Brief controls fit mobile');
+  assert.ok(!(await section.innerText()).includes('MOCK-private-brief-key'));assert.deepEqual(writes,[]);assert.deepEqual(errors,[]);
+  console.log('PASS MOCK: exact brief preview, editable local templates, explicit apply without sending, duplicate/length protection, preserved drafts, context reset and mobile; zero provider calls.');
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

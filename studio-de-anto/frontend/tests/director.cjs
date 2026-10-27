@@ -7,7 +7,7 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  try{
-  const page=await browser.newPage({viewport:{width:1512,height:1100}}),errors=[],posts=[],runs=[],messages=[];
+  const page=await browser.newPage({viewport:{width:1512,height:1100}}),errors=[],posts=[],reads=[],runs=[],messages=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{window.__directorEvents=[];window.EventSource=class{
    constructor(){window.__directorEvents.push(this);}close(){this.onmessage=null;}
@@ -24,6 +24,7 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
    const request=route.request(),url=new URL(request.url()),path=url.pathname,method=request.method();
    if(url.origin!==new URL(base).origin)return route.abort();
    if(!path.startsWith('/api/'))return route.continue();
+   if(method==='GET')reads.push(path);
    const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
    if(method==='POST')posts.push({path,body:request.postDataJSON()});
    if(path==='/api/health')return json({app:'STUDIO DE ANTO',api_version:'1',release:'1.4.1',features:['director-v1','context-draft-v1']});
@@ -84,6 +85,10 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
   assert.equal(await page.locator('.message.user').count(),1,'Accepted user messages come only from persisted metadata');
   const first=runs[0];await emit(first,'Completado',{agent:'atlas',logical_id:'research'});
   await page.locator('.director-run li').filter({hasText:'Investigar opciones concretas'}).getByText('Completado',{exact:true}).waitFor();
+  const beforeDuplicate=reads.filter(path=>path.startsWith('/api/runs')).length;
+  await page.evaluate(event=>{for(const source of window.__directorEvents)source.onmessage?.({data:JSON.stringify(event)});},{seq:sequence,kind:'run',project:'mock-project',run:first.id,agent:'anto',payload:JSON.stringify({status:'Completado'})});
+  await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+  assert.equal(reads.filter(path=>path.startsWith('/api/runs')).length,beforeDuplicate,'A duplicated sequence cannot trigger another project refresh');
   first.status='Completado';first.director.assistant_message_id=first.id+'_director_answer';first.result=JSON.stringify({kind:'director',summary:'MOCK: síntesis única del equipo'});
   for(const task of first.tasks)task.status='Completado';
   messages.push({id:first.director.assistant_message_id,role:'assistant',agent:'anto',content:'MOCK: síntesis única del equipo',model:'gemini-mock',provider:'gemini'});

@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+**1.6.0:** [ficha de encargo y correcciones de continuidad](docs/ENCARGOS.md), sin llamadas extra de IA.
+
 **1.5.0:** [copias de recuperación](docs/RECUPERACION.md) opcionales por proyecto, con historial, descarga y restauración como proyecto nuevo, sin consumir IA.
 
 **1.4.3:** [búsqueda en conversaciones](docs/BUSQUEDA.md) con filtro por autor, navegación y teclado, sin consumir IA.

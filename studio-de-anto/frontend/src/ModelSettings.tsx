@@ -5,7 +5,7 @@ import type {Agent} from './Office';
 export type Provider='gemini'|'groq';
 export type ModelStatus={connected:boolean;models:string[];provider?:Provider;error?:string;endpoint?:string;inference_verified?:boolean;verified_model?:string;credential?:{configured:boolean;valid_format:boolean;source:string|null;accepted_names:string[];saved_in_app?:boolean}};
 export type SavedSettings={agents:Agent[];provider:Provider;ollama_url:string;openai_url:string;key_configured?:boolean};
-type Props={agents:Agent[];provider:Provider;ollama:string;openai:string;onSaved:(s:SavedSettings)=>void;status:ModelStatus;onStatus:(s:ModelStatus,reset?:boolean)=>void;reduced:boolean;onReduced:(v:boolean)=>void;onNotice:(s:string)=>void;onError:(s:string)=>void};
+type Props={active?:boolean;agents:Agent[];provider:Provider;ollama:string;openai:string;onSaved:(s:SavedSettings)=>void;status:ModelStatus;onStatus:(s:ModelStatus,reset?:boolean)=>void;reduced:boolean;onReduced:(v:boolean)=>void;onNotice:(s:string)=>void;onError:(s:string)=>void};
 const services={gemini:{name:'Google Gemini',secret:'STUDIO_GEMINI_API_KEY',model:'gemini-2.5-flash-lite',link:'https://aistudio.google.com/apikey'},groq:{name:'Groq',secret:'STUDIO_GROQ_API_KEY',model:'openai/gpt-oss-20b',link:'https://console.groq.com/keys'}};
 async function call(path:string,body?:unknown,method?:string){const r=await fetchApi('/api'+path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});return readApiResponse(r);}
 export default function ModelSettings(p:Props){
@@ -14,6 +14,8 @@ export default function ModelSettings(p:Props){
  const[checkedStatus,setCheckedStatus]=useState<ModelStatus>();
  useEffect(()=>{let alive=true;setApiKey('');call('/credentials/'+provider).then(info=>{if(alive)setCredential(info);}).catch(()=>{if(alive)setCredential(undefined);});return()=>{alive=false;};},[provider]);
  useEffect(()=>{setProvider(p.provider);setAgents(p.agents);},[p.provider,p.agents]);
+ useEffect(()=>{if(p.active===false){setApiKey('');setKeyError('');setProbe(null);}},[p.active]);
+ const settingsDirty=provider!==p.provider||JSON.stringify(agents)!==JSON.stringify(p.agents);
  const service=services[provider]||services.gemini;
  const status=provider!==p.provider&&checkedStatus?.provider===provider?checkedStatus:p.status;
  const matching=status.provider===provider;
@@ -55,6 +57,7 @@ export default function ModelSettings(p:Props){
   <label>Modelo para todo el equipo<select aria-label="Modelo compartido" value="" onChange={e=>{if(e.target.value){setAgents(old=>old.map(a=>({...a,model:e.target.value})));setProbe(null);}}}><option value="">Seleccionar un modelo del catálogo</option>{(matching?status.models:[]).map(m=><option key={m}>{m}</option>)}</select></label>
   <details><summary>Ajustes avanzados del equipo</summary><div className="agent-settings">{agents.map(a=><article key={a.id}><h3>{a.name}<small>{a.role}</small></h3><label>Modelo de {a.name}<input aria-label={'Modelo de '+a.name} value={a.model} maxLength={200} onChange={e=>{setAgents(old=>old.map(x=>x.id===a.id?{...x,model:e.target.value}:x));setProbe(null);}}/></label><label>Instrucciones de {a.name}<textarea value={a.instructions} maxLength={6000} onChange={e=>setAgents(old=>old.map(x=>x.id===a.id?{...x,instructions:e.target.value}:x))}/></label></article>)}</div>
   </details>
+  {settingsDirty&&<p className="caption" role="status">Cambios de modelos sin guardar. Se conservan al cambiar de pantalla mientras esta página siga abierta.</p>}
   <div className="api-config-row"><button className="button primary" onClick={()=>save('save')}><Check size={15}/>Guardar configuración</button><button className="button secondary" onClick={()=>save('check')}><RefreshCw size={15}/>Actualizar catálogo</button><button className="button secondary" onClick={()=>save('test')}><FlaskConical size={15}/>Conectar {service.name}</button></div>
   {probe&&<div className="probe-result" role="status"><strong>Respuesta recibida del proveedor</strong><p>{probe.response}</p><small>{probe.model} · {probe.latency_ms} ms</small></div>}
   <p className="muted">Para volver a entrar, abre el mismo Codespace y el puerto 8765. No necesitas reinstalar. Los proveedores mantienen su infraestructura; puedes actualizar el catálogo y elegir nuevos modelos. Las correcciones guardadas aportan contexto, sin reentrenar el modelo.</p>

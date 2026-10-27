@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -23,7 +23,9 @@
     "test:drafts-browser": "node tests/chat-drafts.cjs",
     "test:search": "node --test tests/conversation-search.test.cjs",
     "test:search-browser": "node tests/conversation-search.cjs",
-    "test:recovery": "node tests/recovery-backups.cjs"
+    "test:recovery": "node tests/recovery-backups.cjs",
+    "test:mission": "node tests/mission-brief.cjs",
+    "test:settings-continuity": "node tests/settings-continuity.cjs"
   },
   "dependencies": {
     "lucide-react": "0.511.0",

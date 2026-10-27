@@ -48,6 +48,22 @@ def _ensure_schema(c):
     c.execute('CREATE INDEX IF NOT EXISTS api_usage_day ON api_usage(day)')
 
 
+def recover_interrupted():
+    """Close abandoned attempts once at startup, before accepting requests.
+
+    Keep the original status CHECK and all token/attempt records. Interrupted
+    attempts remain consumed and count as failed, with an additive detail flag.
+    This must not run from summary(): active calls there may still be genuine.
+    """
+    with store.db() as c:
+        c.execute('BEGIN IMMEDIATE')
+        _ensure_schema(c)
+        columns={row['name'] for row in c.execute('PRAGMA table_info(api_usage)')}
+        if 'interrupted' not in columns:
+            c.execute('ALTER TABLE api_usage ADD COLUMN interrupted INTEGER NOT NULL DEFAULT 0 CHECK(interrupted IN (0,1))')
+        return c.execute("UPDATE api_usage SET status='failed',interrupted=1 WHERE status='active'").rowcount
+
+
 def _validated_policy(value):
     if not isinstance(value, dict) or set(value) != set(_DEFAULT_POLICY):
         raise ValueError('La política de uso requiere daily_requests, max_output_tokens y concise.')
@@ -177,7 +193,9 @@ def _totals(rows):
     return {
         'attempted': len(rows),
         **{status: sum(row['status'] == status for row in rows)
-           for status in ('completed', 'failed', 'cancelled')},
+           for status in ('active', 'completed', 'failed', 'cancelled')},
+        'interrupted': sum(row['status']=='failed' and 'interrupted' in row.keys()
+                           and row['interrupted']==1 for row in rows),
         **{name: sum(row[name] for row in rows if row[name] is not None)
            for name in ('input_tokens', 'output_tokens', 'total_tokens')},
         'unknown_attempts': sum(any(row[name] is None for name in

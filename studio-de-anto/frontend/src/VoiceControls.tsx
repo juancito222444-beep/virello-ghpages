@@ -12,8 +12,8 @@ type Recognition={
 };
 type RecognitionConstructor=new()=>Recognition;
 type VoiceWindow=Window&{SpeechRecognition?:RecognitionConstructor;webkitSpeechRecognition?:RecognitionConstructor};
-type VoiceProps={value:string;onChange:(value:string)=>void;contextKey:string;disabled?:boolean};
-type RecognitionSession={recognition:Recognition;contextKey:string;finalized:Set<number>;timer?:ReturnType<typeof setTimeout>};
+type VoiceProps={value:string;onChange:(value:string)=>void;contextKey:string;disabled?:boolean;maxLength?:number};
+type RecognitionSession={recognition:Recognition;contextKey:string;maxLength:number;finalized:Set<number>;timer?:ReturnType<typeof setTimeout>};
 const MAX_MESSAGE=12000;
 
 function recognitionConstructor(){
@@ -38,6 +38,7 @@ export function VoiceInput(p:VoiceProps){
  const[interim,setInterim]=useState(''),[error,setError]=useState('');
  const latest=useRef(p);latest.current=p;
  const session=useRef<RecognitionSession|null>(null);
+ const maxLength=p.maxLength??MAX_MESSAGE;
  const supported=!!recognitionConstructor(),secure=window.isSecureContext!==false;
 
  function abortSession(){
@@ -51,17 +52,18 @@ export function VoiceInput(p:VoiceProps){
  useEffect(()=>{
   abortSession();setPhase('idle');setInterim('');setError('');
   return abortSession;
- },[p.contextKey,p.disabled]);
+ },[p.contextKey,p.disabled,maxLength]);
 
  function start(){
   if(p.disabled||session.current)return;
+  if(p.value.length>=maxLength){setError('El mensaje ya alcanza el límite de '+maxLength+' caracteres. Se conserva el texto escrito; revísalo antes de continuar.');return;}
   const Constructor=recognitionConstructor();if(!Constructor||!secure)return;
   let recognition:Recognition;
   try{recognition=new Constructor();}catch{setError(recognitionError(''));return;}
   recognition.lang='es-PE';recognition.continuous=true;recognition.interimResults=true;recognition.maxAlternatives=1;
-  const current:RecognitionSession={recognition,contextKey:p.contextKey,finalized:new Set()};
+  const current:RecognitionSession={recognition,contextKey:p.contextKey,maxLength,finalized:new Set()};
   session.current=current;setError('');setInterim('');setPhase('starting');
-  const active=()=>session.current===current&&latest.current.contextKey===current.contextKey&&!latest.current.disabled;
+  const active=()=>session.current===current&&latest.current.contextKey===current.contextKey&&(latest.current.maxLength??MAX_MESSAGE)===current.maxLength&&!latest.current.disabled;
   const finish=()=>{if(session.current!==current)return;abortSession();setPhase('idle');setInterim('');};
   recognition.onstart=()=>{if(active())setPhase('listening');else finish();};
   recognition.onend=finish;
@@ -77,11 +79,17 @@ export function VoiceInput(p:VoiceProps){
    setInterim(partial.join(' '));
    if(final.length){
     const previous=latest.current.value,separator=previous&&!/\s$/.test(previous)?' ':'';
-    const next=previous+separator+final.join(' ');
+    const available=current.maxLength-previous.length;
+    if(available<=separator.length){setError('El mensaje ya alcanza el límite de '+current.maxLength+' caracteres. Se conserva el texto escrito; revísalo antes de continuar.');finish();return;}
+    const spoken=separator+final.join(' ');
+    let added=spoken.slice(0,available);
+    // Do not split a surrogate pair when the last dictated character cannot fit.
+    if(/[\uD800-\uDBFF]$/.test(added))added=added.slice(0,-1);
+    const next=previous+added;
     // Keep manual edits, including edits made while recognition was pending.
-    latest.current={...latest.current,value:next.slice(0,MAX_MESSAGE)};
+    latest.current={...latest.current,value:next};
     latest.current.onChange(latest.current.value);
-    if(next.length>MAX_MESSAGE){setError('El mensaje llegó al máximo de 12000 caracteres. Revisa el texto antes de enviarlo.');finish();}
+    if(added.length<spoken.length||next.length===current.maxLength){setError('Límite de '+current.maxLength+' caracteres: se añadió solo el dictado que cabía, conservando el texto escrito. Revisa el mensaje antes de enviarlo.');finish();}
    }
   };
   try{recognition.start();}catch(exception){

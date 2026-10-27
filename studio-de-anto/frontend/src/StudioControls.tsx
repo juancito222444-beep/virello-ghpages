@@ -5,7 +5,7 @@ import RecoveryBackups from './RecoveryBackups';
 
 type Project={id:string;name:string};
 type Policy={daily_requests:number;max_output_tokens:number;concise:boolean};
-type Usage={day:string;attempted:number;remaining:number;input_tokens:number;output_tokens:number;total_tokens:number;unknown_attempts:number;policy:Policy};
+type Usage={day:string;attempted:number;remaining:number;input_tokens:number;output_tokens:number;total_tokens:number;unknown_attempts:number;active?:number;interrupted?:number;policy:Policy};
 type ContextSource={kind:'message'|'run'|'file';id:string;agent?:string;name?:string;created:string;excerpt:string;reference?:string};
 type ContextDraft={draft:string;sources:ContextSource[];omitted:boolean;method:'extractive';max_characters:number};
 type ContextPreview={project:string;value:ContextDraft;text:string;added:boolean};
@@ -100,6 +100,7 @@ export default function StudioControls(p:Props){
   <div className="section-title"><h2>Uso y continuidad del estudio</h2><button className="button secondary" disabled={!!busy} onClick={refreshUsage}><RefreshCw size={15}/>Actualizar uso</button></div>
   <p className="muted">Estos contadores pertenecen a esta aplicación. La cuota y la facturación de Gemini o Groq se consultan en tu cuenta del proveedor.</p>
   {usage&&<><div className="usage-stats" role="status"><div><strong>{usage.attempted}</strong><span>intentos de hoy UTC</span><small>{usage.day}</small></div><div><strong>{usage.remaining}</strong><span>intentos disponibles en el estudio</span></div><div><strong>{usage.total_tokens.toLocaleString('es')}</strong><span>tokens informados por el proveedor</span><small>{usage.input_tokens.toLocaleString('es')} entrada · {usage.output_tokens.toLocaleString('es')} salida</small></div></div>{usage.unknown_attempts>0&&<p className="caption">Recuento de tokens parcial: {usage.unknown_attempts} intento(s) sin uso informado por el proveedor.</p>}</>}
+  {!!usage?.interrupted&&<p className="caption" role="status">{usage.interrupted} intento(s) quedaron interrumpidos antes de recibir confirmación. Siguen contando en el límite diario porque el proveedor pudo procesarlos.</p>}
   {policy&&<form className="studio-form" onSubmit={e=>{e.preventDefault();savePolicy();}}>
    <div className="two-col"><label>Máximo de intentos diarios UTC<input type="number" min={1} max={10000} step={1} required value={policy.daily_requests} onChange={e=>setPolicy({...policy,daily_requests:Number(e.target.value)})}/></label><label>Máximo de tokens por respuesta de chat<input type="number" min={512} max={4096} step={1} required value={policy.max_output_tokens} onChange={e=>setPolicy({...policy,max_output_tokens:Number(e.target.value)})}/></label></div>
    <label className="checkbox"><input type="checkbox" checked={policy.concise} onChange={e=>setPolicy({...policy,concise:e.target.checked})}/>Pedir respuestas concisas en el chat</label>
@@ -110,7 +111,7 @@ export default function StudioControls(p:Props){
   <form className="studio-form" onSubmit={e=>{e.preventDefault();saveMemory();}}>
    <h3>Nota compartida del proyecto</h3><p className="muted">Los agentes reciben esta nota como contexto. Guarda objetivos, decisiones o preferencias que quieras conservar.</p>
    <label>Contexto para todo el equipo<textarea aria-label="Nota compartida del proyecto" value={memoryProject===p.project?summary:''} maxLength={6000} disabled={!memoryReady||!!busy} onChange={e=>changeSummary(e.target.value)} placeholder="Objetivo, decisiones y preferencias del proyecto…"/></label>
-   <p className="caption" role="status">{!p.project?'Selecciona un proyecto para usar su nota.':memoryError?'No se pudo cargar la nota. El borrador se conserva mientras sigas en Configuración.':!memoryReady?'Cargando nota del proyecto…':memoryDirty?'Nota con cambios sin guardar. El borrador se conserva al cambiar de proyecto en esta pantalla.':'Nota guardada para este proyecto.'}</p>
+   <p className="caption" role="status">{!p.project?'Selecciona un proyecto para usar su nota.':memoryError?'No se pudo cargar la nota. El borrador se conserva mientras sigas en Configuración.':!memoryReady?'Cargando nota del proyecto…':memoryDirty?'Nota con cambios sin guardar. El borrador se conserva al cambiar de pantalla o proyecto mientras esta página siga abierta.':'Nota guardada para este proyecto.'}</p>
    {memoryError&&<button type="button" className="button secondary" disabled={!!busy} onClick={()=>{p.onError('');setMemoryVersion(value=>value+1);}}>Volver a cargar nota</button>}
    <div className="studio-actions"><span className="caption">{memoryProject===p.project?summary.length:0}/6000 caracteres</span><button className="button secondary" disabled={!p.project||!memoryReady||!!busy||!memoryDirty}><Save size={15}/>{busy==='memory'?'Guardando…':'Guardar nota'}</button></div>
   </form>

@@ -1,4 +1,6 @@
-# STUDIO DE ANTO · versión1.5.0
+# STUDIO DE ANTO · versión1.6.0
+
+Ficha de encargo con resultado esperado, criterios y plantillas locales, vista previa exacta y aplicación al borrador sin envío automático. Corregidas reconexiones SSE, limpieza de subidas canceladas, dictado según límite de Director y continuidad de ajustes entre pantallas. Recuperación aditiva de intentos interrumpidos sin devolver cuota; clip accesible por teclado. Sin nuevas dependencias ni inferencias reales. Guía: `docs/ENCARGOS.md`.
 
 Copias de recuperación opcionales por proyecto: programación horaria con tres versiones, creación manual, descarga y restauración como proyecto nuevo. Valida el ZIP antes de publicarlo/rotar; un fallo de escritura conserva copias anteriores y usa mensajes seguros. Sin claves globales, dependencias nuevas ni llamadas de IA. Se omiten proyectos con trabajo activo y se permite terminar la copia actual al cerrar, sin comenzar otro proyecto. Guía: `docs/RECUPERACION.md`.
 

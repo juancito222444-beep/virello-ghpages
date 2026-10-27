@@ -20,7 +20,7 @@ from . import conversation,project_context,director
 async def lifespan(app):
     global SETUP_LOCK
     SETUP_LOCK=asyncio.Lock()
-    store.init();director.init(); engine.QUEUE=asyncio.Queue(); models.LOCK=asyncio.Lock(); worker=asyncio.create_task(engine.worker())
+    store.init();usage.recover_interrupted();director.init(); engine.QUEUE=asyncio.Queue(); models.LOCK=asyncio.Lock(); worker=asyncio.create_task(engine.worker())
     recovery_worker=asyncio.create_task(auto_backups.worker())
     try:yield
     finally:
@@ -30,7 +30,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.5.0'
+APP_RELEASE='1.6.0'
 API_VERSION='1'
 
 
@@ -407,29 +407,45 @@ async def upload(project:str=Form(...),file:UploadFile=File(...)):
     if ext not in attachments.ALLOWED_EXTENSIONS:
         raise ValueError('Formatos admitidos: CSV, XLSX, PDF, JPG, JPEG, PNG y WebP.')
     fid=store.uid(); folder=store.ROOT/'uploads'; folder.mkdir(exist_ok=True); path=folder/(fid+ext)
-    try:
-        total=0
-        with path.open('wb') as out:
-            while chunk:=await file.read(1024*1024):
-                total+=len(chunk)
-                if total>attachments.MAX_UPLOAD_BYTES: raise ValueError('Máximo 20 MB por archivo')
-                out.write(chunk)
-        metadata=await asyncio.to_thread(attachments.validate,path,ext)
+    created=False;committed=False;validation=None
+    def validate_upload():
+        metadata=attachments.validate(path,ext)
         if ext=='.xlsx':
             try:
                 with zipfile.ZipFile(path) as z:
                     if sum(i.file_size for i in z.infolist())>150*1024*1024: raise ValueError('Excel expandido demasiado grande')
                 import pandas as pd
-                sheets=pd.ExcelFile(path).sheet_names
+                with pd.ExcelFile(path) as workbook:sheets=workbook.sheet_names
             except (zipfile.BadZipFile,KeyError):raise ValueError('El archivo no es un libro Excel válido.') from None
-        else: sheets=[]
+        else:sheets=[]
         if sheets:metadata['sheet']=sheets[0]
+        return metadata,sheets
+    try:
+        total=0
+        with path.open('xb') as out:
+            created=True
+            while chunk:=await file.read(1024*1024):
+                total+=len(chunk)
+                if total>attachments.MAX_UPLOAD_BYTES: raise ValueError('Máximo 20 MB por archivo')
+                out.write(chunk)
+        validation=asyncio.create_task(asyncio.to_thread(validate_upload))
+        metadata,sheets=await asyncio.shield(validation)
         with store.db() as c:
             c.execute('INSERT INTO files VALUES(?,?,?,?,?,?)',(fid,project,name,str(path),json.dumps(metadata),store.now()))
             c.execute('INSERT INTO events(project,kind,payload,created) VALUES(?,?,?,?)',(project,'file',json.dumps({'name':name,'kind':metadata['kind']}),store.now()))
+        committed=True
         return {'id':fid,'sheets':sheets,'kind':metadata['kind']}
-    except Exception:
-        path.unlink(missing_ok=True); raise
+    except BaseException:
+        # Cancellation does not stop a validation thread. Wait until it has
+        # released the original before removing an uncommitted upload.
+        if validation is not None:
+            while not validation.done():
+                try:await asyncio.shield(validation)
+                except asyncio.CancelledError:continue
+                except Exception:break
+            with contextlib.suppress(asyncio.CancelledError,Exception):validation.result()
+        if created and not committed:path.unlink(missing_ok=True)
+        raise
     finally:
         await file.close()
 class Options(Strict):
@@ -678,6 +694,14 @@ def download(aid:str):
 @app.get('/api/events')
 async def events(project:str,request:Request,after:int=0):
     need_project(project)
+    maximum=2**63-1
+    if not 0<=after<=maximum:
+        raise HTTPException(422,'El cursor de actividad debe ser un entero no negativo dentro del rango permitido.')
+    previous=request.headers.get('last-event-id','')
+    if previous:
+        if not previous.isascii() or not previous.isdecimal() or len(previous)>19 or int(previous)>maximum:
+            raise HTTPException(422,'El identificador del último evento no es válido.')
+        after=max(after,int(previous))
     async def stream_events():
         cursor=after
         while not await request.is_disconnected():
