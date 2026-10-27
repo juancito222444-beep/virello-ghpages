@@ -1,0 +1,34 @@
+{
+  "name": "STUDIO DE ANTO · nube privada",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "containerEnv": {
+    "STUDIO_CLOUD_ONLY": "1"
+  },
+  "forwardPorts": [
+    8765
+  ],
+  "portsAttributes": {
+    "8765": {
+      "label": "STUDIO DE ANTO",
+      "onAutoForward": "openBrowser",
+      "protocol": "http",
+      "requireLocalPort": true
+    }
+  },
+  "postCreateCommand": "bash scripts/install.sh",
+  "postStartCommand": "bash scripts/start-cloud.sh --background",
+  "shutdownAction": "stopContainer",
+  "remoteUser": "vscode",
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
+  },
+  "postAttachCommand": "bash scripts/start-cloud.sh --background",
+  "waitFor": "postStartCommand"
+}

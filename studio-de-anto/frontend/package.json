@@ -1,0 +1,45 @@
+{
+  "name": "studio-de-anto",
+  "version": "1.6.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "test:navigation": "node --test tests/navigation.test.cjs",
+    "test:browser": "node tests/browser.cjs",
+    "test:scene": "node tests/scene.cjs",
+    "test:feedback": "node tests/feedback.cjs",
+    "test:api": "node --test tests/api.test.cjs",
+    "test:settings": "node tests/model-settings.cjs",
+    "test:attachments": "node tests/attachments.cjs",
+    "test:productivity": "node tests/productivity.cjs",
+    "test:studio-controls": "node tests/studio-controls.cjs",
+    "test:voice": "node tests/voice.cjs",
+    "test:context": "node tests/context-draft.cjs",
+    "test:director": "node tests/director.cjs",
+    "test:compatibility": "node tests/server-compatibility.cjs",
+    "test:drafts": "node --test tests/chat-drafts.test.cjs",
+    "test:drafts-browser": "node tests/chat-drafts.cjs",
+    "test:search": "node --test tests/conversation-search.test.cjs",
+    "test:search-browser": "node tests/conversation-search.cjs",
+    "test:recovery": "node tests/recovery-backups.cjs",
+    "test:mission": "node tests/mission-brief.cjs",
+    "test:settings-continuity": "node tests/settings-continuity.cjs"
+  },
+  "dependencies": {
+    "lucide-react": "0.511.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "three": "0.176.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.4",
+    "@types/react-dom": "19.1.5",
+    "@types/three": "0.176.0",
+    "@vitejs/plugin-react": "4.4.1",
+    "playwright": "1.51.1",
+    "typescript": "5.8.3",
+    "vite": "6.3.5"
+  }
+}

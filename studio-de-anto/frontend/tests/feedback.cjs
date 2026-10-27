@@ -1,0 +1,46 @@
+/* E2E explícito con proveedor MOCK: no certifica inferencia ni calidad real. */
+const {chromium}=require('playwright');const fs=require('node:fs');
+const base=process.env.ANTO_TEST_URL||'http://127.0.0.1:8766';
+async function request(path,body,method){const response=await fetch(base+'/api'+path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const data=await response.json();if(!response.ok)throw Error(JSON.stringify(data));return data;}
+(async()=>{
+ const settings=await request('/settings');settings.provider='ollama';settings.ollama_url='http://127.0.0.1:11555';settings.agents=settings.agents.map(a=>({...a,model:'MOCK-prueba-no-IA'}));await request('/settings',settings,'PUT');
+ const project=await request('/projects',{name:'PRUEBA MOCK · sin inferencia real'});
+ const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ const page=await browser.newPage({viewport:{width:1512,height:1050}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(base);await page.getByLabel('Proyecto activo').selectOption(project.id);
+ await page.getByLabel('Mensaje',{exact:true}).fill('Prueba explícita MOCK');await page.getByRole('button',{name:'Enviar',exact:true}).click();
+ await page.getByRole('button',{name:'Guardar corrección',exact:true}).last().waitFor();
+ const previousAnswers=await page.locator('.message.assistant').count();
+ await page.getByRole('button',{name:'Continuar conversación',exact:true}).click();
+ await page.waitForFunction(expected=>document.querySelectorAll('.message.assistant .feedback-toolbar').length===expected,previousAnswers+1);
+ if(!(await page.locator('.message.user').last().innerText()).includes('Continúa desde tu respuesta anterior'))throw Error('Continuar no conservó una petición visible en la conversación');
+ await page.getByRole('button',{name:'Útil',exact:true}).last().click();
+ await page.getByRole('button',{name:'Guardar corrección',exact:true}).last().click();
+ const correction='Prefiero que siempre expliques las unidades de la métrica.';
+ await page.getByLabel('Corrección para la respuesta').fill(correction);await page.getByRole('button',{name:'Confirmar corrección',exact:true}).click();
+ await page.getByText('Correcciones guardadas (1)',{exact:true}).waitFor();
+ await page.reload();await page.getByLabel('Proyecto activo').selectOption(project.id);
+ await page.getByText('Correcciones guardadas (1)',{exact:true}).waitFor();
+ await page.getByLabel('Mensaje',{exact:true}).fill('Otra prueba MOCK');await page.getByRole('button',{name:'Enviar',exact:true}).click();await page.getByRole('button',{name:'Guardar corrección',exact:true}).last().waitFor();
+ const log=fs.readFileSync(process.env.ANTO_MOCK_LOG||'/tmp/anto-mock-requests.jsonl','utf8').trim().split('\n').map(JSON.parse);
+ if(!log.some(r=>r.messages.some(m=>m.content.includes(correction))))throw Error('La API mock no recibió la corrección guardada');
+ await page.getByText('Correcciones guardadas (1)',{exact:true}).click();await page.getByRole('button',{name:'Eliminar corrección',exact:true}).click();
+ await page.getByText('Correcciones guardadas (0)',{exact:true}).waitFor();
+ // Cambiar de agente cancela la respuesta y no la mezcla con VERA.
+ await page.getByLabel('Mensaje',{exact:true}).fill('respuesta lenta MOCK');await page.getByRole('button',{name:'Enviar',exact:true}).click();
+ await page.locator('.chat-progress').waitFor();
+ await page.getByLabel('Mensaje',{exact:true}).fill('mensaje que todavía no envío');await page.getByLabel('Mensaje',{exact:true}).press('Enter');
+ if(await page.getByLabel('Mensaje',{exact:true}).inputValue()!=='mensaje que todavía no envío')throw Error('Se perdió el borrador durante la inferencia');
+ await page.getByRole('button',{name:'VERA Análisis',exact:true}).click();
+ await page.getByRole('heading',{name:'VERA',exact:false}).waitFor();await page.waitForTimeout(600);
+ if(await page.locator('.message').count())throw Error('Se mezcló el historial de ANTO con VERA');
+ await page.getByRole('button',{name:'Configuración',exact:true}).click();
+ await page.getByRole('button',{name:'Google Gemini',exact:false}).click();
+ await page.getByRole('button',{name:'Actualizar catálogo',exact:true}).click();
+ await page.locator('.settings-connection').getByText('El servidor no recibe la clave de Google Gemini',{exact:false}).waitFor();
+ await page.getByRole('button',{name:'Conectar y probar respuesta',exact:true}).click();
+ await page.getByRole('alert').getByText('El servidor no recibe la clave de Google Gemini',{exact:false}).waitFor();
+ if(await page.getByText('Respuesta recibida del proveedor',{exact:true}).count())throw Error('Se fingió una respuesta sin clave de nube');
+ if(errors.length)throw Error(errors.join('\n'));
+ console.log('PASS MOCK: streaming, guardar/recuperar/borrar corrección, contexto enviado, cambio de agente aislado, continuación y clave de nube ausente sin respuesta inventada. Sin inferencia real.');await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

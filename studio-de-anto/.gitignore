@@ -1,0 +1,19 @@
+.venv/
+.npm-cache/
+local-data/
+__pycache__/
+.pytest_cache/
+frontend/node_modules/
+frontend/tsconfig.tsbuildinfo
+models/
+tools/
+*.gguf
+*.safetensors
+.env
+
+# Private API keys (including custom data directories).
+**/private/credentials.json
+**/private/.credentials-*
+
+# Generated recovery archives can contain project content in custom data roots.
+**/recovery/

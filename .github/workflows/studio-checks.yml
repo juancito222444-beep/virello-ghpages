@@ -1,0 +1,35 @@
+name: Studio checks
+on:
+  push:
+    paths: ['studio-de-anto/**', '.github/workflows/studio-checks.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: studio-checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: studio-de-anto
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: studio-de-anto/backend/requirements.lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: studio-de-anto/frontend/package-lock.json
+      - run: python -m pip install -r backend/requirements.lock
+      - run: python -m pytest -q --disable-warnings
+      - run: npm ci --no-audit --no-fund
+        working-directory: studio-de-anto/frontend
+      - run: npm run test:api && npm run test:navigation && npm run test:drafts && npm run test:search && npm run build
+        working-directory: studio-de-anto/frontend

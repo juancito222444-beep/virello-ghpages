@@ -1,0 +1,35 @@
+{
+  "name": "STUDIO DE ANTO · Virello preservado",
+  "build": {
+    "dockerfile": "../studio-de-anto/.devcontainer/Dockerfile",
+    "context": "../studio-de-anto/.devcontainer"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "containerEnv": {
+    "STUDIO_CLOUD_ONLY": "1"
+  },
+  "forwardPorts": [
+    8765
+  ],
+  "portsAttributes": {
+    "8765": {
+      "label": "STUDIO DE ANTO",
+      "onAutoForward": "openBrowser",
+      "protocol": "http",
+      "requireLocalPort": true
+    }
+  },
+  "postCreateCommand": "cd studio-de-anto && bash scripts/install.sh",
+  "postStartCommand": "cd studio-de-anto && bash scripts/start-cloud.sh --background",
+  "shutdownAction": "stopContainer",
+  "remoteUser": "vscode",
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
+  },
+  "postAttachCommand": "cd studio-de-anto && bash scripts/start-cloud.sh --background",
+  "waitFor": "postStartCommand"
+}
