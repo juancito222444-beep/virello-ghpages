@@ -22,6 +22,7 @@ const waitDraft=(page,project,agent,text)=>page.waitForFunction(({key,text})=>JS
    if(!path.startsWith('/api/'))return route.continue();
    const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
    if(request.method()==='POST')posts.push({path,body:request.postDataJSON()});
+   if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
    if(path==='/api/projects')return json([{id:'draft-project',name:'Proyecto de borradores'},{id:'other-project',name:'Otro proyecto'}]);
    if(path==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:'',api_key:'MOCK-private-settings-marker'});
    if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],endpoint:'MOCK',credential:{configured:true,valid_format:true,source:'MOCK',accepted_names:[]}});

@@ -28,6 +28,7 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
    const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
    if(method==='POST')posts.push({path,body:request.postDataJSON()});
    if(path==='/api/health')return json({app:'STUDIO DE ANTO',api_version:'1',release:'1.4.1',features:['director-v1','context-draft-v1']});
+   if(/^\/api\/projects\/[^/]+\/office$/.test(path))return json({detail:'Legacy fixture without expansion'},404);
    if(path==='/api/projects')return json([{id:'mock-project',name:'PRUEBA MOCK · Director'},{id:'other-project',name:'Otro proyecto'}]);
    if(path==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:''});
    if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],endpoint:'MOCK',credential:{configured:true,valid_format:true,source:'MOCK',accepted_names:[]}});

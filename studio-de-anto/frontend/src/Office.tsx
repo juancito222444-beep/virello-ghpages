@@ -3,9 +3,10 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {MeshKit,buildRoom,buildActor,type ActorRig} from './scene/assets';
 import {GridNavigation,CorridorReservations,type Cell,cellKey} from './scene/navigation';
+import {buildExpansion,type OfficeExpansion,type ExpansionModule} from './scene/expansions';
 
 export type Agent={id:string;name:string;role:string;color:string;model:string;instructions:string;tools:string[]};
-type Props={agents:Agent[];selected:string;onSelect:(id:string)=>void;states:Record<string,string>;reduced:boolean;zoom:number;reset:number};
+type Props={agents:Agent[];selected:string;onSelect:(id:string)=>void;states:Record<string,string>;reduced:boolean;zoom:number;reset:number;expansions?:OfficeExpansion[];onOpenRoom?:(destination:string)=>void};
 type Actor=ActorRig&{cell:Cell;path:Cell[];step:Cell|null;target:Cell|null;pending:Cell|null;label:HTMLButtonElement;status:string;waveUntil:number;walkPhase:number;wait:number;home:Cell;meeting:Cell};
 type Action='desk'|'meeting'|'wave'|'stop';
 const isWorking=(state:string)=>['En ejecución','En corrección'].includes(state);
@@ -14,7 +15,7 @@ const busyText=(state:string)=>isWorking(state)?'Trabajando':state;
 const buttonStyle={background:'#fffc',border:'1px solid #e7dff0',borderRadius:7,padding:'6px 9px',fontSize:9,color:'#816694',boxShadow:'0 2px 8px #58426709',cursor:'pointer'};
 
 export default function Office(props:Props){
- const host=useRef<HTMLDivElement>(null),stage=useRef<HTMLDivElement>(null),latest=useRef(props),perform=useRef<(a:Action)=>void>(()=>{});
+ const host=useRef<HTMLDivElement>(null),stage=useRef<HTMLDivElement>(null),latest=useRef(props),perform=useRef<(a:Action)=>void>(()=>{}),syncExpansions=useRef<()=>void>(()=>{});
  const[notice,setNotice]=useState('Selecciona un agente y haz clic en una zona libre para moverlo.'),[error,setError]=useState('');
  latest.current=props;
  useEffect(()=>{
@@ -36,6 +37,8 @@ export default function Office(props:Props){
   const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.45,.2);controls.enableDamping=true;controls.dampingFactor=.075;controls.enablePan=true;controls.screenSpacePanning=true;controls.minPolarAngle=Math.PI*.15;controls.maxPolarAngle=Math.PI*.44;controls.minZoom=.7;controls.maxZoom=3;controls.rotateSpeed=.55;controls.zoomSpeed=.75;controls.panSpeed=.7;
   controls.mouseButtons={LEFT:THREE.MOUSE.ROTATE,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.PAN};controls.touches={ONE:THREE.TOUCH.ROTATE,TWO:THREE.TOUCH.DOLLY_PAN};controls.update();controls.saveState();
   const labels=document.createElement('div');labels.style.cssText='position:absolute;inset:0;overflow:hidden;pointer-events:none;';element.appendChild(labels);
+  const modules=new Map<string,{module:ExpansionModule;label:HTMLButtonElement}>();let expansionSignature='';
+  const sceneBounds=new THREE.Box3(new THREE.Vector3(-12,-.5,-10),new THREE.Vector3(12,4.5,10));
   const actors:Actor[]=latest.current.agents.map((a,i)=>{
    const rig=buildActor(kit,a,i);const cell=nav.nearestFree(homes[i],a.id)||homes[i];nav.register(a.id,cell);rig.root.position.set(cell[0]+.5,.14,cell[1]+.5);rig.root.rotation.y=.7;room.add(rig.root);
    rig.root.traverse(object=>{if(object instanceof THREE.Mesh)object.userData.agentId=a.id;});rig.ring.userData.ignorePick=true;
@@ -98,6 +101,7 @@ export default function Office(props:Props){
    const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);
    const intersections=raycaster.intersectObjects(room.children,true).filter(hit=>{const object=hit.object as THREE.Mesh;const mat=object.material as THREE.Material|undefined;return !object.userData.ignorePick&&!(mat?.transparent&&mat.opacity<.5);});
    const first=intersections[0];if(!first)return;
+   if(first.object.userData.officeRoom){latest.current.onOpenRoom?.(first.object.userData.destination);tell('Este espacio abre sus herramientas. Los agentes se desplazan dentro de la oficina principal.');return;}
    if(first.object.userData.agentId){latest.current.onSelect(first.object.userData.agentId);return;}
    const actor=actors.find(a=>a.agent.id===latest.current.selected);if(!actor)return;
    if(!first.object.userData.walkable){tell('Selecciona un personaje o haz clic en una zona libre del suelo.');return;}
@@ -109,7 +113,15 @@ export default function Office(props:Props){
   const visibleInViewport=()=>{const rect=element.getBoundingClientRect();return rect.width>0&&rect.height>0&&rect.bottom>0&&rect.right>0&&rect.top<innerHeight&&rect.left<innerWidth;};
   let inViewport=visibleInViewport();
   const pixelRatio=()=>Math.min(window.devicePixelRatio,lowDevice||latest.current.reduced?1.15:1.6);
-  function resize(){width=Math.max(1,element.clientWidth);height=Math.max(1,element.clientHeight);const aspect=width/height,span=Math.max(21.5,38/aspect);camera.left=-span*aspect/2;camera.right=span*aspect/2;camera.top=span/2;camera.bottom=-span/2;camera.updateProjectionMatrix();renderer.setPixelRatio(pixelRatio());renderer.setSize(width,height);}
+  function resize(){
+   width=Math.max(1,element.clientWidth);height=Math.max(1,element.clientHeight);const aspect=width/height;
+   camera.updateMatrixWorld();let horizontal=0,vertical=0;
+   for(const x of [sceneBounds.min.x,sceneBounds.max.x])for(const y of [sceneBounds.min.y,sceneBounds.max.y])for(const z of [sceneBounds.min.z,sceneBounds.max.z]){
+    const point=new THREE.Vector3(x,y,z).applyMatrix4(camera.matrixWorldInverse);horizontal=Math.max(horizontal,Math.abs(point.x));vertical=Math.max(vertical,Math.abs(point.y));
+   }
+   const span=modules.size?Math.max(21.5,38/aspect,vertical*2+7,(horizontal*2+8)/aspect):Math.max(21.5,38/aspect);
+   camera.left=-span*aspect/2;camera.right=span*aspect/2;camera.top=span/2;camera.bottom=-span/2;camera.updateProjectionMatrix();renderer.setPixelRatio(pixelRatio());renderer.setSize(width,height);
+  }
   const observer=new ResizeObserver(resize);observer.observe(element);resize();
   const projected=new THREE.Vector3(),worldPosition=new THREE.Vector3(),labelOffset=new THREE.Vector3(0,2.75,0);
   function syncVisibility(){
@@ -133,6 +145,24 @@ export default function Office(props:Props){
   // Older WebGL-capable browsers without IntersectionObserver still pause when
   // the scene is scrolled away; neither path polls the invisible scene.
   if(!intersection){window.addEventListener('scroll',onViewportChange,{passive:true,capture:true});window.addEventListener('resize',onViewportChange);}
+  syncExpansions.current=()=>{
+   const requested=latest.current.expansions||[],signature=JSON.stringify(requested.map(expansion=>[expansion.id,expansion.name,expansion.destination]));
+   if(signature===expansionSignature)return;expansionSignature=signature;
+   // A separate MeshKit per module lets repeated authorizations/retractions
+   // release GPU resources without rebuilding actors or their reserved routes.
+   for(const {module,label} of modules.values()){room.remove(module.root);module.dispose();label.remove();}modules.clear();
+   sceneBounds.set(new THREE.Vector3(-12,-.5,-10),new THREE.Vector3(12,4.5,10));
+   for(const expansion of requested){
+    if(modules.has(expansion.id))continue;
+    const module=buildExpansion(expansion);if(!module)continue;room.add(module.root);
+    const label=document.createElement('button');label.dataset.officeRoom=expansion.id;label.setAttribute('aria-label','Abrir '+expansion.name);label.textContent=expansion.name+' · Abrir';
+    label.className='office-room-label';label.style.cssText='position:absolute;left:0;top:0;transform:translate(-50%,-100%);white-space:nowrap;border:1px solid #bda5d4;border-radius:8px;background:#fffcf8f5;padding:7px 9px;font:600 10px system-ui;color:#65477d;box-shadow:0 3px 10px #58426718;pointer-events:auto;cursor:pointer;z-index:3;';
+    label.addEventListener('click',event=>{event.stopPropagation();latest.current.onOpenRoom?.(expansion.destination);});labels.appendChild(label);modules.set(expansion.id,{module,label});
+    const bounds=module.bounds.clone().translate(room.position);sceneBounds.union(bounds);
+   }
+   const center=sceneBounds.getCenter(new THREE.Vector3()),offset=camera.position.clone().sub(controls.target);controls.target.set(center.x,.45,center.z);camera.position.copy(controls.target).add(offset);controls.update();controls.saveState();resize();renderer.shadowMap.needsUpdate=true;
+   outer.dataset.expansionCount=String(modules.size);outer.dataset.sceneBounds=JSON.stringify([sceneBounds.min.x,sceneBounds.max.x,sceneBounds.min.z,sceneBounds.max.z]);
+  };
   function animate(ms:number){
    frame=0;if(!alive)return;
    if(document.hidden||!inViewport){syncVisibility();return;}
@@ -201,16 +231,27 @@ export default function Office(props:Props){
     actor.label.dataset.walking=String(walking);actor.label.dataset.waiting=String(!walking&&!!actor.target&&cellKey(actor.cell)!==cellKey(actor.target));actor.label.dataset.remaining=String(actor.path.length);actor.label.dataset.target=actor.target?.join(',')||'';actor.label.dataset.gesture=wave?'saludando':'ninguno';actor.label.dataset.worldX=actor.root.position.x.toFixed(3);actor.label.dataset.worldZ=actor.root.position.z.toFixed(3);actor.label.dataset.agentState=current;
     actor.root.getWorldPosition(worldPosition);projected.copy(worldPosition).add(labelOffset).project(camera);
     const x=(projected.x*.5+.5)*width,y=(-projected.y*.5+.5)*height;
-    actor.label.style.left=`${x}px`;actor.label.style.top=`${y}px`;actor.label.style.display=projected.z<-1||projected.z>1||x<0||x>width||y<0||y>height?'none':'flex';
+    actor.label.style.left=`${x}px`;actor.label.style.top=`${y}px`;actor.label.style.display=projected.z<-1||projected.z>1||x<0||x>width||y<0||y>height||(width<500&&modules.size>0&&!selected)?'none':'flex';
    }
-   controls.update();const dynamic=actors.some(a=>a.step||a.path.length||time<a.waveUntil||isWorking(a.status));if(time>=nextShadow&&(dynamic||wasDynamic)){renderer.shadowMap.needsUpdate=true;nextShadow=time+.12;}wasDynamic=dynamic;renderer.render(scene,camera);if(outer.dataset.rendererReady!=='true')outer.dataset.rendererReady='true';
+   controls.update();
+   let roomIndex=0;
+   for(const {module,label} of modules.values()){
+    projected.copy(module.anchor).add(room.position).project(camera);const x=(projected.x*.5+.5)*width,y=(-projected.y*.5+.5)*height;
+    const compact=width<500;
+    label.style.left=compact?`${width*(roomIndex%2===0?.25:.75)}px`:`${x}px`;label.style.top=compact?`${height-126+Math.floor(roomIndex/2)*34}px`:`${y}px`;
+    label.style.fontSize=compact?'9px':'10px';label.style.padding=compact?'7px 5px':'7px 9px';
+    label.style.display=compact?'block':projected.z<-1||projected.z>1||x<0||x>width||y<0||y>height?'none':'block';roomIndex++;
+   }
+   const dynamic=actors.some(a=>a.step||a.path.length||time<a.waveUntil||isWorking(a.status));if(time>=nextShadow&&(dynamic||wasDynamic)){renderer.shadowMap.needsUpdate=true;nextShadow=time+.12;}wasDynamic=dynamic;renderer.render(scene,camera);if(outer.dataset.rendererReady!=='true')outer.dataset.rendererReady='true';
   }
+  syncExpansions.current();
   syncVisibility();
   return()=>{
-   alive=false;cancelAnimationFrame(frame);observer.disconnect();intersection?.disconnect();document.removeEventListener('visibilitychange',onVisibility);window.removeEventListener('scroll',onViewportChange,true);window.removeEventListener('resize',onViewportChange);perform.current=()=>{};renderer.domElement.removeEventListener('pointerdown',onDown);renderer.domElement.removeEventListener('pointerup',onUp);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();
+   alive=false;cancelAnimationFrame(frame);observer.disconnect();intersection?.disconnect();document.removeEventListener('visibilitychange',onVisibility);window.removeEventListener('scroll',onViewportChange,true);window.removeEventListener('resize',onViewportChange);perform.current=()=>{};syncExpansions.current=()=>{};for(const {module,label} of modules.values()){module.dispose();label.remove();}modules.clear();renderer.domElement.removeEventListener('pointerdown',onDown);renderer.domElement.removeEventListener('pointerup',onUp);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();
    for(const actor of actors)for(const material of actor.root.userData.extraMaterials||[])material.dispose();for(const material of room.userData.extraMaterials||[])material.dispose();routeGeometry.dispose();routeMaterial.dispose();ground.geometry.dispose();(ground.material as THREE.Material).dispose();kit.dispose();renderer.dispose();renderer.forceContextLoss();labels.remove();renderer.domElement.remove();outer.dataset.rendererReady='false';
   };
  },[]);
+ useEffect(()=>{syncExpansions.current();},[props.expansions]);
  const selectedAgent=props.agents.find(a=>a.id===props.selected),state=props.states[props.selected]||'Disponible';
  return <div ref={host} className="office-canvas" data-renderer-ready="false" aria-label="Oficina 3D interactiva de seis agentes">
   <div ref={stage} style={{position:'absolute',inset:0}}/>

@@ -31,6 +31,7 @@ const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);re
    calls.push({path:name,method:request.method(),query:url.search});
    const json=(value,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
    if(request.method()!=='GET'){unexpected.push(request.method()+' '+name);return json({detail:'No writes expected'},500);}
+   if(/^\/api\/projects\/[^/]+\/office$/.test(name))return json({detail:'Legacy fixture without expansion'},404);
    if(name==='/api/projects')return json([{id:'project-a',name:'MOCK A'},{id:'project-b',name:'MOCK B'}]);
    if(name==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:''});
    if(name==='/api/models')return json({provider:'gemini',connected:false,models:[],credential:{configured:false}});

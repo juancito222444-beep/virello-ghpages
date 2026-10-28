@@ -1,10 +1,12 @@
 # Estado actual y pendientes
 
-El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión de código actual: **1.7.1 · conversaciones**, que incluye la corrección de compatibilidad 1.4.1. Esta identificación no confirma que el Codespace remoto haya instalado la versión. Cambios y validación: [fiabilidad](FIABILIDAD.md).
+El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión de código actual: **1.8.0 · estudio en expansión**, que incluye la corrección de compatibilidad 1.4.1. Esta identificación no confirma que el Codespace remoto haya instalado la versión. Cambios y validación: [fiabilidad](FIABILIDAD.md).
 
-Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada sigue sin poder inspeccionarse desde esta integración. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La versión de código actual se identifica como **v1.7.1 · conversaciones**: [pasos de recuperación](METHOD_NOT_ALLOWED.md) y [dependencias de esta entrega](ACTUALIZACIONES.md).
+Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada sigue sin poder inspeccionarse desde esta integración. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La versión de código actual se identifica como **v1.8.0 · estudio en expansión**: [pasos de recuperación](METHOD_NOT_ALLOWED.md) y [dependencias de esta entrega](ACTUALIZACIONES.md).
 
 ## Entregado
+
+- Cuatro alas 3D con hitos verificables y autorización explícita por proyecto, persistencia, repliegue sin borrar datos y accesos a las herramientas actuales. No implica reentrenamiento ni crecimiento ilimitado. Ver [expansión 1.8.0](EXPANSION.md).
 
 - Historial de conversación paginado con cursor estable, carga anterior manual, conservación de lectura y borradores, reintentos y reconciliación acotada del Director. Búsqueda y descarga de los mensajes cargados. Ver [conversaciones 1.7.1](CONVERSACIONES.md).
 
@@ -37,7 +39,7 @@ Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tri
 
 ## Límites y próximos pasos
 
-1. Aplicar la versión 1.7.1 y comprobar una delegación real del Director y documentos propios con la cuenta del proveedor. El usuario ya comprobó el funcionamiento de la versión anterior; las pruebas nuevas de delegación/protocolo/navegador son MOCK. La voz requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable.
+1. Aplicar la versión 1.8.0 y comprobar una delegación real del Director y documentos propios con la cuenta del proveedor. El usuario ya comprobó el funcionamiento de la versión anterior; las pruebas nuevas de delegación/protocolo/navegador son MOCK. La voz requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable.
 2. Alojamiento permanente con URL estable: Codespaces sigue siendo el servidor privado actual y puede detenerse o agotar su cuota. No se contrató ni desplegó otro servicio.
 3. Acciones 3D más naturales: sentarse, usar objetos y mobiliario editable. La oficina actual es un diorama estilizado con personajes originales.
 4. Resumen semántico de historiales completos y recuperación documental con páginas/citas precisas. El borrador local actual selecciona extractos recientes sin IA; no analiza el contenido de documentos ni sustituye el historial. La nota que recibe el equipo la revisa y guarda el usuario.

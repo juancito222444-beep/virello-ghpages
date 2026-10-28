@@ -27,6 +27,7 @@ async function assertComposeFits(page){
   await page.route('**/api/**',async route=>{
    const request=route.request(),url=new URL(request.url()),path=url.pathname;
    const json=body=>route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
+   if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
    if(path==='/api/projects')return json([{id:'mock-project',name:'MOCK · adjuntos'}]);
    if(path==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:''});
    if(path==='/api/models')return json(status);

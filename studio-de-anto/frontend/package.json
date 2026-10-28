@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,8 @@
     "test:navigation": "node --test tests/navigation.test.cjs",
     "test:browser": "node tests/browser.cjs",
     "test:scene": "node tests/scene.cjs",
+    "test:office-growth": "node tests/office-growth.cjs",
+    "test:office-growth-data": "node --test tests/office-growth.test.cjs",
     "test:scene-performance": "node tests/scene-performance.cjs",
     "test:system-status": "node tests/system-status.cjs",
     "test:run-refresh": "node tests/run-refresh.cjs",

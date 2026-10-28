@@ -26,6 +26,7 @@ const command='cd /workspaces/virello-ghpages && test "$(git branch --show-curre
     healthReads++;assert.equal(request.method(),'GET');
     return json(supported?{app:'STUDIO DE ANTO',api_version:'1',release:'1.4.1',features:['director-v1','context-draft-v1']}:{app:'STUDIO DE ANTO',code_version:'legacy',pid:42});
    }
+   if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
    if(path==='/api/projects')return json([{id:'mock-project',name:'PRUEBA MOCK · servidor anterior'}]);
    if(path==='/api/settings')return json({provider:'gemini',agents:[agent],ollama_url:'',openai_url:''});
    if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],endpoint:'MOCK',credential:{configured:true,valid_format:true,source:'MOCK',accepted_names:[]}});

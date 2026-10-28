@@ -42,6 +42,7 @@ const {chromium}=require('playwright');
    if(!pathname.startsWith('/api/'))return route.continue();
    calls.push({path:pathname,method:request.method(),body:request.postDataJSON()});
    const json=value=>route.fulfill({contentType:'application/json',body:JSON.stringify(value)});
+   if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
    if(pathname==='/api/projects')return json([{id:'project-a',name:'MOCK proyecto A'},{id:'project-b',name:'MOCK proyecto B'}]);
    if(pathname==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:''});
    if(pathname==='/api/models')return json({provider:'gemini',connected:false,models:[],credential:{configured:false,valid_format:false,source:'MOCK',accepted_names:[]}});

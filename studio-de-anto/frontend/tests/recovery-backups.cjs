@@ -50,6 +50,7 @@ const state=(copies=[])=>({enabled:false,interval_minutes:60,retention:3,last_at
    calls.push({path,method,body:request.postDataJSON()});
    const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
    if(path==='/api/system/status')return json(require('./mock-system-status.cjs')());
+   if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
    if(path==='/api/projects')return json(projects);
    if(path==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:'',api_key:'MOCK-private-recovery-key'});
    if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],credential:{configured:true,valid_format:true,source:'MOCK',accepted_names:[]}});

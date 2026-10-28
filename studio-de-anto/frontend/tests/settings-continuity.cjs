@@ -28,6 +28,7 @@ const sentinel='MOCK-TYPED-KEY-MUST-NOT-PERSIST';
    // Any mutation is a failure, including accidental connection/model calls.
    if(method!=='GET'){unexpected.push(method+' '+path);return json({detail:'Unexpected mutation in MOCK regression'},500);}
    if(path==='/api/system/status')return json(require('./mock-system-status.cjs')());
+   if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
    if(path==='/api/projects')return json([{id:'project-a',name:'MOCK A'},{id:'project-b',name:'MOCK B'}]);
    if(path==='/api/settings')return json(settings);
    if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock','gemini-other-mock'],endpoint:'MOCK',credential});

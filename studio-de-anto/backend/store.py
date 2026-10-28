@@ -71,6 +71,15 @@ def init():
         );
         INSERT OR IGNORE INTO migrations VALUES(3);
         ''')
+        c.executescript('''
+        CREATE TABLE IF NOT EXISTS office_rooms(
+            project TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            room_id TEXT NOT NULL CHECK(room_id IN ('library','laboratory','gallery','strategy')),
+            authorized_at TEXT NOT NULL,
+            PRIMARY KEY(project,room_id)
+        );
+        INSERT OR IGNORE INTO migrations VALUES(4);
+        ''')
         # Recovery and its events commit together. Repeated/concurrent startup
         # cannot observe recovered rows without their corresponding terminal events.
         c.execute('BEGIN IMMEDIATE')

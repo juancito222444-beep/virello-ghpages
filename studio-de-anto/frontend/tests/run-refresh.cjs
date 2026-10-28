@@ -66,6 +66,7 @@ const {chromium}=require('playwright');
     await new Promise(resolve=>held.push({release:async()=>{await json(snapshot);resolve();},path:pathname}));
     return;
    }
+   if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
    if(pathname==='/api/projects')return json(['project-a','project-b','legacy'].map(id=>({id,name:'MOCK '+id})));
    if(pathname==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:''});
    if(pathname==='/api/models')return json({provider:'gemini',connected:false,models:[],credential:{configured:false,valid_format:false,source:'MOCK',accepted_names:[]}});

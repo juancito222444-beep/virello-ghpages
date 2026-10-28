@@ -14,6 +14,7 @@ async function mockApis(page,calls){
   if(!url.pathname.startsWith('/api/'))return route.continue();
   const path=url.pathname;calls.push({path,method:request.method()});
   const json=value=>route.fulfill({contentType:'application/json',body:JSON.stringify(value)});
+  if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
   if(path==='/api/projects')return json([{id:'voice-project',name:'MOCK · voz'},{id:'other-project',name:'MOCK · otro'}]);
   if(path==='/api/settings')return json({provider:'gemini',agents,ollama_url:'http://127.0.0.1:11434',openai_url:'http://127.0.0.1:1234/v1'});
   if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:[model]});

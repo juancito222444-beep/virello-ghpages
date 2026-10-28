@@ -16,7 +16,7 @@ from . import cloud, runtime, store, usage
 
 _MIN_FREE_BYTES = 50 * 1024 * 1024
 _FEATURES = frozenset({'director-v1', 'context-draft-v1', 'recovery-backups-v1',
-                       'system-status-v1', 'director-budget-v1'})
+                       'system-status-v1', 'director-budget-v1', 'office-growth-v1'})
 _HASH = re.compile(r'^[0-9a-f]{64}$')
 _RELEASE = re.compile(r'^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]{1,40})?$')
 

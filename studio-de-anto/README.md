@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+**1.8.0:** [oficina con salas desbloqueables y expansión autorizada por proyecto](docs/EXPANSION.md), sin llamadas adicionales de IA.
+
 **1.7.1:** [carga por páginas de conversaciones y recuperación](docs/CONVERSACIONES.md).
 
 **1.7.0:** [reservas del Director, diagnóstico y rendimiento](docs/CONTROL_ESTUDIO.md).

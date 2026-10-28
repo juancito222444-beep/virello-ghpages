@@ -22,6 +22,7 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
    if(!path.startsWith('/api/'))return route.continue();
    const json=body=>route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
    if(request.method()==='POST')posts.push({path,body:request.postDataJSON()});
+   if(/^\/api\/projects\/[^/]+\/office$/.test(url.pathname))return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({detail:'Legacy fixture without expansion'})});
    if(path==='/api/projects')return json([{id:'search-project',name:'Proyecto de búsqueda'},{id:'other-project',name:'Otro proyecto'}]);
    if(path==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:'',api_key:'MOCK-private-search-key'});
    if(path==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],endpoint:'MOCK',credential:{configured:true,valid_format:true,source:'MOCK',accepted_names:[]}});

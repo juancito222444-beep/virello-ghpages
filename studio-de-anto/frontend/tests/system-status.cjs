@@ -71,6 +71,7 @@ assert.equal(JSON.stringify(buildDiagnosticReport(tokenReport)).includes(sentine
    if(!pathname.startsWith('/api/'))return route.continue();
    calls.push({path:pathname,method:request.method(),body:request.postDataJSON()});
    const json=(value,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
+   if(/^\/api\/projects\/[^/]+\/office$/.test(pathname))return json({detail:'Legacy fixture without expansion'},404);
    if(pathname==='/api/projects')return json([{id:'system-project',name:'MOCK diagnóstico'}]);
    if(pathname==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:''});
    if(pathname==='/api/models')return json({provider:'gemini',connected:false,models:[],credential});

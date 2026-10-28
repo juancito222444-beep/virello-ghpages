@@ -15,7 +15,7 @@ from .data_tools import load,inspect
 from .access import access_error
 from .planning import propose_plan
 from . import conversation,project_context,director
-from . import system_status,run_views,message_history
+from . import system_status,run_views,message_history,office_growth
 
 @asynccontextmanager
 async def lifespan(app):
@@ -31,7 +31,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.7.1'
+APP_RELEASE='1.8.0'
 API_VERSION='1'
 
 
@@ -47,6 +47,7 @@ def health():
         ('recovery-backups-v1','/api/projects/{pid}/snapshots','POST'),
         ('system-status-v1','/api/system/status','GET'),
         ('director-budget-v1','/api/director','POST'),
+        ('office-growth-v1','/api/projects/{pid}/office/{room_id}','PUT'),
     ) if registered_feature(path,method)]
     return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid(),
             'release':APP_RELEASE,'api_version':API_VERSION,'features':supported}
@@ -165,6 +166,21 @@ def rename_project(pid:str,body:ProjectName):
 
 class ProjectMemory(Strict):
     summary:str=Field(default='',max_length=6000)
+
+class OfficeAuthorization(Strict):
+    enabled:bool=Field(strict=True)
+
+@app.get('/api/projects/{pid}/office')
+def project_office(pid:str):
+    try:return office_growth.status(pid)
+    except office_growth.ProjectNotFound:raise HTTPException(404,'Proyecto inexistente') from None
+
+@app.put('/api/projects/{pid}/office/{room_id}')
+def authorize_project_room(pid:str,room_id:str,body:OfficeAuthorization):
+    try:return office_growth.configure(pid,room_id,body.enabled)
+    except office_growth.ProjectNotFound:raise HTTPException(404,'Proyecto inexistente') from None
+    except office_growth.RoomNotFound:raise HTTPException(404,'Sala inexistente') from None
+    except office_growth.RoomLocked as exc:raise HTTPException(409,str(exc)) from None
 
 @app.get('/api/projects/{pid}/context-draft')
 def context_draft(pid:str):
