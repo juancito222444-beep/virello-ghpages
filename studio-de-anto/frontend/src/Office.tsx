@@ -21,7 +21,7 @@ export default function Office(props:Props){
   const element=stage.current!,outer=host.current!;let renderer:THREE.WebGLRenderer;
   const deviceMemory=(navigator as Navigator&{deviceMemory?:number}).deviceMemory;
   const lowDevice=(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4)||(deviceMemory!==undefined&&deviceMemory<=4);
-  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}catch{
+  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:lowDevice||latest.current.reduced?'low-power':'high-performance'});}catch{
    setError('Tu navegador no pudo iniciar WebGL. Prueba Chrome o Edge con aceleración gráfica; puedes seleccionar el equipo desde la lista inferior.');return;
   }
   setError('');outer.dataset.rendererReady='false';outer.dataset.sceneVersion='3d';
@@ -106,14 +106,40 @@ export default function Office(props:Props){
   renderer.domElement.addEventListener('pointerdown',onDown);renderer.domElement.addEventListener('pointerup',onUp);
   const contextLost=(event:Event)=>{event.preventDefault();setError('Se perdió el contexto gráfico. Recarga la vista de oficina para recuperar la escena; tus datos siguen guardados.');};renderer.domElement.addEventListener('webglcontextlost',contextLost);
   let width=1,height=1,lastReset=latest.current.reset,lastZoom=latest.current.zoom,lastSelected=latest.current.selected,frame=0,nextShadow=0,wasDynamic=false,previous=performance.now()/1000,lastFrame=0,alive=true;
-  function resize(){width=Math.max(1,element.clientWidth);height=Math.max(1,element.clientHeight);const aspect=width/height,span=Math.max(21.5,38/aspect);camera.left=-span*aspect/2;camera.right=span*aspect/2;camera.top=span/2;camera.bottom=-span/2;camera.updateProjectionMatrix();renderer.setSize(width,height);}
+  const visibleInViewport=()=>{const rect=element.getBoundingClientRect();return rect.width>0&&rect.height>0&&rect.bottom>0&&rect.right>0&&rect.top<innerHeight&&rect.left<innerWidth;};
+  let inViewport=visibleInViewport();
+  const pixelRatio=()=>Math.min(window.devicePixelRatio,lowDevice||latest.current.reduced?1.15:1.6);
+  function resize(){width=Math.max(1,element.clientWidth);height=Math.max(1,element.clientHeight);const aspect=width/height,span=Math.max(21.5,38/aspect);camera.left=-span*aspect/2;camera.right=span*aspect/2;camera.top=span/2;camera.bottom=-span/2;camera.updateProjectionMatrix();renderer.setPixelRatio(pixelRatio());renderer.setSize(width,height);}
   const observer=new ResizeObserver(resize);observer.observe(element);resize();
-  const projected=new THREE.Vector3(),worldPosition=new THREE.Vector3();
+  const projected=new THREE.Vector3(),worldPosition=new THREE.Vector3(),labelOffset=new THREE.Vector3(0,2.75,0);
+  function syncVisibility(){
+   if(!alive)return;
+   const paused=document.hidden||!inViewport;
+   outer.dataset.renderState=document.hidden?'hidden':!inViewport?'offscreen':'active';
+   if(paused){cancelAnimationFrame(frame);frame=0;return;}
+   if(!frame){
+    // Resume this scene instead of rebuilding it. Hidden time must not become
+    // walking distance, consume reservations or produce a large damping step.
+    previous=performance.now()/1000;lastFrame=0;frame=requestAnimationFrame(animate);
+   }
+  }
+  const onVisibility=()=>syncVisibility();
+  const onViewportChange=()=>{inViewport=visibleInViewport();syncVisibility();};
+  const intersection=typeof IntersectionObserver==='undefined'?null:new IntersectionObserver(entries=>{
+   const entry=entries[entries.length-1];if(!entry)return;
+   inViewport=entry.isIntersecting&&entry.intersectionRatio>0;syncVisibility();
+  });
+  intersection?.observe(element);document.addEventListener('visibilitychange',onVisibility);
+  // Older WebGL-capable browsers without IntersectionObserver still pause when
+  // the scene is scrolled away; neither path polls the invisible scene.
+  if(!intersection){window.addEventListener('scroll',onViewportChange,{passive:true,capture:true});window.addEventListener('resize',onViewportChange);}
   function animate(ms:number){
-   if(!alive)return;frame=requestAnimationFrame(animate);const time=ms/1000,p=latest.current;
-   if(document.hidden){previous=time;return;}
+   frame=0;if(!alive)return;
+   if(document.hidden||!inViewport){syncVisibility();return;}
+   frame=requestAnimationFrame(animate);const time=ms/1000,p=latest.current;
    if((lowDevice||p.reduced)&&ms-lastFrame<1000/30-1)return;
    lastFrame=ms;const dt=Math.min(.5,Math.max(0,time-previous));previous=time;
+   if(renderer.getPixelRatio()!==pixelRatio())renderer.setPixelRatio(pixelRatio());
    controls.enableDamping=!p.reduced;
    if(p.reset!==lastReset){controls.reset();camera.zoom=p.zoom;camera.updateProjectionMatrix();lastReset=p.reset;lastZoom=p.zoom;}
    if(p.zoom!==lastZoom){camera.zoom=p.zoom;camera.updateProjectionMatrix();lastZoom=p.zoom;}
@@ -173,15 +199,15 @@ export default function Office(props:Props){
     actor.orb.scale.setScalar(active&&!p.reduced?1+Math.sin(time*4)*.15:1);
     if(!walking){const desired=active?Math.PI:Math.atan2(camera.position.x-(actor.root.position.x-12),camera.position.z-(actor.root.position.z-10));actor.root.rotation.y+=Math.atan2(Math.sin(desired-actor.root.rotation.y),Math.cos(desired-actor.root.rotation.y))*Math.min(1,dt*6);}
     actor.label.dataset.walking=String(walking);actor.label.dataset.waiting=String(!walking&&!!actor.target&&cellKey(actor.cell)!==cellKey(actor.target));actor.label.dataset.remaining=String(actor.path.length);actor.label.dataset.target=actor.target?.join(',')||'';actor.label.dataset.gesture=wave?'saludando':'ninguno';actor.label.dataset.worldX=actor.root.position.x.toFixed(3);actor.label.dataset.worldZ=actor.root.position.z.toFixed(3);actor.label.dataset.agentState=current;
-    actor.root.getWorldPosition(worldPosition);projected.copy(worldPosition).add(new THREE.Vector3(0,2.75,0)).project(camera);
+    actor.root.getWorldPosition(worldPosition);projected.copy(worldPosition).add(labelOffset).project(camera);
     const x=(projected.x*.5+.5)*width,y=(-projected.y*.5+.5)*height;
     actor.label.style.left=`${x}px`;actor.label.style.top=`${y}px`;actor.label.style.display=projected.z<-1||projected.z>1||x<0||x>width||y<0||y>height?'none':'flex';
    }
    controls.update();const dynamic=actors.some(a=>a.step||a.path.length||time<a.waveUntil||isWorking(a.status));if(time>=nextShadow&&(dynamic||wasDynamic)){renderer.shadowMap.needsUpdate=true;nextShadow=time+.12;}wasDynamic=dynamic;renderer.render(scene,camera);if(outer.dataset.rendererReady!=='true')outer.dataset.rendererReady='true';
   }
-  frame=requestAnimationFrame(animate);
+  syncVisibility();
   return()=>{
-   alive=false;cancelAnimationFrame(frame);observer.disconnect();perform.current=()=>{};renderer.domElement.removeEventListener('pointerdown',onDown);renderer.domElement.removeEventListener('pointerup',onUp);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();
+   alive=false;cancelAnimationFrame(frame);observer.disconnect();intersection?.disconnect();document.removeEventListener('visibilitychange',onVisibility);window.removeEventListener('scroll',onViewportChange,true);window.removeEventListener('resize',onViewportChange);perform.current=()=>{};renderer.domElement.removeEventListener('pointerdown',onDown);renderer.domElement.removeEventListener('pointerup',onUp);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();
    for(const actor of actors)for(const material of actor.root.userData.extraMaterials||[])material.dispose();for(const material of room.userData.extraMaterials||[])material.dispose();routeGeometry.dispose();routeMaterial.dispose();ground.geometry.dispose();(ground.material as THREE.Material).dispose();kit.dispose();renderer.dispose();renderer.forceContextLoss();labels.remove();renderer.domElement.remove();outer.dataset.rendererReady='false';
   };
  },[]);

@@ -74,6 +74,14 @@ def init():
                            ('La planificación se interrumpió. Envía un nuevo intento si deseas volver a planificar.',))
 
 
+def planning_budget(body):
+    return 'director-plan:'+json.dumps([body.project,body.request_id],separators=(',',':'))
+
+
+def run_budget(run_id):
+    return 'director-run:'+run_id
+
+
 def reserve(body):
     with store.db() as connection:
         connection.execute('BEGIN IMMEDIATE')
@@ -92,6 +100,7 @@ def reserve(body):
                                   (body.project,)).fetchall()
         if pending or any(json.loads(run['plan']).get('mode')=='director' for run in active):
             raise HTTPException(409,'Este proyecto ya tiene un encargo del Director en curso. Espera o cancélalo antes de enviar otro.')
+        usage.reserve_budget(planning_budget(body),7,connection=connection)
         connection.execute('INSERT INTO director_requests VALUES(?,?,?,?,?,?,?)',
                            (body.project,body.request_id,body.request,'planning',None,None,store.now()))
     return None
@@ -140,7 +149,7 @@ async def propose(body):
         content=json.dumps(prompt,ensure_ascii=False)
     if len(content)>11000:
         raise ValueError('El contexto del Director es demasiado extenso. Reduce el objetivo antes de volver a delegar.')
-    with models.use_snapshot(selected):
+    with usage.use_budget(planning_budget(body)), models.use_snapshot(selected):
         answer=await models.complete('anto',[{'role':'user','content':content}],
                                      Brief.model_json_schema(),token_limit=usage.policy()['max_output_tokens'])
     try:
@@ -167,6 +176,7 @@ def save(body,plan,selected):
     rid=store.uid();mapping={task.id:store.uid() for task in plan.tasks}
     with store.db() as connection:
         connection.execute('BEGIN IMMEDIATE')
+        usage.transfer_budget(planning_budget(body),run_budget(rid),len(plan.tasks),connection=connection)
         connection.execute('INSERT INTO runs VALUES(?,?,?,?,?,?,?,?)',
                            (rid,body.project,None,body.request,'Pendiente',plan.model_dump_json(),None,store.now()))
         for index,task in enumerate(plan.tasks):
@@ -192,11 +202,13 @@ def fail(body,error):
     detail=('La planificación se interrumpió. Envía un nuevo intento si deseas volver a planificar.'
             if interrupted else runtime.safe_error(error.detail if isinstance(error,HTTPException) else error))
     with store.db() as connection:
+        connection.execute('BEGIN IMMEDIATE')
+        usage.release_budget(planning_budget(body),connection=connection)
         connection.execute("UPDATE director_requests SET status=?,error=? WHERE project=? AND request_id=? AND status='planning'",
                            ('interrupted' if interrupted else 'failed',detail,body.project,body.request_id))
 
 
-def decorate(run):
+def decorate(run,messages=None):
     if json.loads(run['plan']).get('mode')!='director':return run
     user=run['id']+'_director_user';assistant=run['id']+'_director_answer'
     try:result=json.loads(run['result']) if run['result'] else {}
@@ -204,7 +216,7 @@ def decorate(run):
     # Project restores remap message IDs inside the persisted result.
     if isinstance(result,dict) and result.get('kind')=='director' and isinstance(result.get('message_id'),str):
         assistant=result['message_id']
-    present={message['id']:message['role'] for message in store.rows('SELECT id,role FROM messages WHERE project=? AND agent=? AND id IN (?,?)',
+    present=messages if messages is not None else {message['id']:message['role'] for message in store.rows('SELECT id,role FROM messages WHERE project=? AND agent=? AND id IN (?,?)',
                                                                    (run['project'],'anto',user,assistant))}
     return {**run,'director':{'user_message_id':user if present.get(user)=='user' else None,
                               'assistant_message_id':assistant if present.get(assistant)=='assistant' else None,'max_api_calls':7}}

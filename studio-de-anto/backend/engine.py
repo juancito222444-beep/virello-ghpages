@@ -1,6 +1,6 @@
 import asyncio, json, os, tempfile, threading
 from pathlib import Path
-from . import store, models, usage
+from . import store, models, usage, director
 from .schemas import Plan
 from .data_tools import load,analyze,review
 from .reports import generate
@@ -211,7 +211,34 @@ def checkpoints(run):
             narrative=output['commentary']
     return tasks,shared,result,checked,narrative
 
+def director_slots(run):
+    """Capacity needed for incomplete contributions, including final synthesis."""
+    plan=Plan.model_validate_json(run['plan'])
+    tasks,shared,_,_,_=checkpoints(run)
+    attempts=_director_state(run,plan,tasks,shared)
+    calls=store.setting('run_calls:'+run['id'],0)
+    if type(calls) is not int or calls<0:
+        raise ValueError('El recuento de llamadas del director no es válido.')
+    calls=max(calls,sum(attempts.values()))
+    pending=len(tasks)-len(shared)
+    if pending>max(0,MAX_DIRECTOR_CALLS-calls):
+        raise ValueError('Límite de inferencias del Director: los intentos restantes no alcanzan para terminar las tareas pendientes. Prepara un encargo más pequeño.')
+    return pending
+
+
 async def execute(run):
+    if Plan.model_validate_json(run['plan']).mode!='director':
+        return await _execute(run)
+    budget_id=director.run_budget(run['id'])
+    try:
+        usage.reserve_budget(budget_id,director_slots(run))
+        with usage.use_budget(budget_id):
+            return await _execute(run)
+    finally:
+        usage.release_budget(budget_id)
+
+
+async def _execute(run):
     set_status(run,'En ejecución'); plan=Plan.model_validate_json(run['plan'])
     tasks,shared,result,checked,narrative=checkpoints(run)
     director=plan.mode=='director'
@@ -346,4 +373,8 @@ async def worker():
         except Exception as e:
             set_status(run,'Fallido')
             store.event(run['project'],'error',{'message':str(e),'run_id':rid,'result_state':'provisional'},rid)
-        finally: ACTIVE.pop(rid,None); QUEUE.task_done()
+        finally:
+            # A task cancelled before its first coroutine step never enters
+            # execute()'s finally, so the worker also closes queued capacity.
+            try:usage.release_budget(director.run_budget(rid))
+            finally:ACTIVE.pop(rid,None); QUEUE.task_done()

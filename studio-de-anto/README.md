@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+**1.7.0:** [reservas del Director, diagnóstico y rendimiento](docs/CONTROL_ESTUDIO.md).
+
 **1.6.2:** [seguimiento de tareas y actualización del mismo Codespace](docs/MEJORAS_1_6_2.md).
 
 **1.6.1:** [validación de PDF, recuperación de límites y reanudación del Director](docs/FIABILIDAD.md).
@@ -43,7 +45,7 @@ Reabre **el mismo Codespace**: no necesitas reinstalar ni volver a descargar el 
 Para traer una actualización, desde la raíz del repositorio:
 
 ```bash
-git pull --ff-only origin codex/studio-de-anto-modelo-real
+bash studio-de-anto/scripts/apply-improvements.sh
 ```
 
 Después usa **Codespaces: Rebuild Container** si cambiaron dependencias o configuración. La nueva instalación no descarga pesos de IA. La primera migración desde la versión anterior conserva proyectos e instrucciones y selecciona un modelo de nube; puedes cambiarlo en Configuración.

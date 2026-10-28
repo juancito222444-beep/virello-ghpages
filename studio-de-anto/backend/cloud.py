@@ -16,11 +16,11 @@ PROVIDERS = {
 def only():
     return os.environ.get('STUDIO_CLOUD_ONLY', '1') != '0'
 
-def default_provider():
+def default_provider(*, readonly=False):
     configured = os.environ.get('STUDIO_AI_PROVIDER', '')
     if configured in PROVIDERS:
         return configured
-    return 'groq' if configured_secret('groq')[0] and not configured_secret('gemini')[0] else 'gemini'
+    return 'groq' if configured_secret('groq', readonly=readonly)[0] and not configured_secret('gemini', readonly=readonly)[0] else 'gemini'
 
 @contextmanager
 def use_secret(kind,value):
@@ -29,10 +29,10 @@ def use_secret(kind,value):
     finally:_CANDIDATE.reset(token)
 
 
-def configured_secret(kind):
+def configured_secret(kind, *, readonly=False):
     candidate=_CANDIDATE.get()
     if candidate and candidate[0]==kind:return candidate[1], 'candidate'
-    saved=credential_store.read_all().get(kind)
+    saved=credential_store.read_all(readonly=True).get(kind) if readonly else credential_store.read_all().get(kind)
     if saved:return saved, 'app'
     service=PROVIDERS[kind]
     for name in (service['secret'], *service.get('aliases', ())):
@@ -42,11 +42,11 @@ def configured_secret(kind):
     return '', None
 
 
-def credential_status(kind):
-    value, source=configured_secret(kind)
+def credential_status(kind, *, readonly=False):
+    value, source=configured_secret(kind, readonly=readonly)
     valid=bool(value) and not value.startswith(('\"', "'")) and not value.endswith(('\"', "'")) and all(33<=ord(c)<=126 for c in value)
     return {'configured': bool(value), 'valid_format': valid, 'source': source,
-            'saved_in_app':kind in credential_store.read_all(),
+            'saved_in_app':kind in (credential_store.read_all(readonly=True) if readonly else credential_store.read_all()),
             'accepted_names': [PROVIDERS[kind]['secret'], *PROVIDERS[kind].get('aliases', ())]}
 
 

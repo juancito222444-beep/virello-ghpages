@@ -24,6 +24,7 @@ if(!['127.0.0.1','localhost','::1'].includes(new URL(base).hostname))throw Error
    if(!path.startsWith('/api/'))return route.continue();
    const method=request.method(),json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
    if(method!=='GET')writes.push({method,path,body:request.postDataJSON()});
+   if(path==='/api/system/status')return json(require('./mock-system-status.cjs')());
    if(path==='/api/projects')return json(projects);
    if(path.startsWith('/api/projects/')&&method==='PUT'){
     const id=path.split('/').pop(),project=projects.find(item=>item.id===id);

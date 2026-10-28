@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,9 @@
     "test:navigation": "node --test tests/navigation.test.cjs",
     "test:browser": "node tests/browser.cjs",
     "test:scene": "node tests/scene.cjs",
+    "test:scene-performance": "node tests/scene-performance.cjs",
+    "test:system-status": "node tests/system-status.cjs",
+    "test:run-refresh": "node tests/run-refresh.cjs",
     "test:feedback": "node tests/feedback.cjs",
     "test:api": "node --test tests/api.test.cjs",
     "test:settings": "node tests/model-settings.cjs",

@@ -39,12 +39,13 @@ def repair_owned_permissions(target,mode):
         target.chmod(mode)
 
 
-def read_all():
+def read_all(*, readonly=False):
     with _LOCK:
         try:
             target=path()
-            repair_owned_permissions(target.parent,0o700)
-            repair_owned_permissions(target,0o600)
+            if not readonly:
+                repair_owned_permissions(target.parent,0o700)
+                repair_owned_permissions(target,0o600)
             if not target.exists():return {}
             raw=target.read_text(encoding='utf-8')
         except OSError as exc:raise storage_error(exc,'leer') from None

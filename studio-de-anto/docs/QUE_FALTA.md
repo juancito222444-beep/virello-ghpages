@@ -1,10 +1,12 @@
 # Estado actual y pendientes
 
-El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión de código actual: **1.6.2 · seguimiento**, que incluye la corrección de compatibilidad 1.4.1. Esta identificación no confirma que el Codespace remoto haya instalado la versión. Cambios y validación: [fiabilidad](FIABILIDAD.md).
+El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión de código actual: **1.7.0 · control del estudio**, que incluye la corrección de compatibilidad 1.4.1. Esta identificación no confirma que el Codespace remoto haya instalado la versión. Cambios y validación: [fiabilidad](FIABILIDAD.md).
 
-Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada sigue sin poder inspeccionarse desde esta integración. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La versión de código actual se identifica como **v1.6.2 · seguimiento**: [pasos de recuperación](METHOD_NOT_ALLOWED.md) y [dependencias de esta entrega](ACTUALIZACIONES.md).
+Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada sigue sin poder inspeccionarse desde esta integración. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La versión de código actual se identifica como **v1.7.0 · control del estudio**: [pasos de recuperación](METHOD_NOT_ALLOWED.md) y [dependencias de esta entrega](ACTUALIZACIONES.md).
 
 ## Entregado
+
+- Reservas reales del presupuesto local del Director, diagnóstico seguro en Configuración, pausa del renderizado 3D y carga de trabajos con consultas acotadas. Ver [control del estudio 1.7.0](CONTROL_ESTUDIO.md).
 
 - Búsqueda y filtros locales en Tareas, resumen por estados, limpieza al cambiar proyecto y actualizador para el mismo Codespace sin mover carpetas. Ver [seguimiento 1.6.2](MEJORAS_1_6_2.md).
 
@@ -33,7 +35,7 @@ Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tri
 
 ## Límites y próximos pasos
 
-1. Aplicar la versión 1.6.2 y comprobar una delegación real del Director y documentos propios con la cuenta del proveedor. El usuario ya comprobó el funcionamiento de la versión anterior; las pruebas nuevas de delegación/protocolo/navegador son MOCK. La voz requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable.
+1. Aplicar la versión 1.7.0 y comprobar una delegación real del Director y documentos propios con la cuenta del proveedor. El usuario ya comprobó el funcionamiento de la versión anterior; las pruebas nuevas de delegación/protocolo/navegador son MOCK. La voz requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable.
 2. Alojamiento permanente con URL estable: Codespaces sigue siendo el servidor privado actual y puede detenerse o agotar su cuota. No se contrató ni desplegó otro servicio.
 3. Acciones 3D más naturales: sentarse, usar objetos y mobiliario editable. La oficina actual es un diorama estilizado con personajes originales.
 4. Resumen semántico de historiales completos y recuperación documental con páginas/citas precisas. El borrador local actual selecciona extractos recientes sin IA; no analiza el contenido de documentos ni sustituye el historial. La nota que recibe el equipo la revisa y guarda el usuario.
@@ -45,4 +47,4 @@ Las cuotas del proveedor, GitHub Codespaces y Codex son independientes. No se ga
 
 Guía: [archivos y continuidad](ARCHIVOS_Y_CONTINUIDAD.md). Evidencia: [validación](VALIDACION.md).
 
-La versión 1.6.1 corrige la validación estructural de PDF y el tratamiento de políticas de uso dañadas, y permite retomar un encargo tras un bloqueo local sin agotar intentos que no llegaron al proveedor. Siguen pendientes la reserva de presupuesto completo por encargo y la optimización de historiales/consultas.
+La versión 1.6.1 corrige la validación estructural de PDF y el tratamiento de políticas de uso dañadas, y permite retomar un encargo tras un bloqueo local sin agotar intentos que no llegaron al proveedor. La reserva del presupuesto local y la carga agrupada de trabajos se incorporan en 1.7.0; sigue pendiente la paginación de historiales largos.

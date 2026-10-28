@@ -1,5 +1,7 @@
 # Actualizar el estudio
 
+**1.7.0:** si ya aplicaste 1.6.2, ejecuta `bash studio-de-anto/scripts/apply-improvements.sh` desde la raíz del mismo Codespace. [Cambios y comprobaciones](CONTROL_ESTUDIO.md). Se conservan las rutas y los datos.
+
 **Entrega 1.6.2:** para instalar las mejoras de la rama `codex/studio-de-anto-mejoras` en el mismo Codespace, usa el [actualizador de esta entrega](MEJORAS_1_6_2.md). El procedimiento siguiente corresponde a la rama original y por sí solo no obtiene la rama de mejoras.
 
 La entrega usa Gemini/Groq en la nube. No necesitas instalar ni actualizar Ollama.

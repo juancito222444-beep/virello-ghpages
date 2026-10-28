@@ -15,6 +15,7 @@ from .data_tools import load,inspect
 from .access import access_error
 from .planning import propose_plan
 from . import conversation,project_context,director
+from . import system_status,run_views
 
 @asynccontextmanager
 async def lifespan(app):
@@ -30,7 +31,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.6.2'
+APP_RELEASE='1.7.0'
 API_VERSION='1'
 
 
@@ -44,9 +45,17 @@ def health():
         ('director-v1','/api/director','POST'),
         ('context-draft-v1','/api/projects/{pid}/context-draft','GET'),
         ('recovery-backups-v1','/api/projects/{pid}/snapshots','POST'),
+        ('system-status-v1','/api/system/status','GET'),
+        ('director-budget-v1','/api/director','POST'),
     ) if registered_feature(path,method)]
     return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid(),
             'release':APP_RELEASE,'api_version':API_VERSION,'features':supported}
+
+
+@app.get('/api/system/status')
+def system_diagnostics():
+    return system_status.report(release=APP_RELEASE,loaded_code_version=LOADED_CODE_VERSION,
+                                api_version=API_VERSION,features=health()['features'])
 
 
 def internal_error(request,exc,detail=None,error_code='INTERNAL_ERROR',status=500):
@@ -600,12 +609,16 @@ async def delegate_director(body:director.DirectorRequest):
     need_project(body.project)
     existing=director.reserve(body)
     if existing:return run_detail(existing)
+    rid=None
     try:
         proposed,selected=await director.propose(body)
         rid=director.save(body,proposed,selected)
         await engine.QUEUE.put(rid)
     except BaseException as error:
         director.fail(body,error)
+        if rid is not None:
+            usage.release_budget(director.run_budget(rid))
+            engine.set_status(need_run(rid),'Interrumpido')
         raise
     return run_detail(rid)
 
@@ -647,7 +660,8 @@ def tool_plan(body:ToolRequest):
         tasks.append(Task(id=tid,agent=agent,description={'analyze':'Calcular operaciones seleccionadas','review':'Recalcular y verificar resultados','chart':'Generar gráfico con datos verificados','report':'Exportar evidencia e informe'}[tid],tools=[tool],depends_on=deps,outputs=[tool+'-v1'],acceptance=['Operación válida y evidencia verificable']))
     return save_run(body,Plan(mode='tools',objective=body.request,analysis=body.analysis,tasks=tasks))
 @app.get('/api/runs')
-def runs(project:str): return [director.decorate(run) for run in store.rows('SELECT * FROM runs WHERE project=? ORDER BY created DESC',(project,))]
+def runs(project:str,include_details:bool=False):
+    return run_views.list_runs(project,include_tasks=include_details)
 @app.get('/api/runs/{rid}')
 def run_detail(rid:str):
     r=need_run(rid)
@@ -670,6 +684,10 @@ async def resume_run(rid:str):
         c.execute('BEGIN IMMEDIATE')
         changed=c.execute("UPDATE runs SET status='Pendiente' WHERE id=? AND status='Interrumpido'",(rid,)).rowcount
         if changed!=1:raise ValueError('El trabajo ya se está retomando.')
+        if plan.mode=='director':
+            budget_id=director.run_budget(rid)
+            usage.release_budget(budget_id,connection=c)
+            usage.reserve_budget(budget_id,engine.director_slots(r),connection=c)
         c.execute("UPDATE tasks SET status='Pendiente' WHERE run=? AND status!='Completado'",(rid,))
         c.execute('INSERT INTO events(project,run,kind,payload,created) VALUES(?,?,?,?,?)',
                   (r['project'],rid,'run',json.dumps({'status':'Pendiente','resumed':True,'completed_checkpoints':len(shared)}),store.now()))
@@ -683,6 +701,7 @@ async def cancel(rid:str):
     else:
         engine.set_status(r,'Cancelado')
         with store.db() as c: c.execute("UPDATE tasks SET status='Cancelado' WHERE run=? AND status!='Completado'",(rid,))
+    usage.release_budget(director.run_budget(rid))
     return {'cancelled':True}
 @app.post('/api/runs/{rid}/correction')
 async def correction(rid:str,body:Name):

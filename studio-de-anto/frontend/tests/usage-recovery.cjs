@@ -37,6 +37,7 @@ const {chromium}=require('playwright');
    if(!pathname.startsWith('/api/'))return route.continue();
    const body=request.postDataJSON();calls.push({path:pathname,method,body});
    const json=(value,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
+   if(pathname==='/api/system/status')return json(require('./mock-system-status.cjs')());
    if(pathname==='/api/projects')return json([{id:'usage-project',name:'MOCK recuperación de límites'}]);
    if(pathname==='/api/settings')return json({provider:'gemini',agents,ollama_url:'',openai_url:''});
    if(pathname==='/api/models')return json({provider:'gemini',connected:true,inference_verified:true,models:['gemini-mock'],credential});

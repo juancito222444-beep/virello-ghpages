@@ -124,14 +124,14 @@ def test_escaped_contributions_preserve_objective_task_and_every_source_through_
     assert len({len(text) for text in excerpts})==1 and len(excerpts[0])<1200
 
 
-def test_director_daily_limit_stops_before_another_provider_request(monkeypatch):
+def test_director_daily_limit_rejects_incomplete_budget_before_provider_request(monkeypatch):
     run=create_run(('atlas',));seen=protocol(monkeypatch)
     usage.save_policy({'daily_requests':1,'max_output_tokens':512,'concise':True})
     with pytest.raises(ValueError,match='límite'):
         asyncio.run(engine.execute(run))
-    assert [agent for agent,_ in seen]==['atlas']
+    assert seen==[]
     assert tasks(run)[1]['result'] is None
-    assert store.setting('run_calls:'+run['id'],0)==1
+    assert store.setting('run_calls:'+run['id'],0)==0
     assert not store.rows('SELECT * FROM artifacts WHERE run=?',(run['id'],))
     assert not store.rows("SELECT * FROM messages WHERE role='assistant'")
 

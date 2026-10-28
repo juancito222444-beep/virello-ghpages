@@ -25,6 +25,7 @@ const usage=()=>({day:'2026-10-25',attempted:0,remaining:policy.daily_requests,i
    if(!url.pathname.startsWith('/api/'))return route.continue();
    const path=url.pathname,method=request.method(),body=request.postDataJSON();calls.push({path,method,body});
    const json=(value,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
+   if(path==='/api/system/status')return json(require('./mock-system-status.cjs')());
    if(path==='/api/projects')return json([{id:'project-a',name:'PRUEBA MOCK A'},{id:'project-b',name:'PRUEBA MOCK B'}]);
    if(path==='/api/settings')return json(settings);
    if(path==='/api/models')return json({provider:'gemini',connected:true,models:['gemini-2.5-flash-lite'],credential});

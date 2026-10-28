@@ -21,6 +21,7 @@ const modelStatus=provider=>({provider,connected:true,models:[provider==='gemini
    const method=request.method(),path=url.pathname,body=request.postDataJSON();
    calls.push({method,path,query:url.search,body});
    const json=(value,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
+   if(path==='/api/system/status')return json(require('./mock-system-status.cjs')());
    if(path==='/api/projects')return json([{id:'mock-project',name:'PRUEBA MOCK · configuración'}]);
    if(path==='/api/settings'){
     if(method==='PUT'){saved={...saved,...body};return json({saved:true});}

@@ -1,4 +1,10 @@
-# Un objetivo para el Director · versión 1.4
+# Un objetivo para el Director
+
+Desde **1.7.0**, el presupuesto local se reserva antes de planificar y se reduce
+al número real de tareas. Los chats no consumen lo reservado; completar, cancelar
+o fallar libera lo no usado. Un cambio de día UTC o un límite reducido puede
+pausar el encargo. La reanudación es explícita y no repite contribuciones completas.
+Detalles y límites: [control del estudio](CONTROL_ESTUDIO.md).
 
 **Corrección 1.4.1:** si aparece «Method Not Allowed», la interfaz puede estar conectada a un backend anterior sin Director. Sigue [estos pasos de actualización y reinicio](METHOD_NOT_ALLOWED.md). El nuevo preflight no consume IA ni borra tu objetivo.
 
@@ -12,7 +18,7 @@ ANTO reparte subtareas concretas entre los especialistas que necesite: ATLAS coo
 
 - Este flujo automático es de **texto**, sin adjuntos, hasta 2000 caracteres por encargo. Los agentes usan sus modelos e instrucciones configurados y la nota compartida del proyecto. El reparto recibe además extractos breves de la conversación reciente de ANTO.
 - Son hasta **7 llamadas a tu API**: una planificación, hasta cinco especialistas y una síntesis. Se eligen solo los especialistas necesarios. La generación respeta los límites diarios y de salida del estudio. Un intento fallido o cancelado puede consumir cuota del proveedor.
-- El presupuesto diario se comprueba por llamada; todavía no se reserva el presupuesto completo del encargo. Puede agotarse antes de la síntesis, también por otras conversaciones. Un rechazo local por cuota o política de uso inválida no consume el tope de intentos del Director: después de corregirlo puedes retomar desde Tareas conservando los aportes completos. Los intentos que llegaron al proveedor siguen contando.
+- Desde 1.7.0 se reserva el presupuesto local antes de planificar y los chats no pueden consumirlo. Si cambias el límite o cambia el día UTC, el encargo puede pausarse sin gastar intentos adicionales. Puedes retomarlo explícitamente desde Tareas conservando los aportes completos; los intentos que llegaron al proveedor siguen contando.
 - El reparto se intenta una vez; no hay reparaciones repetidas ni delegación recursiva. Un reparto inválido o una aclaración pendiente no ejecuta especialistas. Reintentar manualmente un intento rechazado es otro encargo y puede consumir una llamada nueva.
 - Una respuesta de red perdida conserva el identificador del envío: volver a consultar ese mismo envío no vuelve a planificar. Hay un solo encargo activo del Director por proyecto. Si la planificación se interrumpe por un reinicio, necesita un nuevo intento explícito; no se repite sola.
 - **Cancelar encargo** detiene el trabajo pendiente, conserva contribuciones completas y no publica una síntesis incompleta. Una solicitud ya recibida por el proveedor podría haberse procesado.
@@ -25,9 +31,9 @@ Los agentes no ejecutan código, no navegan por Internet ni modifican servicios 
 Desde la raíz de la misma rama:
 
 ```bash
-bash studio-de-anto/scripts/update-cloud.sh
+bash studio-de-anto/scripts/apply-improvements.sh
 ```
 
-Recarga la aplicación y comprueba **v1.6.1 · fiabilidad**. Los proyectos y las claves se conservan. Esta versión añade el lector PDF `pypdf`: al actualizar desde una versión anterior, instala las dependencias antes de reiniciar con los [pasos de actualización](ACTUALIZACIONES.md). Si aún no tienes el actualizador, usa esos mismos pasos.
+Recarga la aplicación y comprueba **v1.7.0 · control del estudio**. Los proyectos y las claves se conservan. El actualizador instala las dependencias antes de reiniciar; si todavía no lo tienes, usa los [pasos de actualización](ACTUALIZACIONES.md).
 
 Las pruebas de esta entrega usan respuestas HTTP y eventos simulados. No se utilizó tu cuenta de Gemini/Groq ni se verificó la instalación de esta versión en tu Codespace; la última consulta remota de acceso devolvió 403.

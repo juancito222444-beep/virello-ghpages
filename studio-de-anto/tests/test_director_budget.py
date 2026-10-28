@@ -83,13 +83,16 @@ def test_repeated_local_rejections_leave_room_for_final_synthesis(monkeypatch,bl
     with TestClient(app) as client:
         run=create_run(('atlas','vera','bruno','iris','leo'))
         engine.set_status(run,'Interrumpido')
-        usage.save_policy({'daily_requests':5 if blocked_by=='quota' else 100,
+        usage.save_policy({'daily_requests':6,
                            'max_output_tokens':512,'concise':True})
-        corrupt=(lambda:store.save_setting('usage_policy',{'daily_requests':0})) if blocked_by=='invalid_policy' else None
+        corrupt=((lambda:store.save_setting('usage_policy',{'daily_requests':0})) if blocked_by=='invalid_policy'
+                 else lambda:usage.save_policy({'daily_requests':5,'max_output_tokens':512,'concise':True}))
         seen=protocol(monkeypatch,after_fifth=corrupt)
+        assert client.post('/api/runs/'+run['id']+'/resume').status_code==200
+        assert wait_run(client,run)['status']=='Interrumpido'
         for _ in range(3):
             resumed=client.post('/api/runs/'+run['id']+'/resume')
-            assert resumed.status_code==200,resumed.text
+            assert resumed.status_code==422,resumed.text
             assert wait_run(client,run)['status']=='Interrumpido'
             assert seen==['atlas','vera','bruno','iris','leo']
             assert store.setting('run_calls:'+run['id'],0)==5
@@ -109,7 +112,7 @@ def test_repeated_local_rejections_leave_room_for_final_synthesis(monkeypatch,bl
 
 def test_local_rejection_preserves_previous_paid_failure_on_resume(monkeypatch):
     run=create_run(('atlas',));seen=protocol(monkeypatch,fail_first=True)
-    usage.save_policy({'daily_requests':1,'max_output_tokens':512,'concise':True})
+    usage.save_policy({'daily_requests':2,'max_output_tokens':512,'concise':True})
     with pytest.raises(ValueError):asyncio.run(engine.execute(run))
     prior_result=saved_tasks(run)[0]['result']
     assert json.loads(prior_result)['_director_attempts']==1

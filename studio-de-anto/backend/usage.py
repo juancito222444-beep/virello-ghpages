@@ -1,8 +1,9 @@
 """Local attempt limits and token metadata, without prompts or credentials.
 
 The daily limit belongs to this Studio installation. It does not describe the
-provider's quota or billing. A reserved attempt counts even if its request fails
-or is cancelled, because the provider may already have processed it.
+provider's quota or billing. An inference attempt counts even if its request
+fails or is cancelled, because the provider may already have processed it.
+Unused capacity holds are separate and are released without becoming attempts.
 """
 
 import asyncio
@@ -24,6 +25,7 @@ _POLICY_KEY = 'usage_policy'
 # Stay well within SQLite's signed integer range, including daily aggregate sums.
 _MAX_TOKEN_COUNT = 10**12
 _current_attempt = ContextVar('studio_api_usage_attempt', default=None)
+_current_budget = ContextVar('studio_api_usage_budget', default=None)
 
 
 class UsageReservationError(ValueError):
@@ -36,6 +38,10 @@ class UsagePolicyError(UsageReservationError):
 
 class UsageLimitExceeded(UsageReservationError):
     """The installation has no remaining daily inference attempts."""
+
+
+class UsageBudgetExpired(UsageReservationError):
+    """A previous UTC day's hold requires explicit admission on the new day."""
 
 
 def _now():
@@ -58,6 +64,10 @@ def _ensure_schema(c):
         created TEXT NOT NULL
     )''')
     c.execute('CREATE INDEX IF NOT EXISTS api_usage_day ON api_usage(day)')
+    c.execute('''CREATE TABLE IF NOT EXISTS api_usage_holds(
+        id TEXT PRIMARY KEY, day TEXT NOT NULL,
+        remaining INTEGER NOT NULL CHECK(remaining>=0)
+    )''')
 
 
 def recover_interrupted():
@@ -73,7 +83,11 @@ def recover_interrupted():
         columns={row['name'] for row in c.execute('PRAGMA table_info(api_usage)')}
         if 'interrupted' not in columns:
             c.execute('ALTER TABLE api_usage ADD COLUMN interrupted INTEGER NOT NULL DEFAULT 0 CHECK(interrupted IN (0,1))')
-        return c.execute("UPDATE api_usage SET status='failed',interrupted=1 WHERE status='active'").rowcount
+        recovered=c.execute("UPDATE api_usage SET status='failed',interrupted=1 WHERE status='active'").rowcount
+        # Holds describe this process's admitted work, not attempted requests.
+        # Restarts never silently resume that work or refund attempted calls.
+        c.execute('DELETE FROM api_usage_holds')
+        return recovered
 
 
 def _validated_policy(value):
@@ -132,6 +146,78 @@ def save_policy(value):
     return saved
 
 
+@contextmanager
+def _budget_connection(connection=None):
+    if connection is not None:
+        _ensure_schema(connection)
+        yield connection
+    else:
+        with store.db() as c:
+            c.execute('BEGIN IMMEDIATE')
+            _ensure_schema(c)
+            yield c
+
+
+def _counts(c,day):
+    attempted=c.execute('SELECT COUNT(*) FROM api_usage WHERE day=?',(day,)).fetchone()[0]
+    reserved=c.execute('SELECT COALESCE(SUM(remaining),0) FROM api_usage_holds WHERE day=?',(day,)).fetchone()[0]
+    return attempted,reserved
+
+
+def _expired():
+    return UsageBudgetExpired('La reserva del encargo pertenece a otro día UTC. El trabajo se pausa sin nuevas llamadas; retómalo explícitamente para reservar el presupuesto del día actual.')
+
+
+def reserve_budget(budget_id,slots,*,connection=None):
+    """Admit/resize unused capacity, atomically with an optional caller's state.
+
+    Repeating admission at the same size does not duplicate a hold. Callers must
+    serialize a job's admission with its own identity/status transitions.
+    """
+    if type(slots) is not int or not 0<=slots<=7:
+        raise ValueError('La reserva requiere entre cero y siete llamadas.')
+    with _budget_connection(connection) as c:
+        if slots==0:
+            c.execute('DELETE FROM api_usage_holds WHERE id=?',(budget_id,))
+            return
+        day=_now().astimezone(timezone.utc).date().isoformat()
+        saved=_read_policy(c)
+        existing=c.execute('SELECT day,remaining FROM api_usage_holds WHERE id=?',(budget_id,)).fetchone()
+        if existing and existing['day']!=day:raise _expired()
+        previous=existing['remaining'] if existing else 0
+        attempted,reserved=_counts(c,day)
+        if attempted+reserved-previous+slots>saved['daily_requests']:
+            available=max(0,saved['daily_requests']-attempted-reserved+previous)
+            raise UsageLimitExceeded(f'Este encargo necesita reservar {slots} llamadas y solo hay {available} disponibles sin reservar. Espera al reinicio de las 00:00 UTC o revisa los límites en Configuración; no se iniciaron nuevas llamadas.')
+        c.execute('INSERT OR REPLACE INTO api_usage_holds VALUES(?,?,?)',(budget_id,day,slots))
+
+
+def transfer_budget(source,target,slots,*,connection):
+    """Transfer planning capacity with the transaction that publishes its run."""
+    _ensure_schema(connection)
+    row=connection.execute('SELECT * FROM api_usage_holds WHERE id=?',(source,)).fetchone()
+    if not row:raise UsageReservationError('Falta la reserva de planificación; vuelve a enviar el encargo.')
+    if row['day']!=_now().astimezone(timezone.utc).date().isoformat():raise _expired()
+    if row['remaining']<slots:
+        raise UsageReservationError('La reserva de planificación no alcanza para las tareas del encargo.')
+    if connection.execute('SELECT 1 FROM api_usage_holds WHERE id=?',(target,)).fetchone():
+        raise UsageReservationError('El encargo ya tiene una reserva activa.')
+    connection.execute('UPDATE api_usage_holds SET id=? WHERE id=?',(target,source))
+    reserve_budget(target,slots,connection=connection)
+
+
+def release_budget(budget_id,*,connection=None):
+    with _budget_connection(connection) as c:
+        c.execute('DELETE FROM api_usage_holds WHERE id=?',(budget_id,))
+
+
+@contextmanager
+def use_budget(budget_id):
+    token=_current_budget.set(budget_id)
+    try:yield
+    finally:_current_budget.reset(token)
+
+
 def _reserve(provider, model):
     request_id = store.uid()
     with store.db() as c:
@@ -142,13 +228,25 @@ def _reserve(provider, model):
         instant = _now().astimezone(timezone.utc)
         day = instant.date().isoformat()
         saved = _read_policy(c)
-        count = c.execute('SELECT COUNT(*) FROM api_usage WHERE day=?', (day,)).fetchone()[0]
-        if count >= saved['daily_requests']:
+        count,reserved = _counts(c,day)
+        budget_id=_current_budget.get()
+        if budget_id is not None:
+            hold=c.execute('SELECT day,remaining FROM api_usage_holds WHERE id=?',(budget_id,)).fetchone()
+            if not hold or hold['remaining']<1:
+                raise UsageReservationError('El encargo no tiene una reserva vigente. Retómalo explícitamente antes de continuar.')
+            if hold['day']!=day:raise _expired()
+            # A manually reduced policy still applies to previously held work.
+            exhausted=count+reserved>saved['daily_requests']
+        else:
+            exhausted=count+reserved>=saved['daily_requests']
+        if exhausted:
             raise UsageLimitExceeded(
                 f"Se alcanzó el límite de {saved['daily_requests']} intentos diarios del Studio. "
                 'El contador se reinicia a las 00:00 UTC; espera al reinicio o aumenta '
                 'el límite diario en Ajustes de uso.'
             )
+        if budget_id is not None:
+            c.execute('UPDATE api_usage_holds SET remaining=remaining-1 WHERE id=?',(budget_id,))
         c.execute('''INSERT INTO api_usage(id,day,provider,model,status,created)
                      VALUES(?,?,?,?,?,?)''',
                   (request_id, day, provider, model, 'active', instant.isoformat()))
@@ -239,13 +337,16 @@ def summary():
         c.execute('BEGIN')
         saved = _read_policy(c)
         rows = c.execute('SELECT * FROM api_usage WHERE day=?', (day,)).fetchall()
+        reserved=c.execute('SELECT COALESCE(SUM(remaining),0) FROM api_usage_holds WHERE day=?',(day,)).fetchone()[0]
     totals = _totals(rows)
     providers = sorted({row['provider'] for row in rows})
     return {
         'day': day,
         'timezone': 'UTC',
         **totals,
-        'remaining': max(0, saved['daily_requests'] - totals['attempted']),
+        'reserved':reserved,
+        'available':max(0,saved['daily_requests']-totals['attempted']-reserved),
+        'remaining': max(0, saved['daily_requests'] - totals['attempted']-reserved),
         'policy': saved,
         'by_provider': {
             provider: _totals([row for row in rows if row['provider'] == provider])

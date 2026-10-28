@@ -2,9 +2,9 @@
 
 Este es el proyecto de [STUDIO DE ANTO](studio-de-anto/README.md): una oficina 3D de agentes con ANTO como Director, conversación e **IA en la nube mediante Gemini o Groq**. No descarga ni ejecuta modelos locales.
 
-**1.6.2 · seguimiento:** búsqueda y filtros de tareas, validación de PDF aislada,
-recuperación de límites y un actualizador para aplicar las mejoras en el mismo
-Codespace. [Instrucciones de esta entrega](studio-de-anto/docs/MEJORAS_1_6_2.md).
+**1.7.0 · control del estudio:** reservas de intentos del Director, diagnóstico
+seguro y mejoras de rendimiento, además de las mejoras de seguimiento anteriores.
+[Instrucciones de esta entrega](studio-de-anto/docs/CONTROL_ESTUDIO.md).
 
 La carpeta de la copia de trabajo de Codex es `/workspace/estudio-de-anto`.
 El código de la aplicación está en `studio-de-anto/`: `backend/`, `frontend/`,
