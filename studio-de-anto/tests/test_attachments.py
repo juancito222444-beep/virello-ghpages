@@ -10,11 +10,20 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from PIL import Image, PngImagePlugin
+from pypdf import PdfWriter
 
 from backend import attachments, gemini, store
 
 
-PDF = b'%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n'
+def pdf_bytes():
+    output = io.BytesIO()
+    writer = PdfWriter()
+    writer.add_blank_page(width=612, height=792)
+    writer.write(output)
+    return output.getvalue()
+
+
+PDF = pdf_bytes()
 
 
 @pytest.fixture

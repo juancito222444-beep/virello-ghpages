@@ -1,11 +1,14 @@
 # Estado actual y pendientes
 
-El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión actual: **1.6.0 · encargos**, que incluye la corrección de compatibilidad 1.4.1.
+El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión de código actual: **1.6.2 · seguimiento**, que incluye la corrección de compatibilidad 1.4.1. Esta identificación no confirma que el Codespace remoto haya instalado la versión. Cambios y validación: [fiabilidad](FIABILIDAD.md).
 
-Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada sigue sin poder inspeccionarse desde esta integración. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La corrección actual se identifica como **v1.6.0 · encargos**: [pasos de recuperación](METHOD_NOT_ALLOWED.md).
+Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada sigue sin poder inspeccionarse desde esta integración. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La versión de código actual se identifica como **v1.6.2 · seguimiento**: [pasos de recuperación](METHOD_NOT_ALLOWED.md) y [dependencias de esta entrega](ACTUALIZACIONES.md).
 
 ## Entregado
 
+- Búsqueda y filtros locales en Tareas, resumen por estados, limpieza al cambiar proyecto y actualizador para el mismo Codespace sin mover carpetas. Ver [seguimiento 1.6.2](MEJORAS_1_6_2.md).
+
+- Validación estructural de PDF, bloqueo ante límites dañados y recuperación explícita desde Configuración; un rechazo local no consume intentos del Director y deja el encargo interrumpido para retomarlo. Ver [fiabilidad](FIABILIDAD.md).
 - Ficha de encargo local con resultado esperado, criterios, plantillas y vista previa; añadir prepara el borrador sin enviarlo. Reconexiones sin eventos repetidos, limpieza de subidas canceladas, dictado 2000/12000, clip por teclado y borradores de Configuración conservados entre pantallas mientras la página siga abierta. Intentos interrumpidos recuperados sin liberar cuota. Ver [encargos](ENCARGOS.md).
 - Copias de recuperación locales opcionales por proyecto: programación horaria mientras el servidor está encendido, tres versiones, validación antes de publicar/rotar, descarga y restauración como proyecto nuevo. Sin claves globales ni llamadas de IA. Ver [recuperación](RECUPERACION.md).
 - Búsqueda local en el texto de la conversación abierta: tildes/mayúsculas, filtro por autor, recorrido por coincidencias y teclado, conservando historial y borradores. Sin llamadas de IA. Ver [búsqueda](BUSQUEDA.md).
@@ -30,7 +33,7 @@ Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tri
 
 ## Límites y próximos pasos
 
-1. Aplicar la versión 1.6.0 y comprobar una delegación real del Director y documentos propios con la cuenta del proveedor. El usuario ya comprobó el funcionamiento de la versión anterior; las pruebas nuevas de delegación/protocolo/navegador son MOCK. La voz requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable.
+1. Aplicar la versión 1.6.2 y comprobar una delegación real del Director y documentos propios con la cuenta del proveedor. El usuario ya comprobó el funcionamiento de la versión anterior; las pruebas nuevas de delegación/protocolo/navegador son MOCK. La voz requiere una prueba manual con micrófono y voces reales. Un PDF no se convierte automáticamente en tabla calculable.
 2. Alojamiento permanente con URL estable: Codespaces sigue siendo el servidor privado actual y puede detenerse o agotar su cuota. No se contrató ni desplegó otro servicio.
 3. Acciones 3D más naturales: sentarse, usar objetos y mobiliario editable. La oficina actual es un diorama estilizado con personajes originales.
 4. Resumen semántico de historiales completos y recuperación documental con páginas/citas precisas. El borrador local actual selecciona extractos recientes sin IA; no analiza el contenido de documentos ni sustituye el historial. La nota que recibe el equipo la revisa y guarda el usuario.
@@ -42,4 +45,4 @@ Las cuotas del proveedor, GitHub Codespaces y Codex son independientes. No se ga
 
 Guía: [archivos y continuidad](ARCHIVOS_Y_CONTINUIDAD.md). Evidencia: [validación](VALIDACION.md).
 
-La auditoría también dejó pendientes la validación estructural de PDF, el tratamiento de políticas de uso dañadas, presupuesto completo por encargo y optimización de historiales/consultas. No se presentan como corregidos en 1.6.0.
+La versión 1.6.1 corrige la validación estructural de PDF y el tratamiento de políticas de uso dañadas, y permite retomar un encargo tras un bloqueo local sin agotar intentos que no llegaron al proveedor. Siguen pendientes la reserva de presupuesto completo por encargo y la optimización de historiales/consultas.

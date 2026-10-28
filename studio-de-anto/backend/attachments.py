@@ -6,6 +6,9 @@ server instructions, and provider payloads are built only from stored records.
 import base64
 import io
 import json
+import subprocess
+import sys
+import threading
 import warnings
 from pathlib import Path
 from urllib.parse import quote
@@ -15,6 +18,7 @@ from PIL import Image, ImageOps
 
 from . import store
 from .data_tools import inspect, load
+from .pdf_validation import COMPLEX_PDF, ERROR_MESSAGES, UNAVAILABLE_PDF
 
 
 ALLOWED_EXTENSIONS = frozenset({'.csv', '.xlsx', '.pdf', '.jpg', '.jpeg', '.png', '.webp'})
@@ -25,6 +29,11 @@ MAX_IMAGE_PIXELS = 40_000_000
 MAX_IMAGE_EDGE = 2048
 MAX_TABLE_BYTES = 2 * 1024 * 1024
 MAX_TABLE_CONTEXT_CHARS = 12_000
+MAX_PDF_PAGES = 1000
+MAX_PDF_TREE_DEPTH = 64
+MAX_PDF_TREE_NODES = 4096
+MAX_PDF_VALIDATION_SECONDS = 6
+_pdf_slots = threading.BoundedSemaphore(2)
 
 _MIMES = {
     '.csv': 'text/csv',
@@ -76,6 +85,38 @@ def _image(path, ext):
         raise ValueError('Imagen inválida, dañada o incompleta. Vuelve a exportarla como JPG, PNG o WebP.') from exc
 
 
+def _pdf(path):
+    """Bound the whole PDF parser, including work before page-tree traversal."""
+    if not _pdf_slots.acquire(timeout=MAX_PDF_VALIDATION_SECONDS):
+        raise ValueError('Hay otras validaciones PDF en curso. Espera unos segundos y vuelve a intentarlo.')
+    try:
+        try:
+            completed = subprocess.run(
+                [sys.executable, '-I', str(Path(__file__).with_name('pdf_validation.py')),
+                 str(path), str(MAX_PDF_PAGES), str(MAX_PDF_TREE_DEPTH),
+                 str(MAX_PDF_TREE_NODES), str(MAX_UPLOAD_BYTES)],
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False,
+                timeout=MAX_PDF_VALIDATION_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            # run() kills and waits for the child before returning this error;
+            # unlike a thread timeout, parsing cannot continue in the background.
+            raise ValueError(COMPLEX_PDF) from None
+        except OSError:
+            raise ValueError(UNAVAILABLE_PDF) from None
+        if completed.returncode != 0:
+            raise ValueError(COMPLEX_PDF)
+        try:
+            result = json.loads(completed.stdout)
+        except (TypeError, ValueError):
+            raise ValueError(UNAVAILABLE_PDF) from None
+        if result != {'valid': True}:
+            code = result.get('error') if isinstance(result, dict) else None
+            raise ValueError(ERROR_MESSAGES.get(code, UNAVAILABLE_PDF))
+    finally:
+        _pdf_slots.release()
+
+
 def validate(path, ext):
     """Validate actual file bytes; the browser's declared MIME is not trusted."""
     path = Path(path)
@@ -102,6 +143,7 @@ def validate(path, ext):
             raise ValueError('No se pudo leer el PDF. Vuelve a subirlo.') from exc
         if not header.startswith(b'%PDF-') or b'%%EOF' not in trailer:
             raise ValueError('PDF inválido o incompleto. Exporta un PDF válido y vuelve a subirlo.')
+        _pdf(path)
     elif kind == 'image':
         metadata['width'], metadata['height'] = _image(path, ext)
     return metadata

@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {Download,RefreshCw,Save,Upload} from 'lucide-react';
-import {fetchApi,readApiResponse} from './api';
+import {ApiResponseError,fetchApi,readApiResponse} from './api';
 import RecoveryBackups from './RecoveryBackups';
 
 type Project={id:string;name:string};
@@ -17,6 +17,7 @@ async function call(path:string,body?:unknown,method?:string,signal?:AbortSignal
 }
 export default function StudioControls(p:Props){
  const[usage,setUsage]=useState<Usage|null>(null),[policy,setPolicy]=useState<Policy|null>(null),[savedPolicy,setSavedPolicy]=useState<Policy|null>(null);
+ const[usageError,setUsageError]=useState(''),[usageInvalid,setUsageInvalid]=useState(false);
  const[summary,setSummary]=useState(''),[savedSummary,setSavedSummary]=useState(''),[memoryLoaded,setMemoryLoaded]=useState(false),[memoryProject,setMemoryProject]=useState(''),[memoryError,setMemoryError]=useState(''),[memoryVersion,setMemoryVersion]=useState(0),[busy,setBusy]=useState('');
  const[contextPreview,setContextPreview]=useState<ContextPreview|null>(null),[contextError,setContextError]=useState('');
  const latest=useRef(p);latest.current=p;
@@ -24,11 +25,23 @@ export default function StudioControls(p:Props){
  const notes=useRef(new Map<string,{saved:string;draft:string}>());
  const policyDirty=!samePolicy(policy,savedPolicy),memoryReady=memoryLoaded&&memoryProject===p.project,memoryDirty=summary.trim()!==savedSummary;
  const visibleContext=contextPreview?.project===p.project?contextPreview:null;
+ function usageFailed(error:unknown){
+  const message=(error as Error).message;
+  setUsage(null);setUsageError(message);
+  const invalid=error instanceof ApiResponseError&&error.code==='USAGE_POLICY_INVALID';
+  setUsageInvalid(invalid);
+  if(invalid)setSavedPolicy(null);
+  latest.current.onError(message);
+ }
+ function preparePolicyRecovery(){
+  if(!usageInvalid||operation.current)return;
+  setPolicy(draft=>draft||{daily_requests:1,max_output_tokens:1024,concise:true});setSavedPolicy(null);
+ }
  // Usage limits belong to the whole Studio, so project changes must not reload
  // the form and overwrite an unsaved draft.
  useEffect(()=>{
   const controller=new AbortController();let active=true;
-  call('/usage',undefined,undefined,controller.signal).then((value:Usage)=>{if(active){setUsage(value);setSavedPolicy(value.policy);setPolicy(draft=>draft||value.policy);}}).catch(error=>{if(active&&error.name!=='AbortError')latest.current.onError(error.message);});
+  call('/usage',undefined,undefined,controller.signal).then((value:Usage)=>{if(active){setUsage(value);setUsageError('');setUsageInvalid(false);setSavedPolicy(value.policy);setPolicy(draft=>draft||value.policy);}}).catch(error=>{if(active&&error.name!=='AbortError')usageFailed(error);});
   return()=>{active=false;controller.abort();};
  },[]);
  useEffect(()=>{
@@ -48,14 +61,17 @@ export default function StudioControls(p:Props){
   try{await fn(controller.signal,active);}catch(error){if((error as Error).name!=='AbortError'&&active())latest.current.onError((error as Error).message);}
   finally{if(operation.current===controller){operation.current=null;setBusy('');}}
  }
- async function refreshUsage(){await run('usage',async(signal,active)=>{const value:Usage=await call('/usage',undefined,undefined,signal);if(!active())return;setUsage(value);setPolicy(draft=>!draft||samePolicy(draft,savedPolicy)?value.policy:draft);setSavedPolicy(value.policy);});}
+ async function refreshUsage(){await run('usage',async(signal,active)=>{
+  try{const value:Usage=await call('/usage',undefined,undefined,signal);if(!active())return;setUsage(value);setUsageError('');setUsageInvalid(false);setPolicy(draft=>!draft||samePolicy(draft,savedPolicy)?value.policy:draft);setSavedPolicy(value.policy);}
+  catch(error){if(active()&&(error as Error).name!=='AbortError')usageFailed(error);}
+ });}
  async function savePolicy(){
   if(!policy||!policyDirty)return;const submitted=policy;
   await run('policy',async(signal,active)=>{
    const response=await call('/usage/policy',submitted,'PUT',signal);if(!active())return;
-   const saved:Policy=response.policy||response;setSavedPolicy(saved);setPolicy(draft=>samePolicy(draft,submitted)?saved:draft);latest.current.onNotice('Límites del estudio guardados.');
+   const saved:Policy=response.policy||response;setSavedPolicy(saved);setPolicy(draft=>samePolicy(draft,submitted)?saved:draft);setUsageInvalid(false);setUsageError('');latest.current.onNotice('Límites del estudio guardados.');
    try{const refreshed:Usage=await call('/usage',undefined,undefined,signal);if(active())setUsage(refreshed);}
-   catch(error){if(active()&&(error as Error).name!=='AbortError')latest.current.onNotice('Límites guardados. No se pudieron actualizar los contadores; pulsa Actualizar uso.');}
+   catch(error){if(active()&&(error as Error).name!=='AbortError'){usageFailed(error);latest.current.onNotice('Límites guardados. No se pudieron actualizar los contadores; pulsa Actualizar uso.');}}
   });
  }
  function changeSummary(value:string){setSummary(value);notes.current.set(p.project,{saved:savedSummary,draft:value});setContextError('');}
@@ -99,12 +115,13 @@ export default function StudioControls(p:Props){
  return <section className="content-card settings-card studio-controls">
   <div className="section-title"><h2>Uso y continuidad del estudio</h2><button className="button secondary" disabled={!!busy} onClick={refreshUsage}><RefreshCw size={15}/>Actualizar uso</button></div>
   <p className="muted">Estos contadores pertenecen a esta aplicación. La cuota y la facturación de Gemini o Groq se consultan en tu cuenta del proveedor.</p>
+  {usageError&&<div className="chat-error" role="alert"><p>{usageError}</p>{usageInvalid&&<><p>Las llamadas de IA permanecen bloqueadas hasta que guardes límites válidos. Los intentos anteriores se conservan.</p>{!policy&&<button type="button" className="button secondary" disabled={!!busy} onClick={preparePolicyRecovery}>Preparar límites de recuperación</button>}</>}</div>}
   {usage&&<><div className="usage-stats" role="status"><div><strong>{usage.attempted}</strong><span>intentos de hoy UTC</span><small>{usage.day}</small></div><div><strong>{usage.remaining}</strong><span>intentos disponibles en el estudio</span></div><div><strong>{usage.total_tokens.toLocaleString('es')}</strong><span>tokens informados por el proveedor</span><small>{usage.input_tokens.toLocaleString('es')} entrada · {usage.output_tokens.toLocaleString('es')} salida</small></div></div>{usage.unknown_attempts>0&&<p className="caption">Recuento de tokens parcial: {usage.unknown_attempts} intento(s) sin uso informado por el proveedor.</p>}</>}
   {!!usage?.interrupted&&<p className="caption" role="status">{usage.interrupted} intento(s) quedaron interrumpidos antes de recibir confirmación. Siguen contando en el límite diario porque el proveedor pudo procesarlos.</p>}
   {policy&&<form className="studio-form" onSubmit={e=>{e.preventDefault();savePolicy();}}>
    <div className="two-col"><label>Máximo de intentos diarios UTC<input type="number" min={1} max={10000} step={1} required value={policy.daily_requests} onChange={e=>setPolicy({...policy,daily_requests:Number(e.target.value)})}/></label><label>Máximo de tokens por respuesta de chat<input type="number" min={512} max={4096} step={1} required value={policy.max_output_tokens} onChange={e=>setPolicy({...policy,max_output_tokens:Number(e.target.value)})}/></label></div>
    <label className="checkbox"><input type="checkbox" checked={policy.concise} onChange={e=>setPolicy({...policy,concise:e.target.checked})}/>Pedir respuestas concisas en el chat</label>
-   <p className="caption" role="status">{policyDirty?'Hay cambios de límites sin guardar.':'Límites guardados.'}</p>
+   <p className="caption" role="status">{usageInvalid?'Borrador de recuperación: revisa los límites y pulsa Guardar límites. Prepararlo no modifica la configuración ni reinicia los contadores.':policyDirty?'Hay cambios de límites sin guardar.':'Límites guardados.'}</p>
    <button className="button secondary" disabled={!!busy||!policyDirty}><Save size={15}/>{busy==='policy'?'Guardando…':'Guardar límites'}</button>
   </form>}
   <div className="studio-divider"/>

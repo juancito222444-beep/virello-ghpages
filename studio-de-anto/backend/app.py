@@ -30,7 +30,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.6.0'
+APP_RELEASE='1.6.2'
 API_VERSION='1'
 
 
@@ -115,6 +115,12 @@ async def local_only(request,call_next):
 async def invalid(request,exc):
     from fastapi.responses import JSONResponse
     return JSONResponse({'detail':runtime.safe_error(exc)},status_code=422)
+
+@app.exception_handler(usage.UsagePolicyError)
+async def invalid_usage_policy(request,exc):
+    from fastapi.responses import JSONResponse
+    return JSONResponse({'detail':str(exc),'error_code':'USAGE_POLICY_INVALID'},status_code=422)
+
 def need_project(pid):
     if not store.one('SELECT id FROM projects WHERE id=?',(pid,)): raise HTTPException(404,'Proyecto inexistente')
 def need_run(rid):

@@ -12,6 +12,7 @@ ANTO reparte subtareas concretas entre los especialistas que necesite: ATLAS coo
 
 - Este flujo automático es de **texto**, sin adjuntos, hasta 2000 caracteres por encargo. Los agentes usan sus modelos e instrucciones configurados y la nota compartida del proyecto. El reparto recibe además extractos breves de la conversación reciente de ANTO.
 - Son hasta **7 llamadas a tu API**: una planificación, hasta cinco especialistas y una síntesis. Se eligen solo los especialistas necesarios. La generación respeta los límites diarios y de salida del estudio. Un intento fallido o cancelado puede consumir cuota del proveedor.
+- El presupuesto diario se comprueba por llamada; todavía no se reserva el presupuesto completo del encargo. Puede agotarse antes de la síntesis, también por otras conversaciones. Un rechazo local por cuota o política de uso inválida no consume el tope de intentos del Director: después de corregirlo puedes retomar desde Tareas conservando los aportes completos. Los intentos que llegaron al proveedor siguen contando.
 - El reparto se intenta una vez; no hay reparaciones repetidas ni delegación recursiva. Un reparto inválido o una aclaración pendiente no ejecuta especialistas. Reintentar manualmente un intento rechazado es otro encargo y puede consumir una llamada nueva.
 - Una respuesta de red perdida conserva el identificador del envío: volver a consultar ese mismo envío no vuelve a planificar. Hay un solo encargo activo del Director por proyecto. Si la planificación se interrumpe por un reinicio, necesita un nuevo intento explícito; no se repite sola.
 - **Cancelar encargo** detiene el trabajo pendiente, conserva contribuciones completas y no publica una síntesis incompleta. Una solicitud ya recibida por el proveedor podría haberse procesado.
@@ -27,6 +28,6 @@ Desde la raíz de la misma rama:
 bash studio-de-anto/scripts/update-cloud.sh
 ```
 
-Recarga la aplicación y comprueba **v1.6.0 · encargos**. Los proyectos y las claves se conservan y no se añaden dependencias. Si aún no tienes el actualizador, usa los pasos de [actualización inicial](VOZ_Y_PRODUCTIVIDAD.md#aplicar-la-entrega-en-tu-codespace).
+Recarga la aplicación y comprueba **v1.6.1 · fiabilidad**. Los proyectos y las claves se conservan. Esta versión añade el lector PDF `pypdf`: al actualizar desde una versión anterior, instala las dependencias antes de reiniciar con los [pasos de actualización](ACTUALIZACIONES.md). Si aún no tienes el actualizador, usa esos mismos pasos.
 
 Las pruebas de esta entrega usan respuestas HTTP y eventos simulados. No se utilizó tu cuenta de Gemini/Groq ni se verificó la instalación de esta versión en tu Codespace; la última consulta remota de acceso devolvió 403.

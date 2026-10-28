@@ -25,6 +25,7 @@ pluggy==1.7.0
 pydantic==2.11.4
 pydantic_core==2.33.2
 pyparsing==3.3.3
+pypdf==6.10.0
 pytest==8.3.5
 python-dateutil==3.0.0
 python-multipart==0.0.20

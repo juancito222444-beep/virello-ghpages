@@ -130,7 +130,8 @@ def test_director_daily_limit_stops_before_another_provider_request(monkeypatch)
     with pytest.raises(ValueError,match='límite'):
         asyncio.run(engine.execute(run))
     assert [agent for agent,_ in seen]==['atlas']
-    assert json.loads(tasks(run)[1]['result'])['_director_attempts']==1
+    assert tasks(run)[1]['result'] is None
+    assert store.setting('run_calls:'+run['id'],0)==1
     assert not store.rows('SELECT * FROM artifacts WHERE run=?',(run['id'],))
     assert not store.rows("SELECT * FROM messages WHERE role='assistant'")
 

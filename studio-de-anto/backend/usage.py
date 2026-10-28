@@ -26,6 +26,18 @@ _MAX_TOKEN_COUNT = 10**12
 _current_attempt = ContextVar('studio_api_usage_attempt', default=None)
 
 
+class UsageReservationError(ValueError):
+    """Local usage controls rejected a request before reserving an attempt."""
+
+
+class UsagePolicyError(UsageReservationError):
+    """An existing policy cannot be trusted until explicitly replaced."""
+
+
+class UsageLimitExceeded(UsageReservationError):
+    """The installation has no remaining daily inference attempts."""
+
+
 def _now():
     return datetime.now(timezone.utc)
 
@@ -78,14 +90,30 @@ def _validated_policy(value):
     return {key: value[key] for key in _DEFAULT_POLICY}
 
 
+def _policy_object(pairs):
+    # Duplicate keys otherwise use the last value, potentially widening a quota.
+    value = dict(pairs)
+    if len(value) != len(pairs):
+        raise ValueError('Duplicate policy fields')
+    return value
+
+
 def _read_policy(c):
     row = c.execute('SELECT value FROM settings WHERE key=?', (_POLICY_KEY,)).fetchone()
-    if row:
-        try:
-            return _validated_policy(json.loads(row['value']))
-        except (TypeError, ValueError):
-            pass
-    return dict(_DEFAULT_POLICY)
+    if row is None:
+        return dict(_DEFAULT_POLICY)
+    try:
+        return _validated_policy(json.loads(row['value'], object_pairs_hook=_policy_object))
+    except (TypeError, ValueError, RecursionError):
+        # Missing configuration is a legitimate first run; damaged saved limits
+        # are not. Never silently replace a stricter policy with the defaults.
+        # save_policy() deliberately does not read the old value, so an explicit
+        # valid save repairs the policy without touching usage or other settings.
+        raise UsagePolicyError(
+            'La política de uso guardada está dañada o tiene un formato inválido. '
+            'Las solicitudes a modelos están bloqueadas. Guarda de nuevo los límites '
+            'en Configuración para restaurarla; los contadores se conservan.'
+        ) from None
 
 
 def policy():
@@ -116,7 +144,7 @@ def _reserve(provider, model):
         saved = _read_policy(c)
         count = c.execute('SELECT COUNT(*) FROM api_usage WHERE day=?', (day,)).fetchone()[0]
         if count >= saved['daily_requests']:
-            raise ValueError(
+            raise UsageLimitExceeded(
                 f"Se alcanzó el límite de {saved['daily_requests']} intentos diarios del Studio. "
                 'El contador se reinicia a las 00:00 UTC; espera al reinicio o aumenta '
                 'el límite diario en Ajustes de uso.'

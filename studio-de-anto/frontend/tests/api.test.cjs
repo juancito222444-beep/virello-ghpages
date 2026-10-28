@@ -51,7 +51,9 @@ test('Director preflight accepts supported features and handles missing health s
   global.fetch=async()=>Response.json({app:'STUDIO DE ANTO',api_version:'1',release:'1.4.1',features:['director-v1','context-draft-v1']});await requireDirectorSupport();
   for(const status of [404,405]){global.fetch=async()=>new Response('protocol-secret-marker',{status});await assert.rejects(requireDirectorSupport(),error=>error instanceof ServerCompatibilityError&&!error.message.includes('protocol-secret-marker'));}
  }finally{global.fetch=original;}
- assert(SERVER_UPDATE_COMMAND.includes('test "$(git branch --show-current)" = \'codex/studio-de-anto-modelo-real\''));
- assert(SERVER_UPDATE_COMMAND.includes('git pull --ff-only'));
+ assert(SERVER_UPDATE_COMMAND.includes('git fetch origin codex/studio-de-anto-mejoras'));
+ assert(SERVER_UPDATE_COMMAND.includes('git show FETCH_HEAD:studio-de-anto/scripts/apply-improvements.sh'));
+ assert(SERVER_UPDATE_COMMAND.includes('mktemp /tmp/anto-mejoras.XXXXXX'));
+ assert(SERVER_UPDATE_COMMAND.includes('STUDIO_REPO_ROOT="$PWD" bash "$anto_instalador"'));
  assert(!SERVER_UPDATE_COMMAND.includes('reset'));
 });

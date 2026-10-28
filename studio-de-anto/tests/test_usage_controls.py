@@ -64,13 +64,17 @@ def test_policy_validation_is_strict_and_does_not_change_saved_policy(value):
     assert usage.policy() == saved
 
 
-def test_corrupted_stored_policy_falls_back_without_losing_other_settings():
+def test_corrupted_stored_policy_blocks_until_explicitly_repaired():
     usage.policy()
     store.save_setting('usage_policy', {'daily_requests': -1})
-    assert usage.policy()['daily_requests'] == 100
+    with pytest.raises(usage.UsagePolicyError, match='bloqueadas'):
+        usage.policy()
     with store.db() as c:
         c.execute('UPDATE settings SET value=? WHERE key=?', ('not json', 'usage_policy'))
-    assert usage.policy()['max_output_tokens'] == 1024
+    with pytest.raises(usage.UsagePolicyError, match='contadores se conservan'):
+        usage.policy()
+    restored = usage.save_policy({'daily_requests': 3, 'max_output_tokens': 512, 'concise': True})
+    assert usage.policy() == restored
 
 
 def test_failures_count_and_cutoff_happens_before_request_body():

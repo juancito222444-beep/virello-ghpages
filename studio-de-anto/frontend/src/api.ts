@@ -1,7 +1,10 @@
 /** Never assume an API/proxy error is JSON, and never render its raw HTML/text. */
-export const SERVER_UPDATE_COMMAND="cd /workspaces/virello-ghpages && test \"$(git branch --show-current)\" = 'codex/studio-de-anto-modelo-real' && git pull --ff-only origin codex/studio-de-anto-modelo-real && bash studio-de-anto/scripts/start-cloud.sh --background";
+export const SERVER_UPDATE_COMMAND="cd /workspaces/virello-ghpages && git fetch origin codex/studio-de-anto-mejoras && anto_instalador=\"$(mktemp /tmp/anto-mejoras.XXXXXX)\" && git show FETCH_HEAD:studio-de-anto/scripts/apply-improvements.sh > \"$anto_instalador\" && STUDIO_REPO_ROOT=\"$PWD\" bash \"$anto_instalador\"";
 export class ServerCompatibilityError extends Error{
  constructor(){super('El servidor abierto todavía no incluye Director de ANTO o usa una API incompatible. Actualiza y reinicia el servidor; tu mensaje se conserva.');this.name='ServerCompatibilityError';}
+}
+export class ApiResponseError extends Error{
+ constructor(message:string,public status:number,public code?:string){super(message);this.name='ApiResponseError';}
 }
 const routeError=(status:number)=>'El servidor no incluye esta función o está ejecutando una versión anterior (HTTP '+status+'). Actualiza y reinicia el servidor del estudio y recarga la página.';
 export async function readApiResponse(response:Response):Promise<any>{
@@ -19,7 +22,7 @@ export async function readApiResponse(response:Response):Promise<any>{
  if(!response.ok){
   if(response.status===404&&(!value||typeof value.detail!=='string'||/^not[\s_-]*found\.?$/i.test(value.detail.trim())))throw Error(routeError(404));
   const detail=value&&typeof value.detail==='string'?value.detail:'La solicitud no pudo completarse (HTTP '+response.status+').';
-  throw Error(detail);
+  throw new ApiResponseError(detail,response.status,typeof value?.error_code==='string'?value.error_code:undefined);
  }
  return value;
 }

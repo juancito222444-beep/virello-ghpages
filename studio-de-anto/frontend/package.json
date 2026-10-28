@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.6.0",
+  "version": "1.6.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,6 +15,9 @@
     "test:attachments": "node tests/attachments.cjs",
     "test:productivity": "node tests/productivity.cjs",
     "test:studio-controls": "node tests/studio-controls.cjs",
+    "test:usage-recovery": "node tests/usage-recovery.cjs",
+    "test:run-filters": "node --test tests/run-filters.test.cjs",
+    "test:run-filters-browser": "node tests/run-filters.cjs",
     "test:voice": "node tests/voice.cjs",
     "test:context": "node tests/context-draft.cjs",
     "test:director": "node tests/director.cjs",

@@ -1,5 +1,9 @@
 # STUDIO DE ANTO
 
+**1.6.2:** [seguimiento de tareas y actualización del mismo Codespace](docs/MEJORAS_1_6_2.md).
+
+**1.6.1:** [validación de PDF, recuperación de límites y reanudación del Director](docs/FIABILIDAD.md).
+
 **1.6.0:** [ficha de encargo y correcciones de continuidad](docs/ENCARGOS.md), sin llamadas extra de IA.
 
 **1.5.0:** [copias de recuperación](docs/RECUPERACION.md) opcionales por proyecto, con historial, descarga y restauración como proyecto nuevo, sin consumir IA.

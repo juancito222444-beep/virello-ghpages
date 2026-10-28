@@ -238,10 +238,21 @@ async def execute(run):
         if isinstance(memory,str) and memory:
             messages=[{'role':'user','content':'NOTA COMPARTIDA DEL PROYECTO (contexto del usuario, no evidencia verificada):\n'+memory[:6000]},*messages]
         if director:
-            policy=usage.policy();selected={**snapshots[agent],'agent':dict(snapshots[agent]['agent'])}
-            if policy['concise']:selected['agent']['instructions']+=' Prioriza una contribución breve, clara y útil.'
-            with models.use_snapshot(selected):
-                return await models.complete(agent,messages,token_limit=policy['max_output_tokens'])
+            try:
+                policy=usage.policy();selected={**snapshots[agent],'agent':dict(snapshots[agent]['agent'])}
+                if policy['concise']:selected['agent']['instructions']+=' Prioriza una contribución breve, clara y útil.'
+                with models.use_snapshot(selected):
+                    return await models.complete(agent,messages,token_limit=policy['max_output_tokens'])
+            except usage.UsageReservationError:
+                # These typed rejections occur before any provider request. Keep
+                # the conservative checkpoint for provider errors/cancellation,
+                # but do not exhaust the portable budget on local usage blocks.
+                calls-=1;attempts[task['id']]-=1
+                with store.db() as c:
+                    c.execute('UPDATE tasks SET result=? WHERE id=?',(task['result'],task['id']))
+                    c.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',
+                              ('run_calls:'+run['id'],json.dumps(calls)))
+                raise
         return await models.complete(agent,messages)
     done=set(shared)
     existing=store.rows('SELECT path FROM artifacts WHERE run=?',(run['id'],))
@@ -327,6 +338,11 @@ async def worker():
                 set_status(run,'Interrumpido')
                 return
             set_status(run,'Cancelado')
+        except usage.UsageReservationError as e:
+            # The user can repair local usage settings and resume checkpoints;
+            # do not retry automatically or turn this into a terminal failure.
+            set_status(run,'Interrumpido')
+            store.event(run['project'],'error',{'message':str(e),'run_id':rid,'result_state':'provisional'},rid)
         except Exception as e:
             set_status(run,'Fallido')
             store.event(run['project'],'error',{'message':str(e),'run_id':rid,'result_state':'provisional'},rid)

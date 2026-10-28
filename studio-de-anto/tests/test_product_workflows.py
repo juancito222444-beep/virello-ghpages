@@ -8,6 +8,7 @@ import zipfile
 import httpx
 import pytest
 from PIL import Image
+from pypdf import PdfWriter
 from fastapi.testclient import TestClient
 from backend import cloud,engine,models,store
 from backend.app import app
@@ -15,7 +16,14 @@ from backend.data_tools import analyze,load
 from backend.schemas import Analysis
 
 KEY='product-workflow-protocol-key'
-PDF=b'%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n'
+def pdf_bytes():
+    output=io.BytesIO()
+    writer=PdfWriter()
+    writer.add_blank_page(width=612,height=792)
+    writer.write(output)
+    return output.getvalue()
+
+PDF=pdf_bytes()
 
 @pytest.fixture(autouse=True)
 def isolated(tmp_path,monkeypatch):
