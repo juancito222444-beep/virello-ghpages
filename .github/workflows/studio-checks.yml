@@ -31,5 +31,5 @@ jobs:
       - run: python -m pytest -q --disable-warnings
       - run: npm ci --no-audit --no-fund
         working-directory: studio-de-anto/frontend
-      - run: npm run test:api && npm run test:navigation && npm run test:drafts && npm run test:search && npm run test:run-filters && npm run build
+      - run: npm run test:api && npm run test:navigation && npm run test:drafts && npm run test:search && npm run test:run-filters && npm run test:history-pages && npm run build
         working-directory: studio-de-anto/frontend

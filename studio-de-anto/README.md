@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+**1.7.1:** [carga por páginas de conversaciones y recuperación](docs/CONVERSACIONES.md).
+
 **1.7.0:** [reservas del Director, diagnóstico y rendimiento](docs/CONTROL_ESTUDIO.md).
 
 **1.6.2:** [seguimiento de tareas y actualización del mismo Codespace](docs/MEJORAS_1_6_2.md).

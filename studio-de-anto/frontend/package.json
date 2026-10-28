@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -26,6 +26,8 @@
     "test:director": "node tests/director.cjs",
     "test:compatibility": "node tests/server-compatibility.cjs",
     "test:drafts": "node --test tests/chat-drafts.test.cjs",
+    "test:history-pages": "node --test tests/history-pages.test.cjs",
+    "test:history-pages-browser": "node tests/history-pages.cjs",
     "test:drafts-browser": "node tests/chat-drafts.cjs",
     "test:search": "node --test tests/conversation-search.test.cjs",
     "test:search-browser": "node tests/conversation-search.cjs",

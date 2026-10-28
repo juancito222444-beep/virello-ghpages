@@ -2,8 +2,8 @@ import asyncio, contextlib, json, os, zipfile, logging, traceback, uuid, sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import Literal
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
+from typing import Annotated, Literal
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, Query
 from fastapi.routing import APIRoute
 from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -15,7 +15,7 @@ from .data_tools import load,inspect
 from .access import access_error
 from .planning import propose_plan
 from . import conversation,project_context,director
-from . import system_status,run_views
+from . import system_status,run_views,message_history
 
 @asynccontextmanager
 async def lifespan(app):
@@ -31,7 +31,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.7.0'
+APP_RELEASE='1.7.1'
 API_VERSION='1'
 
 
@@ -491,8 +491,12 @@ def file_content(fid:str,download:bool=False):
     f=attachments.resolve(f['project'],[fid])[0]
     return attachments.content(f,download=download)
 @app.get('/api/messages')
-def messages(project:str,agent:str):
+def messages(project:str,agent:str,page_size:Annotated[int|None,Query(ge=1,le=100)]=None,before:str|None=None):
     need_project(project)
+    if page_size is not None:
+        return message_history.page(project,agent,page_size,before)
+    if before is not None:
+        raise ValueError('El cursor requiere page_size.')
     result=store.rows('SELECT m.*,p.provider FROM messages m LEFT JOIN message_provenance p ON p.message_id=m.id WHERE m.project=? AND m.agent=? ORDER BY m.created,m.rowid',(project,agent))
     linked=store.rows('SELECT a.message_id,f.id,f.name FROM message_attachments a JOIN files f ON a.file_id=f.id JOIN messages m ON a.message_id=m.id WHERE m.project=? AND m.agent=?',(project,agent))
     by_message={}

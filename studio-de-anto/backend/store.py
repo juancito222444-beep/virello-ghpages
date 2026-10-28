@@ -37,6 +37,7 @@ def init():
         CREATE TABLE IF NOT EXISTS projects(id TEXT PRIMARY KEY,name TEXT NOT NULL,created TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS messages(id TEXT PRIMARY KEY,project TEXT NOT NULL,agent TEXT NOT NULL,role TEXT NOT NULL,content TEXT NOT NULL,model TEXT,created TEXT NOT NULL);
+        CREATE INDEX IF NOT EXISTS messages_project_agent_created ON messages(project,agent,created);
         CREATE TABLE IF NOT EXISTS files(id TEXT PRIMARY KEY,project TEXT NOT NULL,name TEXT NOT NULL,path TEXT NOT NULL,options TEXT NOT NULL,created TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,project TEXT NOT NULL,file TEXT,request TEXT NOT NULL,status TEXT NOT NULL,plan TEXT NOT NULL,result TEXT,created TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS tasks(id TEXT PRIMARY KEY,run TEXT NOT NULL,position INTEGER NOT NULL,agent TEXT NOT NULL,status TEXT NOT NULL,payload TEXT NOT NULL,result TEXT);
