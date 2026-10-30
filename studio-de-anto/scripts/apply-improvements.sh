@@ -30,6 +30,16 @@ main() {
     return 1
   fi
   cd -- "$repo_root"
+  # Share one lock with the Codex worker, including nested boot installation.
+  mkdir -p "$project_dir/local-data"
+  command -v flock >/dev/null || { echo 'No se pudo comprobar el bloqueo del actualizador.' >&2; return 1; }
+  local anto_lock_fd="${ANTO_UPDATE_LOCK_FD:-}"
+  if [[ ! "$anto_lock_fd" =~ ^[0-9]+$ ]] || [[ ! "$project_dir/local-data/.anto-update.lock" -ef "/proc/$$/fd/$anto_lock_fd" ]]; then
+    exec 8>"$project_dir/local-data/.anto-update.lock"
+    anto_lock_fd=8
+  fi
+  flock -n "$anto_lock_fd" || { echo 'Codex u otro actualizador está trabajando; no se modificó el código.' >&2; return 75; }
+  export ANTO_UPDATE_LOCK_FD="$anto_lock_fd"
   current_branch="$(git symbolic-ref --quiet --short HEAD || true)"
   if [[ "$current_branch" != 'codex/studio-de-anto-modelo-real' && "$current_branch" != "$branch" ]]; then
     echo 'No se actualizó: usa la rama codex/studio-de-anto-modelo-real o codex/studio-de-anto-mejoras; no se cambió tu rama.' >&2
@@ -74,7 +84,7 @@ main() {
     return "$install_status"
   fi
   if [[ "${CODESPACES:-}" == true ]]; then
-    bash "$project_dir/scripts/start-cloud.sh" --background
+    ANTO_SKIP_BOOT_UPDATE=1 bash "$project_dir/scripts/start-cloud.sh" --background
   else
     printf 'Para iniciar la aplicación en este equipo: bash %q\n' "$project_dir/scripts/start.sh"
   fi

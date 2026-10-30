@@ -183,3 +183,15 @@ def test_non_codespaces_install_prints_local_start_instead_of_starting_server(re
     result=apply(checkout,codespaces=False)
     assert result.returncode==0 and 'scripts/start.sh' in result.stdout
     assert (data/'events').read_text().splitlines()==['install:']
+
+
+def test_codex_lock_prevents_manual_update_without_changing_code(repositories):
+    import fcntl
+    seed,checkout,data=repositories
+    before=git(checkout,'rev-parse','HEAD');publish(seed)
+    with (data/'.anto-update.lock').open('w') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        result=apply(checkout)
+    assert result.returncode==75
+    assert git(checkout,'rev-parse','HEAD')==before
+    assert not (data/'events').exists()

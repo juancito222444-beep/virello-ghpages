@@ -15,23 +15,26 @@ from .data_tools import load,inspect
 from .access import access_error
 from .planning import propose_plan
 from . import conversation,project_context,director,tutor
-from . import system_status,run_views,message_history,office_growth
+from . import system_status,run_views,message_history,office_growth,autonomy
 
 @asynccontextmanager
 async def lifespan(app):
     global SETUP_LOCK
     SETUP_LOCK=asyncio.Lock()
-    store.init();usage.recover_interrupted();director.init(); engine.QUEUE=asyncio.Queue(); models.LOCK=asyncio.Lock(); worker=asyncio.create_task(engine.worker())
+    store.init();usage.recover_interrupted();director.init();autonomy.init(); engine.QUEUE=asyncio.Queue(); models.LOCK=asyncio.Lock(); worker=asyncio.create_task(engine.worker())
     recovery_worker=asyncio.create_task(auto_backups.worker())
+    autonomy_worker=asyncio.create_task(autonomy.worker(delegate_director,resume_run))
     try:yield
     finally:
+        autonomy_worker.cancel()
+        await asyncio.gather(autonomy_worker,return_exceptions=True)
         for task in list(engine.ACTIVE.values()): task.cancel()
         worker.cancel();recovery_worker.cancel()
         await asyncio.gather(worker,recovery_worker,return_exceptions=True)
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.8.0'
+APP_RELEASE='1.9.0'
 API_VERSION='1'
 
 
@@ -42,6 +45,8 @@ def registered_feature(path,method):
 @app.get('/api/health')
 def health():
     supported=[feature for feature,path,method in (
+        ('autonomy-v1','/api/projects/{pid}/autonomy','GET'),
+        ('codex-backlog-v1','/api/autonomy/codex','GET'),
         ('tutor-v1','/api/projects/{pid}/tutor','GET'),
         ('director-v1','/api/director','POST'),
         ('context-draft-v1','/api/projects/{pid}/context-draft','GET'),
@@ -187,6 +192,40 @@ def authorize_project_room(pid:str,room_id:str,body:OfficeAuthorization):
 def context_draft(pid:str):
     try:return project_context.prepare(pid)
     except KeyError:raise HTTPException(404,'Proyecto inexistente') from None
+
+def autonomy_scope(pid):
+    need_project(pid)
+    return 'anto:'+pid
+
+@app.get('/api/projects/{pid}/autonomy')
+def autonomy_status(pid:str): return autonomy.report(autonomy_scope(pid))
+
+@app.post('/api/projects/{pid}/autonomy/jobs')
+def autonomy_add(pid:str,body:autonomy.Objective): return autonomy.add(autonomy_scope(pid),body)
+
+@app.put('/api/projects/{pid}/autonomy/limits')
+def autonomy_limits(pid:str,body:autonomy.Limits): return autonomy.limits(autonomy_scope(pid),body)
+
+@app.post('/api/projects/{pid}/autonomy/control')
+async def autonomy_control(pid:str,body:autonomy.Control): return await autonomy.control(autonomy_scope(pid),body)
+
+@app.post('/api/projects/{pid}/autonomy/jobs/{jid}/retry')
+def autonomy_retry(pid:str,jid:str): return autonomy.retry(autonomy_scope(pid),jid)
+
+@app.get('/api/autonomy/codex')
+def codex_backlog(): return autonomy.report('codex')
+
+@app.post('/api/autonomy/codex/jobs')
+def codex_add(body:autonomy.Objective): return autonomy.add('codex',body)
+
+@app.put('/api/autonomy/codex/limits')
+def codex_limits(body:autonomy.Limits): return autonomy.limits('codex',body)
+
+@app.post('/api/autonomy/codex/control')
+async def codex_control(body:autonomy.Control): return await autonomy.control('codex',body)
+
+@app.post('/api/autonomy/codex/jobs/{jid}/retry')
+def codex_retry(jid:str): return autonomy.retry('codex',jid)
 
 @app.get('/api/projects/{pid}/tutor')
 def get_tutor(pid:str):

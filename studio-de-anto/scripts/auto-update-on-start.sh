@@ -30,6 +30,8 @@ flock -n 9 || {
     exit 75
 }
 
+export ANTO_UPDATE_LOCK_FD=9
+
 if ! git diff --quiet || ! git diff --cached --quiet; then
     echo "Cambios locales detectados: se conservan y no se actualiza."
     [[ ! -e "$anto_pending" ]] || exit 1

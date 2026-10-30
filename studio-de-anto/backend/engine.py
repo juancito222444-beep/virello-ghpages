@@ -6,6 +6,7 @@ from .data_tools import load,analyze,review
 from .reports import generate
 
 QUEUE=asyncio.Queue()
+PAUSING=set()
 ACTIVE={}
 # Matplotlib's stateful renderer is shared by the process. A cancelled export
 # may finish in its thread, so it must not render concurrently with another run.
@@ -364,7 +365,7 @@ async def worker():
             if asyncio.current_task().cancelling():
                 set_status(run,'Interrumpido')
                 return
-            set_status(run,'Cancelado')
+            set_status(run,'Interrumpido' if rid in PAUSING else 'Cancelado')
         except usage.UsageReservationError as e:
             # The user can repair local usage settings and resume checkpoints;
             # do not retry automatically or turn this into a terminal failure.
@@ -377,4 +378,19 @@ async def worker():
             # A task cancelled before its first coroutine step never enters
             # execute()'s finally, so the worker also closes queued capacity.
             try:usage.release_budget(director.run_budget(rid))
-            finally:ACTIVE.pop(rid,None); QUEUE.task_done()
+            finally:PAUSING.discard(rid); ACTIVE.pop(rid,None); QUEUE.task_done()
+
+
+async def pause_run(rid):
+    """Cancel pending work while retaining completed checkpoints."""
+    run=store.one('SELECT * FROM runs WHERE id=?',(rid,))
+    if not run or run['status'] not in ('Pendiente','En ejecución'):return
+    task=ACTIVE.get(rid)
+    if task:
+        PAUSING.add(rid)
+        task.cancel()
+        await asyncio.gather(task,return_exceptions=True)
+        while rid in ACTIVE:await asyncio.sleep(0)
+    else:
+        set_status(run,'Interrumpido')
+        usage.release_budget(director.run_budget(rid))
