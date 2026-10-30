@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+
+# ANTO_AUTO_UPDATE_BOOT
+if [[ "${CODESPACES:-}" == "true" && "${ANTO_SKIP_BOOT_UPDATE:-0}" != "1" ]]; then
+    anto_entry="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/$(basename -- "${BASH_SOURCE[0]}")"
+    bash "$(dirname "$anto_entry")/auto-update-on-start.sh" || exit "$?"
+    export ANTO_SKIP_BOOT_UPDATE=1
+    exec bash "$anto_entry" "$@"
+fi
+
 set -euo pipefail
 cd "$(dirname "$0")/.."
 if [[ "${CODESPACES:-}" != "true" || -z "${CODESPACE_NAME:-}" || -z "${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-}" ]]; then
