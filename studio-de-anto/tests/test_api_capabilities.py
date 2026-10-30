@@ -23,7 +23,7 @@ def test_health_reports_actual_registered_capabilities_without_credentials(monke
         health=response.json()
         assert health['release']==APP_RELEASE and health['api_version']=='1'
         assert set(health['features'])=={'director-v1','context-draft-v1','recovery-backups-v1',
-                                         'system-status-v1','director-budget-v1','office-growth-v1'}
+                                         'system-status-v1','director-budget-v1','office-growth-v1','tutor-v1'}
         assert response.headers['cache-control']=='no-store'
         assert 'private-capability-marker' not in json.dumps(health)
 
