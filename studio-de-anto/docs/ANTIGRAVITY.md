@@ -24,7 +24,8 @@ consultar modelos ni leer credenciales. Solo una respuesta recibida confirma
 acceso para esa solicitud. La primera consulta requiere marcar la autorización
 de uso de cuota; una cancelación puede contar como consumo.
 
-El puente usa un directorio temporal vacío, una sola solicitud por vez, entrada
+El puente usa un directorio temporal vacío, autorizado solo para esa sesión
+mediante `trustedWorkspaces`, una sola solicitud por vez, entrada
 JSON por stdin (sin texto privado en los argumentos), respuesta limitada a 32000
 caracteres y 90 segundos. Las reglas de sesión deniegan lectura/escritura de
 archivos, comandos, navegación y MCP, con permiso `strict`. No modifica reglas

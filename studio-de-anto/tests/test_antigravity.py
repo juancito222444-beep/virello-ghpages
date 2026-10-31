@@ -69,6 +69,7 @@ assert "STUDIO_GROQ_API_KEY" not in os.environ
 assert not os.listdir('.')
 settings=json.loads(sys.argv[sys.argv.index('--settings')+1])
 assert settings['toolPermission']=='strict'
+assert settings['trustedWorkspaces']==[os.getcwd()]
 assert 'command(*)' in settings['permissions']['deny']
 assert 'read_file(*)' in settings['permissions']['deny']
 assert '--dangerously-skip-permissions' not in sys.argv

@@ -95,6 +95,8 @@ async def ask(prompt, request):
     RUNNING = True
     try:
         with tempfile.TemporaryDirectory(prefix='anto-antigravity-') as workspace:
+            # Trust only this empty ephemeral folder for this session, not the repo.
+            command[-1] = json.dumps({**SETTINGS, 'trustedWorkspaces': [workspace]})
             # No project, attachments, credentials or repository are added as context.
             ACTIVE = await asyncio.create_subprocess_exec(
                 *command, cwd=workspace, env=env, stdin=asyncio.subprocess.PIPE,
