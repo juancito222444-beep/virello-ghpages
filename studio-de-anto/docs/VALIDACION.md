@@ -24,6 +24,15 @@ tiempo máximo, límites de memoria/CPU en Linux y concurrencia compartida con l
 validación PDF. No se ejecutan OCR, código del PDF ni APIs de IA. Los datos de
 prueba son temporales y no acceden a documentos ni claves del propietario.
 
+La revisión `acadb29` pasó también [Studio checks 41158350583](https://github.com/juancito222444-beep/virello-ghpages/actions/runs/41158350583),
+incluidos los tres recorridos Chromium. Se aplicó con el instalador habitual y se
+verificó el mismo Codespace por túnel autenticado: versión 1.10.0, huella y entorno
+del backend, HTML compilado y capacidad `pdf-text-v1` coincidentes; la ruta rechaza
+un proyecto inexistente. Los recuentos anteriores y posteriores de proyectos,
+mensajes, archivos, trabajos, entregables, correcciones, ajustes y colas coinciden.
+No había trabajos, llamadas de modelo ni colas activas al reiniciar. Se conservó
+el archivo local no rastreado `FETCH_HEAD` sin publicarlo, eliminarlo ni ocultarlo.
+
 ## Publicación, Codespace y búsqueda global · 31 de octubre de 2026
 
 Se publicaron los cambios de autonomía y tutor en `codex/studio-de-anto-mejoras`.
