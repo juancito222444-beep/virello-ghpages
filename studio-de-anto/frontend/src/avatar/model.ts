@@ -45,7 +45,7 @@ export function createAnime():AnimeRig{
  for(const sign of [-1,1])for(let i=0;i<2;i++)lock(head,[[sign*(.015+i*.045),.452,.11],[sign*(.055+i*.055),.39,.235],[sign*(.11+i*.07),.29,.255]],.012,hairLight);
  // A tiny nose projects beyond the face instead of a flat painted head.
  ellipsoid(head,skin,0,-.075,.283,.028,.047,.032);
- let eyeColor='';
+ let eyeColor='',eyeHeight=1;
  function faceTexture(closed=false){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;const c=canvas.getContext('2d')!;
   for(const side of [-1,1]){const x=256+side*113,y=219;
@@ -105,12 +105,12 @@ export function createAnime():AnimeRig{
   ellipsoid(knee,shoe,0,-1.18,.09,.14,.13,.255);ellipsoid(knee,dark,0,-1.32,.095,.145,.035,.26);
  }
  const materials=new Set<T.Material>();const geometries=new Set<T.BufferGeometry>();root.traverse(o=>{if(o instanceof T.Mesh){geometries.add(o.geometry);(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m));}});
- return {root,apply(s){skin.color.set(s.skin);hair.color.set(s.hair);hairLight.color.set(s.hair).lerp(new T.Color('#d8c1e2'),.24);cloth.color.set(s.clothing);accent.color.set(s.accent);dark.color.set(s.outfit==='street'?'#454353':'#34314d');
+ return {root,apply(s){skin.color.set(s.skin);skin.roughness=s.style==='human'?.76:.68;hair.color.set(s.hair);hair.roughness=s.style==='human'?.54:.43;hairLight.color.set(s.hair).lerp(new T.Color('#d8c1e2'),.24);cloth.color.set(s.clothing);accent.color.set(s.accent);dark.color.set(s.outfit==='street'?'#454353':'#34314d');eyeHeight=s.style==='human'?.82:1;eyes.scale.set(s.style==='human'?.78:1,eyeHeight,1);makeup.visible=s.style==='anime';faceMaterial.opacity=s.style==='human'?.82:1;
   Object.entries(outfits).forEach(([id,g])=>g.visible=id===s.outfit);Object.entries(hairstyles).forEach(([id,g])=>g.visible=id===s.hairStyle);pants.forEach(p=>p.visible=s.outfit==='street');sleeves.forEach(p=>p.scale.x=s.outfit==='street'?1.2:1);
   if(eyeColor!==s.eyes){eyeColor=s.eyes;iris.color.set(s.eyes);}
  },animate(time,walk,action,reduced){
   const t=reduced?0:time,phase=t*8,walking=walk&&!reduced;body.position.y=Math.sin(t*1.9)*.014+(walking?Math.abs(Math.sin(phase))*.028:0);head.rotation.z=Math.sin(t*.7)*.018;
-  const blink=!reduced&&t%5.1>.01&&t%5.1<.16;faceMaterial.map=blink?closed:open;eyes.scale.y=blink?.08:1;
+  const blink=!reduced&&t%5.1>.01&&t%5.1<.16;faceMaterial.map=blink?closed:open;eyes.scale.y=blink?.08:eyeHeight;
   hips.forEach((h,i)=>h.rotation.x=walking?Math.sin(phase+i*Math.PI)*.38:0);knees.forEach((k,i)=>k.rotation.x=walking?Math.max(0,-Math.sin(phase+i*Math.PI))*.42:0);
   shoulders.forEach((a,i)=>{a.rotation.x=walking?Math.sin(phase+i*Math.PI+Math.PI)*.3:Math.sin(t*1.2+i)*.025;a.rotation.z=(i===0?-.08:.08);});
   if(action==='wave'){shoulders[1].rotation.z=-2.5+Math.sin(t*12)*.15;shoulders[1].rotation.x=.2;head.rotation.z=-.05;}

@@ -15,7 +15,7 @@ export default function ModelCanvas(props:Props){
   const scene=new T.Scene(),camera=new T.PerspectiveCamera(35,1,.1,50);camera.position.set(0,2.6,8.8);camera.lookAt(0,2.5,0);
   scene.add(new T.HemisphereLight('#fff2ed','#70658e',1.05));const key=new T.DirectionalLight('#fff2e4',1.6);key.position.set(-3,5,5);scene.add(key);const rim=new T.DirectionalLight('#beb0ff',1.3);rim.position.set(3,4,-3);scene.add(rim);const fill=new T.DirectionalLight('#dfebff',.45);fill.position.set(3,2,4);scene.add(fill);
   const rig=createAnime();rig.apply(latest.current.settings);scene.add(rig.root);
-  const clips=new Map<string,T.AnimationClip>();const importMeshes=new Map<string,T.Mesh>();
+  const clips=new Map<string,T.AnimationClip>();const importMeshes=new Map<string,T.Mesh>(),importClothColors=new Map<T.Material,{base:T.Color;material:T.Material}>();let appliedModelTint='';
   if(props.data){
    const manager=new T.LoadingManager();manager.setURLModifier(url=>{if(!url.startsWith('blob:'))throw Error('No se permiten recursos externos.');return url;});
    import('three/addons/loaders/GLTFLoader.js').then(({GLTFLoader})=>new GLTFLoader(manager).parseAsync(props.data!,'')).then(gltf=>{
@@ -26,7 +26,10 @@ export default function ModelCanvas(props:Props){
      if(!Number.isFinite(size.length())||size.y<.001||triangles>150000||Math.max(size.x,size.z)>size.y*4)throw Error('Usa un personaje de hasta 150000 triángulos con dimensiones válidas.');
      const normalizer=new T.Group();normalizer.add(gltf.scene);gltf.scene.position.sub(new T.Vector3(center.x,bounds.min.y,center.z));normalizer.scale.setScalar(4.8/size.y);scene.add(normalizer);imported=normalizer;rig.root.visible=false;
      mixer=new T.AnimationMixer(gltf.scene);gltf.animations.slice(0,20).forEach((clip,i)=>clips.set(String(i),clip));
-     const clothes:ModelInfo['clothes']=[];gltf.scene.traverse(o=>{if(o instanceof T.Mesh&&/cloth|dress|shirt|skirt|jacket|pants|coat|hood|ropa|falda|top|outfit|sleeve/i.test(o.name)&&clothes.length<32){importMeshes.set(o.uuid,o);clothes.push({id:o.uuid,name:o.name.slice(0,70)});}});
+     const clothes:ModelInfo['clothes']=[],clothingName=/cloth|dress|shirt|skirt|jacket|pants|coat|hood|ropa|falda|top|outfit|sleeve|uniform|sweater|blouse|vest|jeans|trousers|wardrobe|garment/i;gltf.scene.traverse(o=>{if(o instanceof T.Mesh&&clothes.length<32){
+      const originals=Array.isArray(o.material)?o.material:[o.material];if(!clothingName.test(o.name)&&!originals.some(material=>clothingName.test(material.name)))return;
+      const clones=originals.map(material=>{const copy=material.clone();if('color'in copy)importClothColors.set(copy,{base:(copy as T.MeshStandardMaterial).color.clone(),material:copy});return copy;});o.material=Array.isArray(o.material)?clones:clones[0];importMeshes.set(o.uuid,o);clothes.push({id:o.uuid,name:(o.name||originals.map(material=>material.name).join(', ')).slice(0,70)});
+     }});
      latest.current.onReady({animations:[...clips.values()].map(c=>c.name||'Animación'),clothes});
     }catch(e){disposeObject(gltf.scene);latest.current.onError((e as Error).message);}
    }).catch(()=>{if(alive)latest.current.onError('No se pudo abrir el GLB. Exporta glTF 2.0 con texturas incrustadas y sin compresión.');});
@@ -36,7 +39,7 @@ export default function ModelCanvas(props:Props){
   function tick(now:number){if(!alive||document.hidden||!inViewport)return;frame=requestAnimationFrame(tick);const state=latest.current,interval=state.settings.reduced?1000/15:1000/30;if(now-last<interval)return;const dt=Math.min((now-last)/1000,.08);last=now;elapsed+=dt;
    if(lastSettings!==state.settings){rig.apply(state.settings);lastSettings=state.settings;}
    const object=imported||rig.root;object.rotation.y=state.settings.turn*Math.PI/180;
-   if(imported){for(const [id,mesh] of importMeshes)mesh.visible=!state.hidden.includes(id);if(animation!==state.clip){animation=state.clip;mixer?.stopAllAction();const clip=clips.get(animation);if(clip)mixer?.clipAction(clip).play();}if(!state.settings.reduced)mixer?.update(dt);}else rig.animate(elapsed,state.moving,state.action,state.settings.reduced);
+   if(imported){for(const [id,mesh] of importMeshes)mesh.visible=!state.hidden.includes(id);if(appliedModelTint!==state.settings.modelClothing){const tint=new T.Color(state.settings.modelClothing);for(const {base,material} of importClothColors.values())(material as T.MeshStandardMaterial).color.copy(base).multiply(tint);appliedModelTint=state.settings.modelClothing;}if(animation!==state.clip){animation=state.clip;mixer?.stopAllAction();const clip=clips.get(animation);if(clip)mixer?.clipAction(clip).play();}if(!state.settings.reduced)mixer?.update(dt);}else rig.animate(elapsed,state.moving,state.action,state.settings.reduced);
    if(!lost){renderer.render(scene,camera);if(++stableFrames>=2)element.dataset.ready='true';element.dataset.model=imported?'imported':'hana';}
   }
   function visibility(){cancelAnimationFrame(frame);last=performance.now();if(!document.hidden&&inViewport)frame=requestAnimationFrame(tick);}
