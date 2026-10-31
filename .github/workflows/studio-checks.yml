@@ -10,7 +10,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    # Playwright 1.51.1 supports Ubuntu 24.04; latest now selects 26.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     defaults:
       run:
