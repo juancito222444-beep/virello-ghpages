@@ -109,7 +109,22 @@ public partial class App : Application
             var unsafeRejected = false; try { Assets.Import(svg); } catch (InvalidDataException) { unsafeRejected = true; }
             if (!unsafeRejected) throw new InvalidDataException("Unsafe SVG accepted.");
             Save(); if (!Store.Load().Silhouette) throw new InvalidDataException("Persistence failed.");
-            report = new { passed = true, alphaCorner = output[3], silhouetteRed = output[center + 2], hotkeyRegistered = true, clickThroughStyleAndRecovery = true, svgLoaded = true, unsafeSvgRejected = true, workingSetBytes = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64, note = "Does not simulate clicks reaching a second application or measure long-running memory." };
+            var desktopMemory = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+            Config.Asset = ""; Config.Silhouette = false; Avatar.Apply();
+            OpenEditor(); OpenWorld(); editor!.UpdateLayout(); world!.UpdateLayout();
+            if (!editor.IsVisible || !world.IsVisible) throw new InvalidDataException("Editor or world did not open.");
+            var destination = Array.IndexOf(args, "--verify-report");
+            if (destination >= 0 && destination + 1 < args.Length)
+            {
+                void Snapshot(Window window, string suffix)
+                {
+                    var capture = new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth, (int)window.ActualHeight, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+                    capture.Render(window); var png = new System.Windows.Media.Imaging.PngBitmapEncoder(); png.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(capture));
+                    using var file = new FileStream(Path.ChangeExtension(args[destination + 1], suffix), FileMode.CreateNew); png.Save(file);
+                }
+                Snapshot(editor, "editor.png"); Snapshot(world, "world.png");
+            }
+            report = new { passed = true, alphaCorner = output[3], silhouetteRed = output[center + 2], hotkeyRegistered = true, clickThroughStyleAndRecovery = true, svgLoaded = true, unsafeSvgRejected = true, editorAndWorldOpened = true, workingSetBytes = desktopMemory, editorAndWorldWorkingSetBytes = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64, note = "Does not simulate clicks reaching a second application or measure long-running memory." };
         }
         catch (Exception error) { exit = 1; report = new { passed = false, error = error.ToString() }; }
         var json = System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });

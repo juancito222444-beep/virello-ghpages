@@ -35,7 +35,7 @@ jobs:
         if: always()
         with:
           name: VirtualAvatar-native-report
-          path: ${{ runner.temp }}/avatar-verification.json
+          path: ${{ runner.temp }}/avatar-verification.*
       - uses: actions/upload-artifact@v4
         with:
           name: VirtualAvatar-win-x64
