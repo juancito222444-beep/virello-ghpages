@@ -94,7 +94,7 @@ export function createAnime():AnimeRig{
   const thumb=limb(elbow,skin,.09,.022,sign*.072,-.646,.025);thumb.rotation.z=sign*.55;
   const hip=new T.Group();hip.position.set(sign*.185,2.54,0);body.add(hip);hip.name=sign<0?'leftHip':'rightHip';hips.push(hip);
   limb(hip,skin,1.23,.142,0,-.54,0);const thigh=limb(hip,dark,1.24,.175,0,-.54,0);pants.push(thigh);thigh.name='pants';
-  const knee=new T.Group();knee.position.y=-1.14;hip.add(knee);knees.push(knee);limb(knee,skin,1.13,.105,0,-.49,0);
+  const knee=new T.Group();knee.position.y=-1.14;hip.add(knee);knee.name=sign<0?'leftKnee':'rightKnee';knees.push(knee);limb(knee,skin,1.13,.105,0,-.49,0);
   const pant=limb(knee,dark,1.15,.17,0,-.49,0);pants.push(pant);pant.name='pants';
   limb(knee,accent,.43,.113,0,-.86,0);
   ellipsoid(knee,shoe,0,-1.18,.09,.14,.13,.255);ellipsoid(knee,dark,0,-1.32,.095,.145,.035,.26);

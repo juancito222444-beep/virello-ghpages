@@ -10,9 +10,9 @@ try
     var store = new ConfigStore(root);
     Check("round-trip preserves appearance, positions, layers and world", () =>
     {
-        var c = new AvatarConfig { X = -80, Y = 200, Silhouette = true, Color = "#FF1234", Rotation = 42, Automatic = true, Frames = ["a.png"], Layers = [new() { Asset = "hat.png", X = 12, Rotation = 20 }], World = [new() { Asset = "tree.png", X = 90 }] };
+        var c = new AvatarConfig { X = -80, Y = 200, Use3D = true, Outfit3D = "street", HairStyle3D = "bob", EyesColor3D = "#12ABEF", Silhouette = true, Color = "#FF1234", Rotation = 42, Automatic = true, Frames = ["a.png"], Layers = [new() { Asset = "hat.png", X = 12, Rotation = 20 }], World = [new() { Asset = "tree.png", X = 90 }] };
         store.Save(c); var restored = store.Load();
-        Assert(restored.X == -80 && restored.Color == "#FF1234" && restored.Silhouette && restored.Layers[0].X == 12 && restored.World[0].Asset == "tree.png" && restored.Frames.Count == 1);
+        Assert(restored.X == -80 && restored.Color == "#FF1234" && restored.Silhouette && restored.Layers[0].X == 12 && restored.World[0].Asset == "tree.png" && restored.Frames.Count == 1 && restored.Use3D && restored.Outfit3D == "street" && restored.HairStyle3D == "bob" && restored.EyesColor3D == "#12ABEF");
     });
     Check("presets and clones do not share mutable layers", () =>
     {

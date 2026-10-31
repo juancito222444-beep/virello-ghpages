@@ -105,7 +105,7 @@ llegan a otra aplicación, arrastre real, varios monitores, DPI y consumo prolon
 Ejecuta `VirtualAvatar.App.exe --3d` o activa **Avatar Editor → Activar personaje
 3D**. Usa el mismo modelo original de Studio con WPF Viewport3D, sin navegador
 ni servidor. Conserva transparencia, movimiento, Always on Top y click-through.
-Puedes cambiar ropa, peinado, colores y giro. Los presets guardan estos ajustes;
+Puedes cambiar ropa, peinado, ojos, colores y giro. Hana saluda, camina, se sienta y se duerme. Los presets guardan estos ajustes;
 volver a 2D conserva la imagen y sus capas. El mundo y los efectos de silueta,
 contorno y accesorios PNG siguen siendo 2D. Este modo no importa GLB.
 La compilación cruzada no sustituye la comprobación visual en Windows.

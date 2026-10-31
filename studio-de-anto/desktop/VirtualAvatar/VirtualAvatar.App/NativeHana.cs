@@ -15,6 +15,7 @@ public sealed class NativeHana
     static readonly Dictionary<string, ImageBrush> textureCache = new();
     readonly Dictionary<string, AxisAngleRotation3D> joints = new();
     readonly AxisAngleRotation3D turn = new(new Vector3D(0, 1, 0), 0);
+    readonly AxisAngleRotation3D rest = new(new Vector3D(0, 0, 1), 0);
     readonly GeometryModel3D? face;
     readonly Material? openEyes, closedEyes;
     public Viewport3D View { get; } = new() { ClipToBounds = true, IsHitTestVisible = false };
@@ -25,12 +26,14 @@ public sealed class NativeHana
         world.Children.Add(new DirectionalLight(Color.FromRgb(235, 225, 220), new Vector3D(-1, -2, -3)));
         world.Children.Add(new DirectionalLight(Color.FromRgb(95, 90, 120), new Vector3D(1, 0, 1)));
         var character = Build(source.RootElement.GetProperty("root"), config);
-        var rotate = new Model3DGroup { Transform = new RotateTransform3D(turn) }; rotate.Children.Add(character); world.Children.Add(rotate);
+        var resting = new Model3DGroup { Transform = new Transform3DGroup { Children = {
+            new TranslateTransform3D(0, 2.5, 0), new RotateTransform3D(rest), new TranslateTransform3D(0, -2.5, 0) } } };
+        resting.Children.Add(character); var rotate = new Model3DGroup { Transform = new RotateTransform3D(turn) }; rotate.Children.Add(resting); world.Children.Add(rotate);
         turn.Angle = config.Turn3D;
         View.Camera = new PerspectiveCamera(new Point3D(0, 2.5, 9.5), new Vector3D(0, 0, -1), new Vector3D(0, 1, 0), 35);
         View.Children.Add(new ModelVisual3D { Content = world });
         face = FindFace(character);
-        if (face is not null) { openEyes = face.Material; closedEyes = new DiffuseMaterial(Texture(source.RootElement.GetProperty("closed").GetString()!)); }
+        if (face is not null) { openEyes = new DiffuseMaterial(TintedEyes(source.RootElement.GetProperty("open").GetString()!, config.EyesColor3D)); closedEyes = new DiffuseMaterial(TintedEyes(source.RootElement.GetProperty("closed").GetString()!, config.EyesColor3D)); face.Material = openEyes; face.BackMaterial = openEyes; }
     }
     static GeometryModel3D? FindFace(Model3D node)
     {
@@ -44,6 +47,24 @@ public sealed class NativeHana
         var bytes = Convert.FromBase64String(encoded[(encoded.IndexOf(',') + 1)..]);
         using var stream = new MemoryStream(bytes); var image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.StreamSource = stream; image.EndInit(); image.Freeze();
         var brush = new ImageBrush(image) { Stretch = Stretch.Fill }; brush.Freeze(); textureCache[encoded] = brush; return brush;
+    }
+    static ImageBrush TintedEyes(string encoded, string hex)
+    {
+        var source = Texture(encoded).ImageSource!;
+        var converted = new FormatConvertedBitmap((BitmapSource)source, PixelFormats.Pbgra32, null, 0);
+        var bitmap = new WriteableBitmap(converted); var pixels = new byte[bitmap.PixelWidth * bitmap.PixelHeight * 4]; bitmap.CopyPixels(pixels, bitmap.PixelWidth * 4, 0);
+        var target = (Color)ColorConverter.ConvertFromString(hex); var width = bitmap.PixelWidth; var height = bitmap.PixelHeight;
+        for (var y = 0; y < height; y++) for (var x = 0; x < width; x++)
+        {
+            var u = (double)x / width; var v = (double)y / height;
+            var left = Math.Pow((u - .279) / .088, 2) + Math.Pow((v - .428) / .096, 2);
+            var right = Math.Pow((u - .721) / .088, 2) + Math.Pow((v - .428) / .096, 2);
+            if (Math.Min(left, right) > 1) continue;
+            var i = (y * width + x) * 4; var b = pixels[i]; var g = pixels[i + 1]; var r = pixels[i + 2]; var max = Math.Max(r, Math.Max(g, b)); var min = Math.Min(r, Math.Min(g, b));
+            if (max < 35 || max > 235 || max - min < 22) continue;
+            pixels[i] = (byte)(target.B * max / 255); pixels[i + 1] = (byte)(target.G * max / 255); pixels[i + 2] = (byte)(target.R * max / 255);
+        }
+        bitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0); bitmap.Freeze(); var brush = new ImageBrush(bitmap) { Stretch = Stretch.Fill }; brush.Freeze(); return brush;
     }
     static MeshGeometry3D Geometry(int index)
     {
@@ -79,13 +100,13 @@ public sealed class NativeHana
     }
     public void Animate(double time, AvatarState state, AvatarConfig c)
     {
-        var t = c.IdleAnimation ? time * c.AnimationSpeed : 0; var walking = state is AvatarState.Walk or AvatarState.Run;
+        var t = c.IdleAnimation ? time * c.AnimationSpeed : 0; var walking = state is AvatarState.Walk or AvatarState.Run; rest.Angle = state == AvatarState.Sleep ? 88 : 0;
         foreach (var (name, rotation) in joints)
         {
             rotation.Axis = name == "head" ? new Vector3D(0, 0, 1) : new Vector3D(1, 0, 0);
-            rotation.Angle = name == "head" ? Math.Sin(t * .7) : walking ? Math.Sin(t * 8 + (name.StartsWith("right") ? Math.PI : 0) + (name.EndsWith("Arm") ? Math.PI : 0)) * 20 : 0;
+            rotation.Angle = name == "head" ? state == AvatarState.Sleep ? 65 : Math.Sin(t * .7) : name.EndsWith("Hip") && (state is AvatarState.Sit or AvatarState.Sleep) ? -68 : name.EndsWith("Knee") && (state is AvatarState.Sit or AvatarState.Sleep) ? 112 : walking ? Math.Sin(t * 8 + (name.StartsWith("right") ? Math.PI : 0) + (name.EndsWith("Arm") ? Math.PI : 0)) * 20 : 0;
             if (name == "rightArm" && state == AvatarState.Clicked) { rotation.Axis = new Vector3D(0, 0, 1); rotation.Angle = -140 + Math.Sin(t * 12) * 8; }
         }
-        if (face is not null) { face.Material = t > 0 && t % 5.1 < .16 ? closedEyes : openEyes; face.BackMaterial = face.Material; }
+        if (face is not null) { face.Material = state == AvatarState.Sleep || t > 0 && t % 5.1 < .16 ? closedEyes : openEyes; face.BackMaterial = face.Material; }
     }
 }

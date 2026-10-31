@@ -119,5 +119,6 @@ permisos de pantalla protegida ni el objetivo de RAM en una sesión prolongada.
 WPF Viewport3D sustituye la imagen dentro de la misma ventana transparente:
 reutiliza movimiento, recuperación y persistencia sin otro motor ni dependencias.
 Los campos 3D son aditivos y desactivados por defecto para preservar el avatar
-anterior. El editor cambia ropa, pelo, colores y giro; el rig anima articulaciones
-y parpadeo. La importación GLB permanece en el módulo web.
+anterior. El editor cambia ropa, pelo, ojos, colores y giro; el rig anima articulaciones,
+saludo, caminata, posición sentada, sueño y parpadeo. Los colores 3D se guardan
+en los mismos presets aditivos. La importación GLB permanece en el módulo web.

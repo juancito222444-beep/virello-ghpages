@@ -84,9 +84,9 @@ public sealed class EditorWindow : Window
         Choice("Ropa", c.Outfit3D, ["cardigan", "street", "dress"], v => app.Config.Outfit3D = v);
         Choice("Peinado", c.HairStyle3D, ["long", "bob", "ponytail"], v => app.Config.HairStyle3D = v);
         Slider("Giro 3D", c.Turn3D, -180, 180, v => app.Config.Turn3D = v);
-        var hair3 = Text("Cabello 3D (#RRGGBB)", c.HairColor3D); var skin3 = Text("Piel 3D", c.SkinColor3D);
+        var hair3 = Text("Cabello 3D (#RRGGBB)", c.HairColor3D); var eyes3 = Text("Ojos 3D", c.EyesColor3D); var skin3 = Text("Piel 3D", c.SkinColor3D);
         var clothing3 = Text("Ropa 3D", c.ClothingColor3D); var accent3 = Text("Detalles 3D", c.AccentColor3D);
-        settings.Children.Add(Button("Aplicar colores 3D", () => Change(() => { app.Config.HairColor3D = hair3.Text; app.Config.SkinColor3D = skin3.Text; app.Config.ClothingColor3D = clothing3.Text; app.Config.AccentColor3D = accent3.Text; })));
+        settings.Children.Add(Button("Aplicar colores 3D", () => Change(() => { app.Config.HairColor3D = hair3.Text; app.Config.EyesColor3D = eyes3.Text; app.Config.SkinColor3D = skin3.Text; app.Config.ClothingColor3D = clothing3.Text; app.Config.AccentColor3D = accent3.Text; })));
         Heading("Personaje y apariencia"); settings.Children.Add(Button("Cambiar avatar PNG / SVG", ImportAvatar));
         settings.Children.Add(Button("Usar personaje incluido", () => { Change(() => { app.Config.Asset = ""; app.Config.Frames.Clear(); app.Config.SheetRows = app.Config.SheetColumns = 1; }); Build(); }));
         Slider("Tamaño", c.Size, 64, 768, v => app.Config.Size = v);
