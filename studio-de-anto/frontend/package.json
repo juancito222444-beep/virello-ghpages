@@ -1,11 +1,13 @@
 {
   "name": "studio-de-anto",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
+    "test:avatar": "node tests/avatar.cjs",
+    "test:avatar-settings": "node --test tests/avatar-settings.test.cjs",
     "test:antigravity": "node tests/antigravity.cjs",
     "test:autonomy": "node tests/autonomy.cjs",
     "test:tutor": "node tests/tutor.cjs",

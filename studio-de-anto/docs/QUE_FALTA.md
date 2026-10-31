@@ -1,5 +1,14 @@
 # Estado actual y pendientes
 
+La entrega **1.13.0** añade [Avatar 3D](AVATAR_3D.md) al menú y una ventana
+independiente del navegador: modelo adulto original, armario, pelo, colores,
+animaciones, movimiento, presets y GLB local. La transparencia del escritorio
+Windows sigue perteneciendo a la aplicación nativa **2D**. No se anuncia un
+avatar de escritorio 3D transparente ni un modelo humano fotorrealista.
+Antigravity se añadió en 1.12; su autenticación real queda sin verificar.
+El detalle de instalación 1.11 que sigue se conserva como registro histórico.
+
+
 El usuario confirmó la conexión de Gemini. La aplicación funciona con APIs en la nube; no inicia ni descarga modelos locales. Versión de código actual: **1.11.0 · documentos y avatar**, que incluye la corrección de compatibilidad 1.4.1. La instalación 1.11.0 se comprobó en el mismo Codespace el 31 de octubre de 2026 mediante su túnel autenticado, la huella del backend y el HTML servido. Cambios y validación: [autonomía](AUTONOMIA.md) y [fiabilidad](FIABILIDAD.md).
 
 Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tribble-5gprq56p7qpgf7xgq.github.dev/), aplicación en [puerto 8765](https://improved-tribble-5gprq56p7qpgf7xgq-8765.app.github.dev/). El usuario confirmó que la aplicación anterior funciona y después informó «Method Not Allowed» al delegar. Se reprodujo ese 405 con un backend anterior sin Director y una interfaz nueva; la instancia privada pudo inspeccionarse el 31 de octubre de 2026 mediante un túnel autenticado de Codespaces. Subir código a GitHub no confirma que esa instancia lo haya aplicado. La versión de código actual se identifica como **v1.11.0 · documentos y avatar**: [pasos de recuperación](METHOD_NOT_ALLOWED.md) y [dependencias de esta entrega](ACTUALIZACIONES.md).

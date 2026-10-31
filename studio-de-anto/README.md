@@ -1,5 +1,9 @@
 # STUDIO DE ANTO
 
+**1.13.0:** [Avatar 3D personalizable](docs/AVATAR_3D.md) en el menú **Avatar 3D**:
+Hana, personaje adulto de estilo anime/manhwa, con ropa, peinados, colores,
+movimiento libre, presets y ventana independiente. Admite modelos GLB locales.
+
 **1.12.0:** [Google Antigravity en Configuración](docs/ANTIGRAVITY.md), con
 consultas de texto autorizadas, parada y estado separado de la autenticación.
 

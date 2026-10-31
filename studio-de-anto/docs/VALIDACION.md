@@ -1,5 +1,25 @@
 # Validación de Studio de Anto
 
+## Avatar 3D · 1.13.0
+
+**704 pruebas Python**, compilación TypeScript/Vite y cinco pruebas de validación
+de apariencia/GLB superadas. Chromium dibujó el personaje con WebGL real y
+comprobó ropa, colores, pelo, persistencia, presets, exportación JSON e
+importaciones inválidas sin sustituir la apariencia anterior. Se probaron los
+límites de arrastre, la captura del personaje durante una transición, WASD con
+foco, paseo, reducción de movimiento, GLB local con animación/malla de ropa y
+su transferencia a una ventana independiente. Las URL externas se rechazan y
+la vista independiente no inicia las peticiones de Studio.
+
+Se contaron llamadas reales de dibujo WebGL para comprobar pausa/reanudación
+por visibilidad y al quedar fuera del viewport. La regresión de rendimiento de
+la Oficina existente, autonomía y Antigravity también pasó con APIs simuladas.
+No se usaron claves ni se consultó IA real. Se revisaron las capturas del
+[personaje y editor](avatar-3d/preview.png) y de la [vista móvil](avatar-3d/mobile.png).
+No son fotografías ni evidencia de un avatar 3D transparente sobre Windows:
+esta entrega funciona en una ventana del navegador.
+
+
 ## Antigravity · 1.12.0
 
 **704 pruebas Python** y compilación TypeScript/Vite superadas. Chromium verificó

@@ -35,7 +35,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.12.0'
+APP_RELEASE='1.13.0'
 API_VERSION='1'
 
 

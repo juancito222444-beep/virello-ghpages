@@ -34,9 +34,17 @@ jobs:
           STUDIO_AUTONOMY_TEST: '1'
       - run: npm ci --no-audit --no-fund
         working-directory: studio-de-anto/frontend
-      - run: npm run test:api && npm run test:navigation && npm run test:drafts && npm run test:search && npm run test:run-filters && npm run test:history-pages && npm run test:office-growth-data && npm run build
+      - run: npm run test:avatar-settings && npm run test:api && npm run test:navigation && npm run test:drafts && npm run test:search && npm run test:run-filters && npm run test:history-pages && npm run test:office-growth-data && npm run build
         working-directory: studio-de-anto/frontend
       - run: npx playwright install --with-deps chromium
         working-directory: studio-de-anto/frontend
-      - run: npm run test:antigravity && npm run test:autonomy && npm run test:tutor && npm run test:pdf-text
+      - run: npm run test:avatar && npm run test:antigravity && npm run test:autonomy && npm run test:tutor && npm run test:pdf-text
         working-directory: studio-de-anto/frontend
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: Avatar3D-preview
+          path: |
+            /tmp/anto-avatar3d-preview.png
+            /tmp/anto-avatar3d-mobile.png
+          if-no-files-found: error
