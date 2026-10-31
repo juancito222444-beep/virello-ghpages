@@ -55,15 +55,17 @@ export function createAnime():AnimeRig{
   const t=new T.CanvasTexture(canvas);t.colorSpace=T.SRGBColorSpace;return t;
  }
  let open=faceTexture(),closed=faceTexture(true);
- const faceMaterial=new T.MeshBasicMaterial({map:open,transparent:true,depthWrite:false});faceMaterial.name='face';mesh(new T.PlaneGeometry(.61,.63),faceMaterial,head,0,-.026,.292);
+ // Curved skin decal follows the cheeks instead of floating as a flat card.
+ const faceGeometry=new T.SphereGeometry(1,48,40,Math.PI/2-.9,1.8,.7,1.9);faceGeometry.scale(.348,.439,.288);
+ const faceMaterial=new T.MeshBasicMaterial({map:open,transparent:true,depthWrite:false,side:T.DoubleSide});faceMaterial.name='face';mesh(faceGeometry,faceMaterial,head);
  const eyes=new T.Group();eyes.name='eyes';head.add(eyes);
  const white=mat('#fff9f3',.28);white.name='eyeWhite';const iris=mat('#73508d',.24);iris.name='eyeIris';const pupil=mat('#211a2a',.18);pupil.name='eyePupil';const glint=new T.MeshStandardMaterial({color:'#ffffff',roughness:.1,emissive:'#ffffff',emissiveIntensity:.12});glint.name='eyeGlint';const makeup=mat('#60434a',.62);makeup.name='makeup';
- for(const side of [-1,1]){const x=side*.135;ellipsoid(eyes,white,x,.045,.298,.091,.049,.025);ellipsoid(eyes,iris,x+side*.008,.042,.319,.037,.045,.014);ellipsoid(eyes,pupil,x+side*.008,.04,.331,.019,.032,.009);ellipsoid(eyes,glint,x-.012,.058,.34,.009,.012,.004);ellipsoid(eyes,glint,x+.017,.022,.34,.004,.005,.003);tube(eyes,dark,[[x-.09,.085,.3],[x-.045,.117,.306],[x+.02,.119,.306],[x+.09,.083,.3]],.009);
-  for(let lash=0;lash<3;lash++){const px=x+side*(.065+lash*.009),py=.083-lash*.018;tube(eyes,makeup,[[px,py,.305],[px+side*.015,py+.025,.307]],.004);}
+ for(const side of [-1,1]){const x=side*.135;ellipsoid(eyes,white,x,.045,.267,.078,.034,.012);ellipsoid(eyes,iris,x+side*.006,.043,.278,.031,.034,.009);ellipsoid(eyes,pupil,x+side*.006,.041,.285,.015,.025,.006);ellipsoid(eyes,glint,x-.01,.054,.291,.006,.008,.003);ellipsoid(eyes,glint,x+.014,.025,.291,.003,.004,.002);tube(eyes,dark,[[x-.078,.067,.27],[x-.04,.089,.274],[x+.018,.09,.274],[x+.078,.065,.27]],.006);
+  for(let lash=0;lash<2;lash++){const px=x+side*(.055+lash*.009),py=.066-lash*.012;tube(eyes,makeup,[[px,py,.273],[px+side*.012,py+.017,.274]],.003);}
  }
- const lip=mat('#bd7780',.58);lip.name='lip';ellipsoid(head,lip,-.018,-.187,.289,.026,.009,.012);ellipsoid(head,lip,.018,-.187,.289,.026,.009,.012);ellipsoid(head,lip,0,-.202,.288,.035,.009,.01);
+ const lip=mat('#bd7780',.58);lip.name='lip';ellipsoid(head,lip,-.018,-.187,.263,.026,.009,.008);ellipsoid(head,lip,.018,-.187,.263,.026,.009,.008);ellipsoid(head,lip,0,-.202,.261,.035,.009,.007);
  // Soft bridge and tip break up the flat anime nose silhouette.
- ellipsoid(head,skin,0,-.018,.273,.019,.076,.018);ellipsoid(head,skin,0,-.083,.294,.027,.018,.021);
+ ellipsoid(head,skin,0,-.018,.273,.019,.076,.018);ellipsoid(head,skin,0,-.083,.282,.027,.018,.014);
  // Small earrings and hair pin.
  for(const sign of [-1,1]){const e=mesh(new T.TorusGeometry(.037,.008,6,16),metal,head,sign*.36,-.13,.035);e.rotation.y=sign*.3;}
  const pin=mesh(new T.BoxGeometry(.13,.018,.025),metal,head,.31,.17,.225);pin.rotation.z=-.25;
@@ -107,7 +109,7 @@ export function createAnime():AnimeRig{
   if(eyeColor!==s.eyes){eyeColor=s.eyes;iris.color.set(s.eyes);}
  },animate(time,walk,action,reduced){
   const t=reduced?0:time,phase=t*8,walking=walk&&!reduced;body.position.y=Math.sin(t*1.9)*.014+(walking?Math.abs(Math.sin(phase))*.028:0);head.rotation.z=Math.sin(t*.7)*.018;
-  faceMaterial.map=!reduced&&t%5.1>.01&&t%5.1<.16?closed:open;
+  const blink=!reduced&&t%5.1>.01&&t%5.1<.16;faceMaterial.map=blink?closed:open;eyes.scale.y=blink?.08:1;
   hips.forEach((h,i)=>h.rotation.x=walking?Math.sin(phase+i*Math.PI)*.38:0);knees.forEach((k,i)=>k.rotation.x=walking?Math.max(0,-Math.sin(phase+i*Math.PI))*.42:0);
   shoulders.forEach((a,i)=>{a.rotation.x=walking?Math.sin(phase+i*Math.PI+Math.PI)*.3:Math.sin(t*1.2+i)*.025;a.rotation.z=(i===0?-.08:.08);});
   if(action==='wave'){shoulders[1].rotation.z=-2.5+Math.sin(t*12)*.15;shoulders[1].rotation.x=.2;head.rotation.z=-.05;}
