@@ -4,8 +4,8 @@ export type AnimeRig={root:T.Group;apply:(s:AvatarSettings)=>void;animate:(time:
 export function createAnime():AnimeRig{
  const root=new T.Group(),body=new T.Group(),head=new T.Group();root.add(body);head.position.y=4.34;body.add(head);
  const gradient=new T.DataTexture(new Uint8Array([83,83,83,255,145,145,145,255,209,209,209,255,255,255,255,255]),4,1);gradient.needsUpdate=true;gradient.minFilter=T.NearestFilter;gradient.magFilter=T.NearestFilter;
- const mat=(color:string)=>new T.MeshToonMaterial({color,gradientMap:gradient});
- const skin=mat('#f2cdbd'),hair=mat('#292037'),hairLight=mat('#47344f'),cloth=mat('#b3a0dc'),accent=mat('#f8eee8'),dark=mat('#39364f'),shoe=mat('#eee8ef'),metal=new T.MeshStandardMaterial({color:'#e6c597',metalness:.65,roughness:.35});
+ const mat=(color:string,roughness=.78)=>new T.MeshStandardMaterial({color,roughness});
+ const skin=mat('#f2cdbd',.86),hair=mat('#292037',.39),hairLight=mat('#47344f',.48),cloth=mat('#b3a0dc'),accent=mat('#f8eee8'),dark=mat('#39364f'),shoe=mat('#eee8ef'),metal=new T.MeshStandardMaterial({color:'#e6c597',metalness:.65,roughness:.35});
  for(const [name,m] of Object.entries({skin,hair,hairLight,cloth,accent,dark,shoe,metal}))m.name=name;
  head.name='head';
  function mesh(g:T.BufferGeometry,m:T.Material,parent:T.Object3D,x=0,y=0,z=0){const o=new T.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;}
@@ -45,23 +45,20 @@ export function createAnime():AnimeRig{
  // A tiny nose projects beyond the face instead of a flat painted head.
  ellipsoid(head,skin,0,-.075,.283,.028,.047,.032);
  let eyeColor='';
- function faceTexture(eye:string,closed=false){
+ function faceTexture(closed=false){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;const c=canvas.getContext('2d')!;
   for(const side of [-1,1]){const x=256+side*113,y=219;
    const blush=c.createRadialGradient(x,y+76,3,x,y+76,55);blush.addColorStop(0,'#ed9ba770');blush.addColorStop(1,'#ed9ba700');c.fillStyle=blush;c.fillRect(x-58,y+20,116,116);
-   c.strokeStyle='#352738';c.lineCap='round';c.lineWidth=8;c.beginPath();c.moveTo(x-51,y-57);c.quadraticCurveTo(x,y-77,x+48,y-58);c.stroke();
-   if(closed){c.lineWidth=9;c.beginPath();c.moveTo(x-58,y);c.quadraticCurveTo(x,y+24,x+58,y-3);c.stroke();continue;}
-   c.save();c.beginPath();c.moveTo(x-63,y);c.bezierCurveTo(x-28,y-65,x+43,y-57,x+64,y+3);c.bezierCurveTo(x+26,y+45,x-35,y+42,x-63,y);c.closePath();c.fillStyle='#fffaf7';c.fill();c.clip();
-   const iris=c.createRadialGradient(x,y-12,3,x,y+2,44);iris.addColorStop(0,'#30213c');iris.addColorStop(.45,eye);iris.addColorStop(.85,eye);iris.addColorStop(1,'#251e35');c.fillStyle=iris;c.beginPath();c.ellipse(x,y,36,47,0,0,Math.PI*2);c.fill();c.fillStyle='#211b30';c.beginPath();c.ellipse(x,y-5,13,27,0,0,Math.PI*2);c.fill();
-   c.fillStyle='#ffffff';c.beginPath();c.ellipse(x-13,y-20,10,13,.4,0,Math.PI*2);c.fill();c.globalAlpha=.85;c.beginPath();c.arc(x+17,y+20,5,0,Math.PI*2);c.fill();c.restore();
-   c.strokeStyle='#302433';c.lineWidth=10;c.beginPath();c.moveTo(x-64,y);c.bezierCurveTo(x-28,y-65,x+43,y-57,x+64,y+3);c.stroke();c.lineWidth=4;c.beginPath();c.moveTo(x-55,y+8);c.quadraticCurveTo(x,y+49,x+55,y+9);c.stroke();
-   c.lineWidth=6;for(let j=0;j<3;j++){const xx=x+side*(47+j*6);c.beginPath();c.moveTo(xx,y-14+j*4);c.lineTo(xx+side*15,y-29+j*5);c.stroke();}
+   if(closed){c.strokeStyle='#59404a';c.lineWidth=8;c.beginPath();c.moveTo(x-48,y+2);c.quadraticCurveTo(x,y+23,x+48,y-2);c.stroke();}
   }
   c.strokeStyle='#c87888';c.lineWidth=5;c.beginPath();c.moveTo(230,365);c.quadraticCurveTo(256,380,282,365);c.stroke();c.strokeStyle='#ffffff90';c.lineWidth=2;c.beginPath();c.moveTo(246,378);c.lineTo(267,378);c.stroke();
   const t=new T.CanvasTexture(canvas);t.colorSpace=T.SRGBColorSpace;return t;
  }
- let open=faceTexture('#73508d'),closed=faceTexture('#73508d',true);
+ let open=faceTexture(),closed=faceTexture(true);
  const faceMaterial=new T.MeshBasicMaterial({map:open,transparent:true,depthWrite:false});faceMaterial.name='face';mesh(new T.PlaneGeometry(.61,.63),faceMaterial,head,0,-.026,.292);
+ const eyes=new T.Group();eyes.name='eyes';head.add(eyes);
+ const white=mat('#fff9f3',.28);white.name='eyeWhite';const iris=mat('#73508d',.24);iris.name='eyeIris';const pupil=mat('#211a2a',.18);pupil.name='eyePupil';const glint=new T.MeshStandardMaterial({color:'#ffffff',roughness:.1,emissive:'#ffffff',emissiveIntensity:.12});glint.name='eyeGlint';
+ for(const side of [-1,1]){const x=side*.135;ellipsoid(eyes,white,x,.045,.298,.093,.056,.025);ellipsoid(eyes,iris,x+side*.008,.043,.319,.039,.049,.014);ellipsoid(eyes,pupil,x+side*.008,.041,.331,.021,.034,.009);ellipsoid(eyes,glint,x-.012,.059,.34,.009,.012,.004);ellipsoid(eyes,glint,x+.017,.023,.34,.004,.005,.003);tube(eyes,dark,[[x-.09,.09,.3],[x-.04,.125,.306],[x+.025,.13,.306],[x+.09,.092,.3]],.013);}
  // Small earrings and hair pin.
  for(const sign of [-1,1]){const e=mesh(new T.TorusGeometry(.037,.008,6,16),metal,head,sign*.36,-.13,.035);e.rotation.y=sign*.3;}
  const pin=mesh(new T.BoxGeometry(.13,.018,.025),metal,head,.31,.17,.225);pin.rotation.z=-.25;
@@ -102,7 +99,7 @@ export function createAnime():AnimeRig{
  const materials=new Set<T.Material>();const geometries=new Set<T.BufferGeometry>();root.traverse(o=>{if(o instanceof T.Mesh){geometries.add(o.geometry);(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m));}});
  return {root,apply(s){skin.color.set(s.skin);hair.color.set(s.hair);hairLight.color.set(s.hair).lerp(new T.Color('#e4c7ef'),.18);cloth.color.set(s.clothing);accent.color.set(s.accent);dark.color.set(s.outfit==='street'?'#454353':'#34314d');
   Object.entries(outfits).forEach(([id,g])=>g.visible=id===s.outfit);Object.entries(hairstyles).forEach(([id,g])=>g.visible=id===s.hairStyle);pants.forEach(p=>p.visible=s.outfit==='street');sleeves.forEach(p=>p.scale.x=s.outfit==='street'?1.2:1);
-  if(eyeColor!==s.eyes){eyeColor=s.eyes;open.dispose();closed.dispose();open=faceTexture(s.eyes);closed=faceTexture(s.eyes,true);faceMaterial.map=open;faceMaterial.needsUpdate=true;}
+  if(eyeColor!==s.eyes){eyeColor=s.eyes;iris.color.set(s.eyes);}
  },animate(time,walk,action,reduced){
   const t=reduced?0:time,phase=t*8,walking=walk&&!reduced;body.position.y=Math.sin(t*1.9)*.014+(walking?Math.abs(Math.sin(phase))*.028:0);head.rotation.z=Math.sin(t*.7)*.018;
   faceMaterial.map=!reduced&&t%5.1>.01&&t%5.1<.16?closed:open;
