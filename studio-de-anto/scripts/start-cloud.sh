@@ -97,7 +97,16 @@ except ValueError as exc:
 PYCODE
 # EventSource connections can stay open indefinitely. Bound their drain below
 # stop_owned_server's 20-second wait so an open tab cannot block the next start.
-nohup .venv/bin/python -m uvicorn backend.app:app --host 0.0.0.0 --port 8765 --timeout-graceful-shutdown 15 >"$cloud_log" 2>&1 < /dev/null 9>&- &
+(
+  # The updater owns this lock only until installation/startup finishes. A
+  # long-lived server must not inherit its descriptor and block future updates.
+  anto_inherited_update_fd="${ANTO_UPDATE_LOCK_FD:-}"
+  if [[ "$anto_inherited_update_fd" =~ ^[0-9]+$ ]] && [[ "$PWD/local-data/.anto-update.lock" -ef "/proc/$BASHPID/fd/$anto_inherited_update_fd" ]]; then
+    exec {anto_inherited_update_fd}>&-
+  fi
+  unset ANTO_UPDATE_LOCK_FD
+  exec nohup .venv/bin/python -m uvicorn backend.app:app --host 0.0.0.0 --port 8765 --timeout-graceful-shutdown 15
+) >"$cloud_log" 2>&1 < /dev/null 9>&- &
 cloud_pid=$!
 printf '%s\n' "$cloud_pid" > "$cloud_pidfile"
 for _ in {1..30}; do
