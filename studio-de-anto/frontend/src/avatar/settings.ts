@@ -1,15 +1,15 @@
 export type Outfit='cardigan'|'street'|'dress';
 export type Hairstyle='long'|'bob'|'ponytail';
-export type AvatarSettings={version:1;name:string;style:'anime'|'human';outfit:Outfit;hairStyle:Hairstyle;hair:string;eyes:string;skin:string;clothing:string;modelClothing:string;accent:string;scale:number;turn:number;x:number;y:number;auto:boolean;reduced:boolean;background:'studio'|'night'|'rose'};
+export type AvatarSettings={version:1;name:string;style:'3d'|'realistic'|'anime';outfit:Outfit;hairStyle:Hairstyle;hair:string;eyes:string;skin:string;clothing:string;modelClothing:string;accent:string;scale:number;turn:number;x:number;y:number;auto:boolean;reduced:boolean;background:'studio'|'night'|'rose'};
 export const STORAGE_KEY='anto.avatar3d.v1';
 export const PRESETS_KEY='anto.avatar3d.presets.v1';
-export const defaults:AvatarSettings={version:1,name:'Hana',style:'anime',outfit:'cardigan',hairStyle:'long',hair:'#292037',eyes:'#73508d',skin:'#f2cdbd',clothing:'#b3a0dc',modelClothing:'#ffffff',accent:'#f8eee8',scale:1,turn:0,x:.5,y:.5,auto:false,reduced:false,background:'studio'};
+export const defaults:AvatarSettings={version:1,name:'Hana',style:'realistic',outfit:'cardigan',hairStyle:'long',hair:'#292037',eyes:'#73508d',skin:'#f2cdbd',clothing:'#b94d30',modelClothing:'#ffffff',accent:'#14264c',scale:1,turn:0,x:.5,y:.5,auto:false,reduced:false,background:'studio'};
 const hex=(value:unknown,fallback:string)=>typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value)?value:fallback;
 const number=(value:unknown,fallback:number,min:number,max:number)=>typeof value==='number'&&Number.isFinite(value)?Math.min(max,Math.max(min,value)):fallback;
 export function normalizeSettings(value:unknown):AvatarSettings{
  const v=value&&typeof value==='object'?value as Record<string,unknown>:{};
  return {...defaults,name:typeof v.name==='string'?v.name.trim().slice(0,32)||defaults.name:defaults.name,
- style:v.style==='human'?'human':'anime',outfit:['cardigan','street','dress'].includes(String(v.outfit))?v.outfit as Outfit:defaults.outfit,
+ style:v.style==='anime'?'anime':v.style==='3d'?'3d':'realistic',outfit:['cardigan','street','dress'].includes(String(v.outfit))?v.outfit as Outfit:defaults.outfit,
  hairStyle:['long','bob','ponytail'].includes(String(v.hairStyle))?v.hairStyle as Hairstyle:defaults.hairStyle,
  hair:hex(v.hair,defaults.hair),eyes:hex(v.eyes,defaults.eyes),skin:hex(v.skin,defaults.skin),clothing:hex(v.clothing,defaults.clothing),modelClothing:hex(v.modelClothing,defaults.modelClothing),accent:hex(v.accent,defaults.accent),
  scale:number(v.scale,1,.6,1.35),turn:number(v.turn,0,-180,180),x:number(v.x,.5,0,1),y:number(v.y,.5,0,1),auto:v.auto===true,reduced:v.reduced===true,background:['studio','night','rose'].includes(String(v.background))?v.background as AvatarSettings['background']:'studio'};
@@ -29,5 +29,5 @@ export function validateGlb(data:ArrayBuffer):void{
  if((doc.extensionsUsed||[]).some((extension:string)=>!allowed.has(extension)))throw Error('Exporta un GLB sin compresión ni extensiones especiales.');
  if([...(doc.buffers||[]),...(doc.images||[])].some(item=>item.uri!==undefined))throw Error('El GLB debe contener todo dentro del archivo, sin URL ni texturas externas.');
  if((doc.images||[]).length>16||(doc.images||[]).some((image:{mimeType:string})=>!['image/png','image/jpeg','image/webp'].includes(image.mimeType)))throw Error('Usa hasta 16 texturas PNG, JPG o WebP incrustadas.');
- if((doc.accessors||[]).reduce((sum:number,item:{count:number})=>sum+(Number.isSafeInteger(item.count)&&item.count>=0?item.count:1e9),0)>1500000)throw Error('El modelo supera la complejidad admitida. Reduce polígonos y animaciones.');
+ if((doc.accessors||[]).reduce((sum:number,item:{count:number})=>sum+(Number.isSafeInteger(item.count)&&item.count>=0?item.count:1e9),0)>1800000)throw Error('El modelo supera la complejidad admitida. Reduce polígonos y animaciones.');
 }

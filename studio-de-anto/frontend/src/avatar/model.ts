@@ -105,7 +105,7 @@ export function createAnime():AnimeRig{
   ellipsoid(knee,shoe,0,-1.18,.09,.14,.13,.255);ellipsoid(knee,dark,0,-1.32,.095,.145,.035,.26);
  }
  const materials=new Set<T.Material>();const geometries=new Set<T.BufferGeometry>();root.traverse(o=>{if(o instanceof T.Mesh){geometries.add(o.geometry);(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m));}});
- return {root,apply(s){skin.color.set(s.skin);skin.roughness=s.style==='human'?.76:.68;hair.color.set(s.hair);hair.roughness=s.style==='human'?.54:.43;hairLight.color.set(s.hair).lerp(new T.Color('#d8c1e2'),.24);cloth.color.set(s.clothing);accent.color.set(s.accent);dark.color.set(s.outfit==='street'?'#454353':'#34314d');eyeHeight=s.style==='human'?.82:1;eyes.scale.set(s.style==='human'?.78:1,eyeHeight,1);makeup.visible=s.style==='anime';faceMaterial.opacity=s.style==='human'?.82:1;
+ return {root,apply(s){skin.color.set(s.skin);skin.roughness=s.style==='realistic'?.76:.68;hair.color.set(s.hair);hair.roughness=s.style==='realistic'?.54:.43;hairLight.color.set(s.hair).lerp(new T.Color('#d8c1e2'),.24);cloth.color.set(s.clothing);accent.color.set(s.accent);dark.color.set(s.outfit==='street'?'#454353':'#34314d');eyeHeight=s.style==='anime'?1:s.style==='3d'?.91:.82;eyes.scale.set(s.style==='anime'?1:s.style==='3d'?.9:.78,eyeHeight,1);makeup.visible=s.style==='anime';faceMaterial.opacity=s.style==='realistic'?.82:1;
   Object.entries(outfits).forEach(([id,g])=>g.visible=id===s.outfit);Object.entries(hairstyles).forEach(([id,g])=>g.visible=id===s.hairStyle);pants.forEach(p=>p.visible=s.outfit==='street');sleeves.forEach(p=>p.scale.x=s.outfit==='street'?1.2:1);
   if(eyeColor!==s.eyes){eyeColor=s.eyes;iris.color.set(s.eyes);}
  },animate(time,walk,action,reduced){
