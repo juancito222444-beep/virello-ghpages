@@ -5,11 +5,11 @@ export function createAnime():AnimeRig{
  const root=new T.Group(),body=new T.Group(),head=new T.Group();root.add(body);head.position.y=4.34;body.add(head);
  const gradient=new T.DataTexture(new Uint8Array([83,83,83,255,145,145,145,255,209,209,209,255,255,255,255,255]),4,1);gradient.needsUpdate=true;gradient.minFilter=T.NearestFilter;gradient.magFilter=T.NearestFilter;
  const mat=(color:string,roughness=.78)=>new T.MeshStandardMaterial({color,roughness});
- const skin=mat('#f2cdbd',.86),hair=mat('#292037',.39),hairLight=mat('#47344f',.48),cloth=mat('#b3a0dc'),accent=mat('#f8eee8'),dark=mat('#39364f'),shoe=mat('#eee8ef'),metal=new T.MeshStandardMaterial({color:'#e6c597',metalness:.65,roughness:.35});
+ const skin=mat('#f2cdbd',.72),hair=mat('#292037',.32),hairLight=mat('#47344f',.4),cloth=mat('#b3a0dc'),accent=mat('#f8eee8'),dark=mat('#39364f'),shoe=mat('#eee8ef'),metal=new T.MeshStandardMaterial({color:'#e6c597',metalness:.65,roughness:.35});
  for(const [name,m] of Object.entries({skin,hair,hairLight,cloth,accent,dark,shoe,metal}))m.name=name;
  head.name='head';
  function mesh(g:T.BufferGeometry,m:T.Material,parent:T.Object3D,x=0,y=0,z=0){const o=new T.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;}
- function ellipsoid(parent:T.Object3D,m:T.Material,x:number,y:number,z:number,sx:number,sy:number,sz:number){const o=mesh(new T.SphereGeometry(1,24,20),m,parent,x,y,z);o.scale.set(sx,sy,sz);return o;}
+ function ellipsoid(parent:T.Object3D,m:T.Material,x:number,y:number,z:number,sx:number,sy:number,sz:number){const o=mesh(new T.SphereGeometry(1,40,28),m,parent,x,y,z);o.scale.set(sx,sy,sz);return o;}
  function tube(parent:T.Object3D,m:T.Material,points:number[][],radius=.025){return mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p as [number,number,number]))),18,radius,7,false),m,parent);}
  function limb(parent:T.Object3D,m:T.Material,length:number,radius:number,x=0,y=0,z=0){return mesh(new T.CapsuleGeometry(radius,Math.max(.01,length-2*radius),6,12),m,parent,x,y,z);}
  function profile(parent:T.Object3D,m:T.Material,points:number[][],zScale=.64){const o=mesh(new T.LatheGeometry(points.map(([r,y])=>new T.Vector2(r,y)),40),m,parent);o.scale.z=zScale;return o;}
@@ -57,8 +57,13 @@ export function createAnime():AnimeRig{
  let open=faceTexture(),closed=faceTexture(true);
  const faceMaterial=new T.MeshBasicMaterial({map:open,transparent:true,depthWrite:false});faceMaterial.name='face';mesh(new T.PlaneGeometry(.61,.63),faceMaterial,head,0,-.026,.292);
  const eyes=new T.Group();eyes.name='eyes';head.add(eyes);
- const white=mat('#fff9f3',.28);white.name='eyeWhite';const iris=mat('#73508d',.24);iris.name='eyeIris';const pupil=mat('#211a2a',.18);pupil.name='eyePupil';const glint=new T.MeshStandardMaterial({color:'#ffffff',roughness:.1,emissive:'#ffffff',emissiveIntensity:.12});glint.name='eyeGlint';
- for(const side of [-1,1]){const x=side*.135;ellipsoid(eyes,white,x,.045,.298,.093,.056,.025);ellipsoid(eyes,iris,x+side*.008,.043,.319,.039,.049,.014);ellipsoid(eyes,pupil,x+side*.008,.041,.331,.021,.034,.009);ellipsoid(eyes,glint,x-.012,.059,.34,.009,.012,.004);ellipsoid(eyes,glint,x+.017,.023,.34,.004,.005,.003);tube(eyes,dark,[[x-.09,.09,.3],[x-.04,.125,.306],[x+.025,.13,.306],[x+.09,.092,.3]],.013);}
+ const white=mat('#fff9f3',.28);white.name='eyeWhite';const iris=mat('#73508d',.24);iris.name='eyeIris';const pupil=mat('#211a2a',.18);pupil.name='eyePupil';const glint=new T.MeshStandardMaterial({color:'#ffffff',roughness:.1,emissive:'#ffffff',emissiveIntensity:.12});glint.name='eyeGlint';const makeup=mat('#60434a',.62);makeup.name='makeup';
+ for(const side of [-1,1]){const x=side*.135;ellipsoid(eyes,white,x,.045,.298,.091,.049,.025);ellipsoid(eyes,iris,x+side*.008,.042,.319,.037,.045,.014);ellipsoid(eyes,pupil,x+side*.008,.04,.331,.019,.032,.009);ellipsoid(eyes,glint,x-.012,.058,.34,.009,.012,.004);ellipsoid(eyes,glint,x+.017,.022,.34,.004,.005,.003);tube(eyes,dark,[[x-.09,.085,.3],[x-.045,.117,.306],[x+.02,.119,.306],[x+.09,.083,.3]],.009);
+  for(let lash=0;lash<3;lash++){const px=x+side*(.065+lash*.009),py=.083-lash*.018;tube(eyes,makeup,[[px,py,.305],[px+side*.015,py+.025,.307]],.004);}
+ }
+ const lip=mat('#bd7780',.58);lip.name='lip';ellipsoid(head,lip,-.018,-.187,.289,.026,.009,.012);ellipsoid(head,lip,.018,-.187,.289,.026,.009,.012);ellipsoid(head,lip,0,-.202,.288,.035,.009,.01);
+ // Soft bridge and tip break up the flat anime nose silhouette.
+ ellipsoid(head,skin,0,-.018,.273,.019,.076,.018);ellipsoid(head,skin,0,-.083,.294,.027,.018,.021);
  // Small earrings and hair pin.
  for(const sign of [-1,1]){const e=mesh(new T.TorusGeometry(.037,.008,6,16),metal,head,sign*.36,-.13,.035);e.rotation.y=sign*.3;}
  const pin=mesh(new T.BoxGeometry(.13,.018,.025),metal,head,.31,.17,.225);pin.rotation.z=-.25;
