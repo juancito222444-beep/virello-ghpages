@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from typing import Annotated, Literal
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, Query
+from fastapi import Path as PathParam
 from fastapi.routing import APIRoute
 from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -34,7 +35,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.9.0'
+APP_RELEASE='1.10.0'
 API_VERSION='1'
 
 
@@ -48,6 +49,7 @@ def health():
         ('autonomy-v1','/api/projects/{pid}/autonomy','GET'),
         ('codex-backlog-v1','/api/autonomy/codex','GET'),
         ('tutor-v1','/api/projects/{pid}/tutor','GET'),
+        ('pdf-text-v1','/api/projects/{pid}/files/{fid}/pages/{page}','GET'),
         ('director-v1','/api/director','POST'),
         ('context-draft-v1','/api/projects/{pid}/context-draft','GET'),
         ('recovery-backups-v1','/api/projects/{pid}/snapshots','POST'),
@@ -563,6 +565,13 @@ def file_content(fid:str,download:bool=False):
     if not f:raise HTTPException(404,'Archivo inexistente')
     f=attachments.resolve(f['project'],[fid])[0]
     return attachments.content(f,download=download)
+
+@app.get('/api/projects/{pid}/files/{fid}/pages/{page}')
+def pdf_text_page(pid:str,fid:str,page:Annotated[int,PathParam(ge=1,le=1000)]):
+    need_project(pid)
+    record=store.one('SELECT * FROM files WHERE id=? AND project=?',(fid,pid))
+    if not record:raise HTTPException(404,'Archivo inexistente en este proyecto')
+    return attachments.pdf_page(record,page)
 @app.get('/api/projects/{pid}/messages/search')
 def search_messages(pid:str,q:Annotated[str,Query(min_length=1,max_length=200)],
                     role:Literal['all','user','assistant']='all',

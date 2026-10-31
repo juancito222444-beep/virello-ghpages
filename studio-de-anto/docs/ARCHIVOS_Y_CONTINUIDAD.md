@@ -2,6 +2,9 @@
 
 ## Leer un PDF o una imagen
 
+Desde 1.10.0 puedes [leer texto PDF por páginas y preparar citas sin IA](LECTURA_PDF.md)
+en Datos. El flujo siguiente consulta el documento completo con tu proveedor.
+
 1. En Oficina abre la conversación y pulsa el clip para subir un archivo, o el selector para elegir uno ya guardado.
 2. Elige PDF, JPG/JPEG, PNG o WebP. También puedes subirlo desde Datos y pulsar **Consultar con Gemini**.
 3. Comprueba los nombres adjuntos, escribe tu pregunta y envía el mensaje.

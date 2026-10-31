@@ -38,5 +38,5 @@ jobs:
         working-directory: studio-de-anto/frontend
       - run: npx playwright install --with-deps chromium
         working-directory: studio-de-anto/frontend
-      - run: npm run test:autonomy && npm run test:tutor
+      - run: npm run test:autonomy && npm run test:tutor && npm run test:pdf-text
         working-directory: studio-de-anto/frontend

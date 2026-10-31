@@ -214,6 +214,44 @@ def _normalized_image(path):
         raise ValueError('No se pudo preparar la imagen. Vuelve a exportarla como JPG, PNG o WebP.') from exc
 
 
+def pdf_page(record, page):
+    """Read a single page without providers, OCR, rendering or persistent caches."""
+    if classify(_name(record)) != 'document':
+        raise ValueError('El lector por páginas solo admite documentos PDF.')
+    path = _path(record)
+    validate(path, '.pdf')
+    if not _pdf_slots.acquire(timeout=MAX_PDF_VALIDATION_SECONDS):
+        raise ValueError('Hay otras lecturas PDF en curso. Vuelve a intentarlo.')
+    try:
+        try:
+            completed = subprocess.run(
+                [sys.executable, '-I', str(Path(__file__).with_name('pdf_text.py')), str(path), str(page)],
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=8, check=False)
+        except subprocess.TimeoutExpired:
+            raise ValueError('La página PDF tarda demasiado en extraerse. Usa un documento más sencillo.') from None
+        except OSError:
+            raise ValueError(UNAVAILABLE_PDF) from None
+        if completed.returncode != 0:
+            raise ValueError(COMPLEX_PDF)
+        try:
+            result = json.loads(completed.stdout)
+        except (ValueError, TypeError):
+            raise ValueError(UNAVAILABLE_PDF) from None
+        if isinstance(result, dict) and result.get('error') == 'page':
+            raise ValueError('La página solicitada no existe en este PDF.')
+        if isinstance(result, dict) and 'error' in result:
+            raise ValueError(ERROR_MESSAGES.get(result['error'], UNAVAILABLE_PDF))
+        if not (isinstance(result, dict) and set(result) == {'page', 'total_pages', 'text', 'truncated'}
+                and type(result['page']) is int and result['page'] == page
+                and type(result['total_pages']) is int and page <= result['total_pages'] <= MAX_PDF_PAGES
+                and isinstance(result['text'], str) and len(result['text']) <= 12000
+                and type(result['truncated']) is bool):
+            raise ValueError(UNAVAILABLE_PDF)
+        return {**result, 'id': record['id'], 'name': _name(record)}
+    finally:
+        _pdf_slots.release()
+
+
 def _table_context(record, path, size):
     error = 'Esta tabla es demasiado grande para adjuntarla al chat. Selecciónala en el flujo de tablas para analizarla con sus columnas y filtros.'
     if size > MAX_TABLE_BYTES:

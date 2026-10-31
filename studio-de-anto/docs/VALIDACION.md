@@ -1,5 +1,29 @@
 # Validación — versión 1.6.0
 
+## Lector PDF, búsqueda y citas · 1.10.0
+
+**691 pruebas Python** con `STUDIO_AUTONOMY_TEST=1`, **37 pruebas Node** y
+compilación TypeScript/Vite superadas. Los recorridos Chromium de autonomía y
+tutor/historial siguen pasando. El nuevo recorrido PDF usa APIs simuladas y
+bloquea orígenes externos; comprueba lectura explícita, petición única ante doble
+clic, búsqueda sin tildes, texto tratado como datos, navegación y errores que
+conservan la página anterior, páginas vacías, truncamiento visible, copia de citas
+y preparación del borrador conservando su contenido y sin enviar a un modelo.
+También cubre selección de fragmentos, rechazo de citas que exceden el límite,
+aislamiento al cambiar archivo/proyecto, respuestas tardías y pantalla móvil.
+
+Ocho pruebas nuevas de backend extraen texto de PDF sintéticos reales, conservan
+el original, limitan la salida a 12000 caracteres por página, comprueban páginas
+vacías y rechazan rutas fuera de subidas, enlaces, archivos de otro proyecto y
+páginas inexistentes. Se simulan timeout, fallo de proceso y salida inválida para
+verificar errores acotados, sin texto privado y sin retener el permiso de lectura.
+La prueba de capacidades incluye `pdf-text-v1`, registrado por la ruta real.
+
+No se añadieron dependencias. La extracción usa un proceso Python aislado con
+tiempo máximo, límites de memoria/CPU en Linux y concurrencia compartida con la
+validación PDF. No se ejecutan OCR, código del PDF ni APIs de IA. Los datos de
+prueba son temporales y no acceden a documentos ni claves del propietario.
+
 ## Publicación, Codespace y búsqueda global · 31 de octubre de 2026
 
 Se publicaron los cambios de autonomía y tutor en `codex/studio-de-anto-mejoras`.

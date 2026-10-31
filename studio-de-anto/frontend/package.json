@@ -1,6 +1,6 @@
 {
   "name": "studio-de-anto",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "test:autonomy": "node tests/autonomy.cjs",
     "test:tutor": "node tests/tutor.cjs",
+    "test:pdf-text": "node tests/pdf-text.cjs",
     "test:navigation": "node --test tests/navigation.test.cjs",
     "test:browser": "node tests/browser.cjs",
     "test:scene": "node tests/scene.cjs",

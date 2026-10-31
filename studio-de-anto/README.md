@@ -1,5 +1,8 @@
 # STUDIO DE ANTO
 
+**1.10.0:** [lector de texto PDF con páginas, búsqueda y citas](docs/LECTURA_PDF.md).
+Prepara citas para tu borrador y conserva el mensaje existente, sin consumir IA.
+
 **1.9.0:** [autonomía de Anto y backlog de Codex](docs/AUTONOMIA.md), con colas persistentes, límites y parada visible.
 
 También puedes [buscar en todo el historial guardado del proyecto](docs/BUSQUEDA.md),
