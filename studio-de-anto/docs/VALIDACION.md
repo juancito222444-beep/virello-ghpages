@@ -22,6 +22,17 @@ cursores estables ante inserciones, límites y aislamiento sin modificar mensaje
 El navegador verifica envío explícito, doble clic, páginas y errores recuperables.
 No se usaron APIs de IA reales, micrófono ni voces físicas del propietario.
 
+La revisión `25f315e`, que añade esa búsqueda, pasó también
+[Studio checks 41155631174](https://github.com/juancito222444-beep/virello-ghpages/actions/runs/41155631174).
+Se ejecutó el instalador de mejoras y se reinició el servidor del mismo Codespace.
+Después se comprobó otra vez por túnel autenticado: backend cargado con la huella
+actual, ruta de búsqueda presente y una consulta de comprobación sin resultados.
+Los recuentos de proyectos, mensajes, archivos, ejecuciones, entregables,
+correcciones, ajustes y colas/objetivos coincidieron antes y después de instalar.
+Codex CLI pasó `login status` sin iniciar inferencias. Se conserva sin publicar
+el archivo local `FETCH_HEAD`; no se eliminaron ni ocultaron cambios para activar
+el supervisor. Las colas no se activaron durante estas comprobaciones.
+
 ## Autonomía y continuidad del tutor · 1.9.0 · 31 de octubre de 2026
 
 En este checkout pasaron las **679 pruebas Python** con
