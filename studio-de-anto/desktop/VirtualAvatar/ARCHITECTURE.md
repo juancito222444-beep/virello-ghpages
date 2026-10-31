@@ -111,3 +111,13 @@ Los límites conocidos son explícitos: SVG vectorial básico, una secuencia glo
 de frames, sin colisiones/física del mundo ni integración de IA. El smoke test no
 prueba clics reales entregados a otra aplicación, todas las combinaciones de DPI,
 permisos de pantalla protegida ni el objetivo de RAM en una sesión prolongada.
+
+## Hana nativa 3D
+
+`NativeHana` carga geometrías compartidas y texturas originales del activo local
+`Assets/hana-native.json`, exportado por `frontend/tests/export-native-avatar.cjs`.
+WPF Viewport3D sustituye la imagen dentro de la misma ventana transparente:
+reutiliza movimiento, recuperación y persistencia sin otro motor ni dependencias.
+Los campos 3D son aditivos y desactivados por defecto para preservar el avatar
+anterior. El editor cambia ropa, pelo, colores y giro; el rig anima articulaciones
+y parpadeo. La importación GLB permanece en el módulo web.

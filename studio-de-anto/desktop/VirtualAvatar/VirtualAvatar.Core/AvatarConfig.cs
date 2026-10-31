@@ -26,6 +26,14 @@ public class LayerBase
 }
 public sealed class AvatarConfig
 {
+    public bool Use3D { get; set; }
+    public string Outfit3D { get; set; } = "cardigan";
+    public string HairStyle3D { get; set; } = "long";
+    public string HairColor3D { get; set; } = "#292037";
+    public string SkinColor3D { get; set; } = "#F2CDBD";
+    public string ClothingColor3D { get; set; } = "#B3A0DC";
+    public string AccentColor3D { get; set; } = "#F8EEE8";
+    public double Turn3D { get; set; }
     public int Version { get; set; } = 1;
     public string Asset { get; set; } = "";
     public double X { get; set; } = 100;
@@ -73,6 +81,11 @@ public sealed class AvatarConfig
     public void Validate()
     {
         if (Version != 1) throw new InvalidDataException("Versión de configuración no compatible.");
+        Outfit3D = new[] { "cardigan", "street", "dress" }.Contains(Outfit3D) ? Outfit3D : "cardigan";
+        HairStyle3D = new[] { "long", "bob", "ponytail" }.Contains(HairStyle3D) ? HairStyle3D : "long";
+        HairColor3D = Hex(HairColor3D, "#292037"); SkinColor3D = Hex(SkinColor3D, "#F2CDBD");
+        ClothingColor3D = Hex(ClothingColor3D, "#B3A0DC"); AccentColor3D = Hex(AccentColor3D, "#F8EEE8");
+        Turn3D = Limit(Turn3D, -180, 180, 0);
         X = Limit(X, -50000, 50000, 100); Y = Limit(Y, -50000, 50000, 100);
         Size = Limit(Size, 64, 768, 200); Rotation = Limit(Rotation, -180, 180, 0);
         Opacity = Limit(Opacity, .15, 1, 1); Outline = Limit(Outline, 0, 8, 0); Glow = Limit(Glow, 0, 30, 0);

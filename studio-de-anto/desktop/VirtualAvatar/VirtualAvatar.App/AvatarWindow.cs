@@ -21,6 +21,7 @@ public sealed class AvatarWindow : Window
     readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(1.0 / 30) };
     readonly Stopwatch clock = Stopwatch.StartNew();
     NativeDesktop? native;
+    NativeHana? hana;
     IReadOnlyList<ImageSource> frames = [];
     readonly List<(Image Image, bool Mask)> images = [];
     readonly List<ImageBrush> masks = [];
@@ -62,7 +63,11 @@ public sealed class AvatarWindow : Window
         if (c.ClickThrough && !HotkeyAvailable) c.ClickThrough = false;
         try { native?.SetClickThrough(c.ClickThrough); }
         catch (System.ComponentModel.Win32Exception error) { c.ClickThrough = false; MessageBox.Show(error.Message, "No se pudo cambiar la interacción"); }
-        body.Children.Clear(); images.Clear(); masks.Clear(); lastFrame = -1;
+        body.Children.Clear(); images.Clear(); masks.Clear(); lastFrame = -1; hana = null;
+        if (c.Use3D)
+        {
+            hana = new NativeHana(c); body.Children.Add(hana.View); frames = []; Opacity = c.Opacity; return;
+        }
         try { frames = app.Assets.Animation(c); }
         catch (Exception error) { frames = [app.Assets.Default]; MessageBox.Show("No se pudo abrir el avatar. Se conserva el activo original.\n" + error.Message, "Virtual Avatar"); }
         var color = (Color)ColorConverter.ConvertFromString(c.Color);
@@ -115,6 +120,7 @@ public sealed class AvatarWindow : Window
         }
         var cursor = native?.Cursor(); motion.Tick(c, dt, Desktop, x, y, cursor?.X, cursor?.Y);
         if (dragStart is null) { Left = c.X; Top = c.Y; }
+        hana?.Animate(now, motion.State, c);
         var pose = motion.CurrentPose(c);
         scale.ScaleX = (c.Flip ^ motion.FacingLeft ? -1 : 1) * pose.ScaleX; scale.ScaleY = pose.ScaleY;
         rotation.Angle = c.Rotation + pose.Angle; offset.Y = pose.Y;
@@ -142,6 +148,7 @@ public sealed class AvatarWindow : Window
         var menu = new ContextMenu { Background = new SolidColorBrush(Color.FromRgb(23, 33, 57)), Foreground = Brushes.White };
         void Item(string label, Action action) { var item = new MenuItem { Header = label }; item.Click += (_, _) => action(); menu.Items.Add(item); }
         Item("Personalizar avatar / cambiar imagen / color / tamaño", app.OpenEditor);
+        Item("Alternar Hana 3D / avatar 2D", () => { app.Config.Use3D = !app.Config.Use3D; Apply(); app.Save(); });
         Item("Animaciones y accesorios", app.OpenEditor);
         Item("Mundo interactivo", app.OpenWorld);
         Item("Movimiento automático", () => { app.Config.Automatic = !app.Config.Automatic; app.Save(); });

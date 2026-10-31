@@ -6,6 +6,8 @@ export function createAnime():AnimeRig{
  const gradient=new T.DataTexture(new Uint8Array([83,83,83,255,145,145,145,255,209,209,209,255,255,255,255,255]),4,1);gradient.needsUpdate=true;gradient.minFilter=T.NearestFilter;gradient.magFilter=T.NearestFilter;
  const mat=(color:string)=>new T.MeshToonMaterial({color,gradientMap:gradient});
  const skin=mat('#f2cdbd'),hair=mat('#292037'),hairLight=mat('#47344f'),cloth=mat('#b3a0dc'),accent=mat('#f8eee8'),dark=mat('#39364f'),shoe=mat('#eee8ef'),metal=new T.MeshStandardMaterial({color:'#e6c597',metalness:.65,roughness:.35});
+ for(const [name,m] of Object.entries({skin,hair,hairLight,cloth,accent,dark,shoe,metal}))m.name=name;
+ head.name='head';
  function mesh(g:T.BufferGeometry,m:T.Material,parent:T.Object3D,x=0,y=0,z=0){const o=new T.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;}
  function ellipsoid(parent:T.Object3D,m:T.Material,x:number,y:number,z:number,sx:number,sy:number,sz:number){const o=mesh(new T.SphereGeometry(1,24,20),m,parent,x,y,z);o.scale.set(sx,sy,sz);return o;}
  function tube(parent:T.Object3D,m:T.Material,points:number[][],radius=.025){return mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p as [number,number,number]))),18,radius,7,false),m,parent);}
@@ -24,7 +26,7 @@ export function createAnime():AnimeRig{
  ellipsoid(head,skin,-.34,-.035,0,.065,.105,.065);ellipsoid(head,skin,.34,-.035,0,.065,.105,.065);
  // Back hair lies behind the face; tapered locks provide a real 3D silhouette.
  ellipsoid(head,hair,0,.035,-.075,.388,.477,.31);
- const hairstyles={long:new T.Group(),bob:new T.Group(),ponytail:new T.Group()};Object.values(hairstyles).forEach(g=>head.add(g));
+ const hairstyles={long:new T.Group(),bob:new T.Group(),ponytail:new T.Group()};Object.entries(hairstyles).forEach(([name,g])=>{g.name='hair:'+name;head.add(g);});
  for(const [name,g] of Object.entries(hairstyles)){
   const length=name==='bob'?.68:1.42;
   for(let i=0;i<13;i++){const angle=Math.PI*.12+i/12*Math.PI*1.76,x=Math.cos(angle)*.31,z=-.12-Math.abs(Math.sin(angle))*.2;
@@ -59,11 +61,11 @@ export function createAnime():AnimeRig{
   const t=new T.CanvasTexture(canvas);t.colorSpace=T.SRGBColorSpace;return t;
  }
  let open=faceTexture('#73508d'),closed=faceTexture('#73508d',true);
- const faceMaterial=new T.MeshBasicMaterial({map:open,transparent:true,depthWrite:false});mesh(new T.PlaneGeometry(.61,.63),faceMaterial,head,0,-.026,.292);
+ const faceMaterial=new T.MeshBasicMaterial({map:open,transparent:true,depthWrite:false});faceMaterial.name='face';mesh(new T.PlaneGeometry(.61,.63),faceMaterial,head,0,-.026,.292);
  // Small earrings and hair pin.
  for(const sign of [-1,1]){const e=mesh(new T.TorusGeometry(.037,.008,6,16),metal,head,sign*.36,-.13,.035);e.rotation.y=sign*.3;}
  const pin=mesh(new T.BoxGeometry(.13,.018,.025),metal,head,.31,.17,.225);pin.rotation.z=-.25;
- const outfits={cardigan:new T.Group(),street:new T.Group(),dress:new T.Group()};Object.values(outfits).forEach(g=>body.add(g));
+ const outfits={cardigan:new T.Group(),street:new T.Group(),dress:new T.Group()};Object.entries(outfits).forEach(([name,g])=>{g.name='outfit:'+name;body.add(g);});
  function skirt(parent:T.Object3D,m:T.Material,bottom:number,top:number,radius:number){
   const vertices:number[]=[],indices:number[]=[];const n=96;
   for(let row=0;row<2;row++)for(let i=0;i<=n;i++){const a=i/n*Math.PI*2,r=(row?.31:radius)*(1+.035*Math.cos(a*16));vertices.push(Math.cos(a)*r,row?top:bottom,Math.sin(a)*r*.7);}
@@ -83,17 +85,17 @@ export function createAnime():AnimeRig{
  }
  const shoulders:T.Group[]=[],hips:T.Group[]=[],knees:T.Group[]=[],sleeves:T.Mesh[]=[],pants:T.Mesh[]=[];
  for(const sign of [-1,1]){
-  const arm=new T.Group();arm.position.set(sign*.45,3.73,0);body.add(arm);shoulders.push(arm);
+  const arm=new T.Group();arm.position.set(sign*.45,3.73,0);body.add(arm);arm.name=sign<0?'leftArm':'rightArm';shoulders.push(arm);
   const sleeve=limb(arm,cloth,.8,.14,0,-.34,0);sleeve.scale.z=.85;sleeves.push(sleeve);
   const elbow=new T.Group();elbow.position.y=-.73;arm.add(elbow);limb(elbow,cloth,.61,.107,0,-.22,0);
   const cuff=mesh(new T.CylinderGeometry(.11,.11,.09,16),accent,elbow,0,-.5,0);cuff.scale.z=.85;
   ellipsoid(elbow,skin,0,-.63,.01,.071,.106,.052);
   for(let finger=0;finger<4;finger++){const digit=limb(elbow,skin,.1-Math.abs(finger-1.5)*.012,.016,(finger-1.5)*.031,-.747,.013);digit.rotation.z=-(finger-1.5)*.045;}
   const thumb=limb(elbow,skin,.09,.022,sign*.072,-.646,.025);thumb.rotation.z=sign*.55;
-  const hip=new T.Group();hip.position.set(sign*.185,2.54,0);body.add(hip);hips.push(hip);
-  limb(hip,skin,1.23,.142,0,-.54,0);const thigh=limb(hip,dark,1.24,.175,0,-.54,0);pants.push(thigh);
+  const hip=new T.Group();hip.position.set(sign*.185,2.54,0);body.add(hip);hip.name=sign<0?'leftHip':'rightHip';hips.push(hip);
+  limb(hip,skin,1.23,.142,0,-.54,0);const thigh=limb(hip,dark,1.24,.175,0,-.54,0);pants.push(thigh);thigh.name='pants';
   const knee=new T.Group();knee.position.y=-1.14;hip.add(knee);knees.push(knee);limb(knee,skin,1.13,.105,0,-.49,0);
-  const pant=limb(knee,dark,1.15,.17,0,-.49,0);pants.push(pant);
+  const pant=limb(knee,dark,1.15,.17,0,-.49,0);pants.push(pant);pant.name='pants';
   limb(knee,accent,.43,.113,0,-.86,0);
   ellipsoid(knee,shoe,0,-1.18,.09,.14,.13,.255);ellipsoid(knee,dark,0,-1.32,.095,.145,.035,.26);
  }

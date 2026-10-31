@@ -35,6 +35,7 @@ public partial class App : Application
             readOnlyConfiguration = true;
             MessageBox.Show("No se pudo leer la configuración. Se abre un avatar temporal; el archivo original se conserva.\n" + error.Message, "Virtual Avatar");
         }
+        if (e.Args.Contains("--3d") && !IsVerification) Config.Use3D = true;
         Config.ClickThrough = false; // Always start recoverable, never invisible to input after a crash.
         Assets = new(Store); Avatar = new(); MainWindow = Avatar;
         if (IsVerification)
@@ -112,6 +113,11 @@ public partial class App : Application
             Save(); if (!Store.Load().Silhouette) throw new InvalidDataException("Persistence failed.");
             var desktopMemory = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
             Config.Asset = ""; Config.Silhouette = false; Config.Color = "#71B7FF"; Avatar.Apply();
+            Config.Use3D = true; Avatar.Apply(); Avatar.UpdateLayout();
+            var native3D = new System.Windows.Media.Imaging.RenderTargetBitmap(160, 180, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+            native3D.Render(Avatar.AvatarVisual); var nativePixels = new byte[160 * 180 * 4]; native3D.CopyPixels(nativePixels, 640, 0);
+            var visible3D = Enumerable.Range(0, 160 * 180).Count(i => nativePixels[i * 4 + 3] > 20);
+            if (nativePixels[3] != 0 || visible3D < 500) throw new InvalidDataException("Native 3D transparency/rendering failed.");
             OpenEditor(); OpenWorld(); editor!.UpdateLayout(); world!.UpdateLayout();
             if (!editor.IsVisible || !world.IsVisible) throw new InvalidDataException("Editor or world did not open.");
             if (editor.Background is not System.Windows.Media.SolidColorBrush background || background.Color.R != 17 || background.Color.G != 23 || background.Color.B != 39)
@@ -125,9 +131,9 @@ public partial class App : Application
                     capture.Render(window); var png = new System.Windows.Media.Imaging.PngBitmapEncoder(); png.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(capture));
                     using var file = new FileStream(Path.ChangeExtension(args[destination + 1], suffix), FileMode.CreateNew); png.Save(file);
                 }
-                Snapshot(editor, "editor.png"); Snapshot(world, "world.png");
+                Snapshot(Avatar, "native3d.png"); Snapshot(editor, "editor.png"); Snapshot(world, "world.png");
             }
-            report = new { passed = true, alphaCorner = output[3], silhouetteRed = output[center + 2], hotkeyRegistered = true, clickThroughStyleAndRecovery = true, svgLoaded = true, unsafeSvgRejected = true, editorAndWorldOpened = true, workingSetBytes = desktopMemory, editorAndWorldWorkingSetBytes = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64, note = "Does not simulate clicks reaching a second application or measure long-running memory." };
+            report = new { passed = true, native3DRendered = true, native3DVisiblePixels = visible3D, alphaCorner = output[3], silhouetteRed = output[center + 2], hotkeyRegistered = true, clickThroughStyleAndRecovery = true, svgLoaded = true, unsafeSvgRejected = true, editorAndWorldOpened = true, workingSetBytes = desktopMemory, editorAndWorldWorkingSetBytes = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64, note = "Does not simulate clicks reaching a second application or measure long-running memory." };
         }
         catch (Exception error) { exit = 1; report = new { passed = false, error = error.ToString() }; }
         var json = System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
