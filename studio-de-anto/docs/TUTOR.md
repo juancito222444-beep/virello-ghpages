@@ -14,7 +14,10 @@ no hay evaluación automática ni llamadas adicionales en segundo plano.
 Pide un ejercicio en el chat, copia su enunciado en **Nuevo ejercicio**, añade tu
 respuesta y marca tu estado. El progreso muestra ejercicios completados por ti,
 no una certificación de conocimientos. Puedes editar enunciados y respuestas o
-eliminar ejercicios. Guarda los cambios antes de cambiar de proyecto o recargar.
+eliminar ejercicios. Cerrar y volver a abrir el panel conserva las ediciones
+pendientes mientras el chat siga abierto. Si falla el guardado, las ediciones
+siguen disponibles para corregirlas o reintentar. No se guardan automáticamente.
+Guarda los cambios antes de cerrar el chat, cambiar de proyecto o recargar.
 
 Para recordar algo, escribe una nota revisada y selecciona un mensaje guardado
 como fuente. **Ver fuente** consulta el mensaje original, aunque no esté cargado

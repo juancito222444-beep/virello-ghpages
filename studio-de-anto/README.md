@@ -1,5 +1,7 @@
 # STUDIO DE ANTO
 
+**1.9.0:** [autonomía de Anto y backlog de Codex](docs/AUTONOMIA.md), con colas persistentes, límites y parada visible.
+
 [Modo tutor](docs/TUTOR.md): explicaciones adaptadas, ejercicios, progreso autoevaluado por proyecto y memoria revisable con fuentes.
 
 **1.8.0:** [oficina con salas desbloqueables y expansión autorizada por proyecto](docs/EXPANSION.md), sin llamadas adicionales de IA.

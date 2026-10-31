@@ -1,5 +1,32 @@
 # Validación — versión 1.6.0
 
+## Autonomía y continuidad del tutor · 1.9.0 · 31 de octubre de 2026
+
+En este checkout pasaron las **679 pruebas Python** con
+`STUDIO_AUTONOMY_TEST=1`, usando datos temporales y bloqueando conexiones externas,
+las **37 pruebas Node** y la compilación TypeScript/Vite. Se mantienen 15 avisos
+de deprecación de dependencias, sin fallos.
+
+Dos recorridos Chromium con APIs simuladas y orígenes externos bloqueados:
+
+- Autonomía: objetivos por proyecto, doble clic, inicio/pausa/parada/reintento,
+  errores de Codex y consulta lenta sin peticiones solapadas.
+- Tutor: carga al abrir, objetivo y respuestas conservados al plegar el panel,
+  error de guardado sin perder ediciones, un solo envío ante doble clic,
+  aislamiento entre proyectos y recuperación del estado guardado tras recargar.
+
+Para repetir los recorridos desde `frontend/`, después de compilar:
+
+```bash
+npm run test:autonomy
+npm run test:tutor
+```
+
+Se añadieron ambos recorridos al workflow `studio-checks.yml`, junto con la
+instalación de Chromium y el bloqueo de red para pytest. El workflow remoto no
+se ha ejecutado como parte de esta comprobación. No se usaron claves, proyectos
+ni APIs de IA reales; no se comprobó instalación en el Codespace del propietario.
+
 ## Encargos y correcciones de la auditoría
 
 489 pruebas pytest (23 nuevas) y 27 Node superadas; TypeScript/Vite compilados. Se cubren cursores SSE, cancelaciones repetidas durante lectura/validación/cierre y colisiones sin sobrescribir originales, migración aditiva de uso con tokens y cuota conservados y recuperación solo al arrancar. Datos sintéticos, sin claves reales ni proveedores. Cuatro recorridos Chromium MOCK superados: ficha de encargo, continuidad de Configuración, voz y Director. Se comprueban vista previa sin envío, límites sin recortar el objetivo, borradores entre pantallas/proyectos, limpieza de claves sin enviar, clip por teclado, dictado 2000/12000 y rechazo de secuencias duplicadas sin refresco adicional. No se capturó audio real. Uso: [encargos](ENCARGOS.md).
