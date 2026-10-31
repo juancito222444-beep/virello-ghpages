@@ -57,3 +57,24 @@ aislamiento, fallos recuperables y pantalla móvil. No consume IA real ni modifi
 archivos o proyectos del propietario.
 
 Desde `frontend/`, después de compilar, ejecuta `npm run test:pdf-text`.
+
+## Buscar entre páginas · 1.11.0
+
+**Buscar entre las páginas del PDF** revisa hasta cinco páginas por petición.
+Introduce una frase y pulsa **Buscar en el PDF**. Los resultados incluyen extractos
+y un botón **Abrir página** para leer el original y preparar una cita. Ignora
+tildes y mayúsculas; porcentajes y demás símbolos son texto literal.
+
+El estado distingue **Búsqueda parcial** de **Búsqueda terminada**, con páginas
+revisadas y páginas con coincidencias. **Buscar próximas páginas** continúa desde
+el último bloque confirmado. No hay recorrido automático ni trabajo oculto.
+Un error conserva los resultados y permite reintentar el mismo bloque. Editar
+la frase cancela la petición y limpia los resultados; archivo y proyecto tienen
+su propio contexto. Abrir un resultado conserva la frase en la búsqueda de página.
+
+Se revisan los primeros 12000 caracteres extraídos de cada página. Se enumeran
+las páginas con texto omitido y el número de páginas sin texto extraíble. Terminar
+el recorrido no significa haber analizado imágenes, texto omitido o aplicado OCR.
+La consulta viaja en el cuerpo de `POST /api/projects/{pid}/files/{fid}/search`,
+sin incorporarla a la URL del registro de acceso ni a los argumentos del proceso
+de extracción. No se guarda, no crea índices y no consume APIs de IA.

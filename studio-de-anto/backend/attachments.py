@@ -214,8 +214,8 @@ def _normalized_image(path):
         raise ValueError('No se pudo preparar la imagen. Vuelve a exportarla como JPG, PNG o WebP.') from exc
 
 
-def pdf_page(record, page):
-    """Read a single page without providers, OCR, rendering or persistent caches."""
+def _pdf_text(record, arguments, query=None):
+    """Run bounded extraction with private search text sent only on stdin."""
     if classify(_name(record)) != 'document':
         raise ValueError('El lector por páginas solo admite documentos PDF.')
     path = _path(record)
@@ -225,7 +225,8 @@ def pdf_page(record, page):
     try:
         try:
             completed = subprocess.run(
-                [sys.executable, '-I', str(Path(__file__).with_name('pdf_text.py')), str(path), str(page)],
+                [sys.executable, '-I', str(Path(__file__).with_name('pdf_text.py')), str(path), *arguments],
+                input=query.encode('utf-8') if query is not None else None,
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=8, check=False)
         except subprocess.TimeoutExpired:
             raise ValueError('La página PDF tarda demasiado en extraerse. Usa un documento más sencillo.') from None
@@ -241,15 +242,53 @@ def pdf_page(record, page):
             raise ValueError('La página solicitada no existe en este PDF.')
         if isinstance(result, dict) and 'error' in result:
             raise ValueError(ERROR_MESSAGES.get(result['error'], UNAVAILABLE_PDF))
-        if not (isinstance(result, dict) and set(result) == {'page', 'total_pages', 'text', 'truncated'}
-                and type(result['page']) is int and result['page'] == page
-                and type(result['total_pages']) is int and page <= result['total_pages'] <= MAX_PDF_PAGES
-                and isinstance(result['text'], str) and len(result['text']) <= 12000
-                and type(result['truncated']) is bool):
+        if not isinstance(result, dict):
             raise ValueError(UNAVAILABLE_PDF)
-        return {**result, 'id': record['id'], 'name': _name(record)}
+        return result
     finally:
         _pdf_slots.release()
+
+
+def pdf_page(record, page):
+    result = _pdf_text(record, [str(page)])
+    if not (isinstance(result, dict) and set(result) == {'page', 'total_pages', 'text', 'truncated'}
+            and type(result['page']) is int and result['page'] == page
+            and type(result['total_pages']) is int and page <= result['total_pages'] <= MAX_PDF_PAGES
+            and isinstance(result['text'], str) and len(result['text']) <= 12000
+            and type(result['truncated']) is bool):
+        raise ValueError(UNAVAILABLE_PDF)
+    return {**result, 'id': record['id'], 'name': _name(record)}
+
+
+def pdf_search(record, query, start_page=1, page_size=5):
+    result = _pdf_text(record, ['search', str(start_page), str(page_size)], query)
+    required = {'start_page', 'scanned_to', 'total_pages', 'matches', 'truncated_pages', 'empty_pages', 'next_page'}
+    if not (set(result) == required and type(result['total_pages']) is int
+            and start_page <= result['total_pages'] <= MAX_PDF_PAGES
+            and type(result['start_page']) is int and result['start_page'] == start_page
+            and type(result['scanned_to']) is int
+            and result['scanned_to'] == min(result['total_pages'], start_page + page_size - 1)):
+        raise ValueError(UNAVAILABLE_PDF)
+    end = result['scanned_to']
+    next_page = end + 1 if end < result['total_pages'] else None
+    if not ((result['next_page'] is None if next_page is None else
+             type(result['next_page']) is int and result['next_page'] == next_page)
+            and type(result['empty_pages']) is int and 0 <= result['empty_pages'] <= end - start_page + 1
+            and isinstance(result['matches'], list) and len(result['matches']) <= page_size
+            and isinstance(result['truncated_pages'], list) and len(result['truncated_pages']) <= page_size):
+        raise ValueError(UNAVAILABLE_PDF)
+    pages = []
+    for match in result['matches']:
+        if not (isinstance(match, dict) and set(match) == {'page', 'excerpt'}
+                and type(match['page']) is int and start_page <= match['page'] <= end
+                and isinstance(match['excerpt'], str) and len(match['excerpt']) <= 602):
+            raise ValueError(UNAVAILABLE_PDF)
+        pages.append(match['page'])
+    truncated = result['truncated_pages']
+    if (pages != sorted(set(pages)) or any(type(p) is not int or not start_page <= p <= end for p in truncated)
+            or truncated != sorted(set(truncated))):
+        raise ValueError(UNAVAILABLE_PDF)
+    return {**result, 'id': record['id'], 'name': _name(record)}
 
 
 def _table_context(record, path, size):

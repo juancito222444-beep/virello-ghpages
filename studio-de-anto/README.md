@@ -1,5 +1,9 @@
 # STUDIO DE ANTO
 
+**1.11.0:** búsqueda entre páginas PDF, con resultados, cobertura y continuación
+por bloques. Se añade [Virtual Avatar para Windows](desktop/VirtualAvatar/README.md):
+personaje transparente independiente, editor, accesorios, presets y escenario 2D.
+
 **1.10.0:** [lector de texto PDF con páginas, búsqueda y citas](docs/LECTURA_PDF.md).
 Prepara citas para tu borrador y conserva el mensaje existente, sin consumir IA.
 

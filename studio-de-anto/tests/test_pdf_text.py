@@ -105,3 +105,48 @@ def test_worker_failures_are_bounded_and_do_not_leak_text(saved,monkeypatch,kind
     assert 'PRIVATE FIXTURE' not in str(exc.value) and record['path'] not in str(exc.value)
     monkeypatch.setattr(attachments.subprocess,'run',original)
     assert attachments.pdf_page(record,1)['text']=='PRIVATE FIXTURE'
+
+
+def test_document_search_batches_unicode_literals_and_coverage(saved):
+    record, original = saved(['', 'Acción: 20% _ [x]', 'z' * 13000 + ' Acción omitida', 'Otra página', 'Nada', 'ACCIÓN final'])
+    with TestClient(app) as client:
+        url = '/api/projects/a/files/' + record['id'] + '/search'
+        first = client.post(url, json={'query': 'aCCion'}).json()
+        assert [m['page'] for m in first['matches']] == [2]
+        assert first['scanned_to'] == 5 and first['next_page'] == 6
+        assert first['truncated_pages'] == [3] and first['empty_pages'] == 1
+        second = client.post(url, json={'query': 'accio\u0301n', 'start_page': 6}).json()
+        assert [m['page'] for m in second['matches']] == [6]
+        assert second['next_page'] is None and second['scanned_to'] == 6
+        literal = client.post(url, json={'query': '20% _ [x]'}).json()
+        assert [m['page'] for m in literal['matches']] == [2]
+        assert client.post(url, json={'query': '.*'}).json()['matches'] == []
+        assert Path(record['path']).read_bytes() == original and not store.rows('SELECT * FROM messages')
+
+
+def test_search_scope_strict_input_and_private_query_transport(saved, monkeypatch):
+    record, _ = saved(['Acción privada de prueba'])
+    original = attachments.subprocess.run
+    def run(args, **kwargs):
+        if 'search' in args:
+            assert 'privada' not in ' '.join(args)
+            assert kwargs['input'] == 'Acción privada'.encode('utf-8')
+        return original(args, **kwargs)
+    monkeypatch.setattr(attachments.subprocess, 'run', run)
+    with TestClient(app) as client:
+        url = '/api/projects/a/files/' + record['id'] + '/search'
+        assert client.post(url, json={'query': 'Acción privada'}).status_code == 200
+        for body in ({'query': ''}, {'query': '   '}, {'query': 'x' * 201}, {'query': 'x', 'page_size': 6},
+                     {'query': 'x', 'start_page': 0}, {'query': 'x', 'start_page': True}):
+            assert client.post(url, json=body).status_code == 422
+        assert client.post('/api/projects/b/files/' + record['id'] + '/search', json={'query': 'x'}).status_code == 404
+        assert client.post(url, json={'query': 'x'}, headers={'Origin': 'https://evil.example'}).status_code == 403
+
+
+def test_search_excerpts_are_bounded_and_worker_schema_is_checked(saved, monkeypatch):
+    record, _ = saved(['z' * 9000 + ' coincidencia final ' + 'y' * 1000])
+    result = attachments.pdf_search(record, 'coincidencia')
+    assert 'coincidencia' in result['matches'][0]['excerpt'] and len(result['matches'][0]['excerpt']) <= 602
+    monkeypatch.setattr(attachments, '_pdf_text', lambda *args: {**result, 'matches': [{'page': 9999, 'excerpt': 'private'}]})
+    with pytest.raises(ValueError) as exc: attachments.pdf_search(record, 'coincidencia')
+    assert 'private' not in str(exc.value)

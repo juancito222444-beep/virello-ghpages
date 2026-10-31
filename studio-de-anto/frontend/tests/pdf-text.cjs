@@ -15,7 +15,7 @@ const {chromium}=require('playwright');
  const base='http://127.0.0.1:'+server.address().port;let browser;
  try{
   browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox']});
-  const page=await browser.newPage({viewport:{width:1500,height:1100}}),errors=[],calls=[];let failPage=true;
+  const page=await browser.newPage({viewport:{width:1500,height:1100}}),errors=[],calls=[];let failPage=true,failSearch=true;
   const files=['a','b'].map(id=>({id:'pdf-'+id,name:'Documento '+id.toUpperCase()+'.pdf',kind:'document',mime:'application/pdf',size:100}));
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{window.EventSource=class{close(){}};Object.defineProperty(navigator,'clipboard',{value:{writeText:async value=>{window.copiedCitation=value;}}});});
@@ -25,12 +25,17 @@ const {chromium}=require('playwright');
    if(!p.startsWith('/api/'))return route.continue();
    calls.push({p,method:req.method()});
    const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
-   const match=p.match(/^\/api\/projects\/a\/files\/(pdf-[ab])\/pages\/([123])$/);
+   if(p==='/api/projects/a/files/pdf-b/search'){
+    const body=req.postDataJSON();await new Promise(done=>setTimeout(done,150));
+    if(body.start_page===6&&failSearch)return json({detail:'MOCK: bloque no disponible'},503);
+    return json({id:'pdf-b',name:'Documento B.pdf',start_page:body.start_page,scanned_to:body.start_page===1?5:7,total_pages:7,matches:[{page:body.start_page===1?1:6,excerpt:body.start_page===1?'Texto exclusivo del documento B':'Exclusivo final'}],next_page:body.start_page===1?6:null,truncated_pages:body.start_page===1?[3]:[],empty_pages:body.start_page===1?1:0});
+   }
+   const match=p.match(/^\/api\/projects\/a\/files\/(pdf-[ab])\/pages\/([1-7])$/);
    if(match){
     const fid=match[1],number=Number(match[2]);
     await new Promise(done=>setTimeout(done,number===3?600:150));
     if(number===2&&failPage)return json({detail:'MOCK: página temporalmente inaccesible'},503);
-    return json({id:fid,name:files.find(f=>f.id===fid).name,page:number,total_pages:3,
+    return json({id:fid,name:files.find(f=>f.id===fid).name,page:number,total_pages:fid==='pdf-b'?7:3,
      text:number===2?'':fid==='pdf-b'?'Texto exclusivo del documento B':number===3?'Texto limitado':'Acción documentada. <script>window.BAD=true</script> Primera página.',truncated:number===3});
    }
    if(p==='/api/projects')return json([{id:'a',name:'Project A'},{id:'b',name:'Project B'}]);
@@ -99,6 +104,19 @@ const {chromium}=require('playwright');
   await reader.getByText('Texto exclusivo del documento B',{exact:true}).waitFor();
   await page.waitForTimeout(700);
   assert.equal(await reader.getByText('Texto limitado',{exact:true}).count(),0,'A late page from another file cannot replace the current text');
+  const search=reader.getByRole('region',{name:'Búsqueda entre páginas PDF',exact:true});
+  await search.getByRole('textbox',{name:'Texto para buscar en el PDF',exact:true}).fill('EXCLUSIVO');
+  await search.getByRole('button',{name:'Buscar en el PDF',exact:true}).evaluate(b=>{b.click();b.click();});
+  await search.getByText('Búsqueda parcial · 5 de 7 páginas revisadas · 1 páginas con coincidencias',{exact:true}).waitFor();
+  assert.equal(calls.filter(c=>c.p.endsWith('/search')).length,1,'Document search prevents double submit');
+  await search.getByRole('button',{name:'Buscar próximas páginas',exact:true}).click();
+  await search.getByRole('alert').getByText('MOCK: bloque no disponible',{exact:true}).waitFor();
+  assert.equal(await search.locator('li').count(),1,'Failed continuation preserves previous matches');
+  failSearch=false;await search.getByRole('button',{name:'Buscar próximas páginas',exact:true}).click();
+  await search.getByText('Búsqueda terminada · 7 de 7 páginas revisadas · 2 páginas con coincidencias',{exact:true}).waitFor();
+  await search.getByRole('button',{name:'Abrir página 6',exact:true}).click();
+  await reader.getByText('Página 6 de 7',{exact:true}).waitFor();
+  assert.equal(await reader.getByRole('textbox',{name:'Buscar en esta página PDF',exact:true}).inputValue(),'EXCLUSIVO');
   await page.setViewportSize({width:390,height:844});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'PDF controls fit mobile');
   await page.getByLabel('Proyecto activo').selectOption('b');

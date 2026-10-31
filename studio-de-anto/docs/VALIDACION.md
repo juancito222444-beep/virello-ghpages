@@ -1,5 +1,27 @@
 # Validación — versión 1.6.0
 
+## Documentos y Virtual Avatar · 1.11.0
+
+**694 pruebas Python**, compilación TypeScript/Vite y recorrido Chromium PDF
+superados con datos temporales y APIs simuladas. La búsqueda entre páginas se
+comprueba con PDF reales sintéticos: bloques, tildes, símbolos literales,
+extractos acotados, páginas vacías/truncadas, proyecto y transporte privado de la
+consulta por stdin del proceso. El navegador verifica resultados parciales y
+completos, continuación después de fallo y apertura de la página encontrada.
+
+Virtual Avatar tiene arquitectura previa, tres proyectos .NET 10 y un paquete
+portable autocontenido para Windows x64. El proyecto WPF compiló desde Linux sin
+errores ni avisos; las **12 comprobaciones del núcleo** pasaron, cubriendo datos,
+presets, límites, rutas, movimiento y poses. No se equipara esa compilación con
+una prueba visual Windows. El workflow `Virtual Avatar Windows` compila, publica
+y ejecuta una comprobación nativa de alfa, silueta, estilos y atajo; sus resultados
+y mediciones solo pueden afirmarse después de consultar esa ejecución.
+
+El proyecto Windows no usa APIs de IA, no lee credenciales de Studio y conserva
+sus ajustes en la carpeta local del usuario de Windows. No se instalaron ni
+ejecutaron binarios Windows en el PC del propietario. Quedan pruebas manuales
+de interacción con otra app, arrastre real, escalas DPI y consumo prolongado.
+
 ## Lector PDF, búsqueda y citas · 1.10.0
 
 **691 pruebas Python** con `STUDIO_AUTONOMY_TEST=1`, **37 pruebas Node** y

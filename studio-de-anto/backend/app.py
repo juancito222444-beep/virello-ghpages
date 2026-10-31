@@ -35,7 +35,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.10.0'
+APP_RELEASE='1.11.0'
 API_VERSION='1'
 
 
@@ -50,6 +50,7 @@ def health():
         ('codex-backlog-v1','/api/autonomy/codex','GET'),
         ('tutor-v1','/api/projects/{pid}/tutor','GET'),
         ('pdf-text-v1','/api/projects/{pid}/files/{fid}/pages/{page}','GET'),
+        ('pdf-search-v1','/api/projects/{pid}/files/{fid}/search','POST'),
         ('director-v1','/api/director','POST'),
         ('context-draft-v1','/api/projects/{pid}/context-draft','GET'),
         ('recovery-backups-v1','/api/projects/{pid}/snapshots','POST'),
@@ -572,6 +573,25 @@ def pdf_text_page(pid:str,fid:str,page:Annotated[int,PathParam(ge=1,le=1000)]):
     record=store.one('SELECT * FROM files WHERE id=? AND project=?',(fid,pid))
     if not record:raise HTTPException(404,'Archivo inexistente en este proyecto')
     return attachments.pdf_page(record,page)
+
+class PdfSearchRequest(Strict):
+    query:str=Field(min_length=1,max_length=200)
+    start_page:int=Field(default=1,ge=1,le=1000,strict=True)
+    page_size:int=Field(default=5,ge=1,le=5,strict=True)
+
+    @field_validator('query')
+    @classmethod
+    def valid_query(cls,value):
+        value=value.strip()
+        if not message_history.normalize(value):raise ValueError('Escribe texto para buscar en el PDF')
+        return value
+
+@app.post('/api/projects/{pid}/files/{fid}/search')
+def search_pdf_text(pid:str,fid:str,body:PdfSearchRequest):
+    need_project(pid)
+    record=store.one('SELECT * FROM files WHERE id=? AND project=?',(fid,pid))
+    if not record:raise HTTPException(404,'Archivo inexistente en este proyecto')
+    return attachments.pdf_search(record,body.query,body.start_page,body.page_size)
 @app.get('/api/projects/{pid}/messages/search')
 def search_messages(pid:str,q:Annotated[str,Query(min_length=1,max_length=200)],
                     role:Literal['all','user','assistant']='all',
