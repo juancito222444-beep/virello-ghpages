@@ -94,7 +94,13 @@ public sealed class NativeHana
             var m = node.GetProperty("material"); var materialName = m.GetProperty("name").GetString();
             var color = materialName switch { "skin" => c.SkinColor3D, "hair" or "hairLight" => c.HairColor3D, "cloth" => c.ClothingColor3D, "accent" => c.AccentColor3D, "eyeIris" => c.EyesColor3D, _ => m.GetProperty("color").GetString()! };
             Brush brush = m.TryGetProperty("texture", out var texture) ? Texture(texture.GetString()!) : new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
-            var material = new DiffuseMaterial(brush); if (material.CanFreeze) material.Freeze();
+            var material = new MaterialGroup(); material.Children.Add(new DiffuseMaterial(brush));
+            if (materialName is "skin" or "hair" or "hairLight" or "eyeIris")
+            {
+                var shine = materialName switch { "hair" or "hairLight" => Color.FromArgb(105, 255, 239, 226), "eyeIris" => Color.FromArgb(155, 255, 255, 255), _ => Color.FromArgb(48, 255, 226, 208) };
+                var gloss = new SolidColorBrush(shine); gloss.Freeze(); material.Children.Add(new SpecularMaterial(gloss, materialName is "hair" or "hairLight" ? 42 : materialName == "eyeIris" ? 70 : 18));
+            }
+            if (material.CanFreeze) material.Freeze();
             result.Children.Add(new GeometryModel3D(Geometry(id.GetInt32()), material) { BackMaterial = material });
         }
         foreach (var child in node.GetProperty("children").EnumerateArray()) result.Children.Add(Build(child, c));

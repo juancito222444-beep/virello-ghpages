@@ -5,7 +5,7 @@ export function createAnime():AnimeRig{
  const root=new T.Group(),body=new T.Group(),head=new T.Group();root.add(body);head.position.y=4.34;body.add(head);
  const gradient=new T.DataTexture(new Uint8Array([83,83,83,255,145,145,145,255,209,209,209,255,255,255,255,255]),4,1);gradient.needsUpdate=true;gradient.minFilter=T.NearestFilter;gradient.magFilter=T.NearestFilter;
  const mat=(color:string,roughness=.78)=>new T.MeshStandardMaterial({color,roughness});
- const skin=mat('#f2cdbd',.72),hair=mat('#292037',.32),hairLight=mat('#47344f',.4),cloth=mat('#b3a0dc'),accent=mat('#f8eee8'),dark=mat('#39364f'),shoe=mat('#eee8ef'),metal=new T.MeshStandardMaterial({color:'#e6c597',metalness:.65,roughness:.35});
+ const skin=new T.MeshPhysicalMaterial({color:'#f4d0c1',roughness:.7,sheen:.22,sheenColor:'#f8bcb0'}),hair=new T.MeshPhysicalMaterial({color:'#292037',roughness:.46,clearcoat:.08,clearcoatRoughness:.48}),hairLight=new T.MeshPhysicalMaterial({color:'#47344f',roughness:.48,clearcoat:.08}),cloth=mat('#b3a0dc'),accent=mat('#f8eee8'),dark=mat('#39364f'),shoe=mat('#eee8ef'),metal=new T.MeshStandardMaterial({color:'#e6c597',metalness:.65,roughness:.35});
  for(const [name,m] of Object.entries({skin,hair,hairLight,cloth,accent,dark,shoe,metal}))m.name=name;
  head.name='head';
  function mesh(g:T.BufferGeometry,m:T.Material,parent:T.Object3D,x=0,y=0,z=0){const o=new T.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;}
@@ -42,6 +42,7 @@ export function createAnime():AnimeRig{
  for(const sign of [-1,1])for(let i=0;i<3;i++){
   lock(head,[[sign*(.025+i*.055),.44,.09],[sign*(.1+i*.055),.31,.23],[sign*(.18+i*.055),.14-i*.035,.27]],.063);
  }
+ for(const sign of [-1,1])for(let i=0;i<2;i++)lock(head,[[sign*(.015+i*.045),.452,.11],[sign*(.055+i*.055),.39,.235],[sign*(.11+i*.07),.29,.255]],.012,hairLight);
  // A tiny nose projects beyond the face instead of a flat painted head.
  ellipsoid(head,skin,0,-.075,.283,.028,.047,.032);
  let eyeColor='';
@@ -57,11 +58,11 @@ export function createAnime():AnimeRig{
  let open=faceTexture(),closed=faceTexture(true);
  // Curved skin decal follows the cheeks instead of floating as a flat card.
  const faceGeometry=new T.SphereGeometry(1,48,40,Math.PI/2-.9,1.8,.7,1.9);faceGeometry.scale(.348,.439,.288);
- const faceMaterial=new T.MeshBasicMaterial({map:open,transparent:true,depthWrite:false,side:T.DoubleSide});faceMaterial.name='face';mesh(faceGeometry,faceMaterial,head);
+ const faceMaterial=new T.MeshStandardMaterial({map:open,transparent:true,depthWrite:false,side:T.DoubleSide,roughness:.92});faceMaterial.name='face';mesh(faceGeometry,faceMaterial,head);
  const eyes=new T.Group();eyes.name='eyes';head.add(eyes);
- const white=mat('#fff9f3',.28);white.name='eyeWhite';const iris=mat('#73508d',.24);iris.name='eyeIris';const pupil=mat('#211a2a',.18);pupil.name='eyePupil';const glint=new T.MeshStandardMaterial({color:'#ffffff',roughness:.1,emissive:'#ffffff',emissiveIntensity:.12});glint.name='eyeGlint';const makeup=mat('#60434a',.62);makeup.name='makeup';
- for(const side of [-1,1]){const x=side*.135;ellipsoid(eyes,white,x,.045,.267,.078,.034,.012);ellipsoid(eyes,iris,x+side*.006,.043,.278,.031,.034,.009);ellipsoid(eyes,pupil,x+side*.006,.041,.285,.015,.025,.006);ellipsoid(eyes,glint,x-.01,.054,.291,.006,.008,.003);ellipsoid(eyes,glint,x+.014,.025,.291,.003,.004,.002);tube(eyes,dark,[[x-.078,.067,.27],[x-.04,.089,.274],[x+.018,.09,.274],[x+.078,.065,.27]],.006);
-  for(let lash=0;lash<2;lash++){const px=x+side*(.055+lash*.009),py=.066-lash*.012;tube(eyes,makeup,[[px,py,.273],[px+side*.012,py+.017,.274]],.003);}
+ const white=new T.MeshBasicMaterial({color:'#fffdfa'});white.name='eyeWhite';const iris=mat('#73508d',.24);iris.name='eyeIris';const pupil=mat('#211a2a',.18);pupil.name='eyePupil';const glint=new T.MeshBasicMaterial({color:'#ffffff'});glint.name='eyeGlint';const makeup=mat('#76575a',.62);makeup.name='makeup';
+ for(const side of [-1,1]){const x=side*.135;ellipsoid(eyes,white,x,.045,.281,.085,.038,.014);ellipsoid(eyes,iris,x+side*.006,.043,.294,.034,.037,.01);ellipsoid(eyes,pupil,x+side*.006,.041,.302,.016,.027,.007);ellipsoid(eyes,glint,x-.01,.055,.31,.006,.008,.003);ellipsoid(eyes,glint,x+.014,.025,.31,.003,.004,.002);tube(eyes,dark,[[x-.082,.067,.282],[x-.04,.091,.285],[x+.018,.092,.285],[x+.082,.065,.282]],.005);
+  for(let lash=0;lash<2;lash++){const px=x+side*(.06+lash*.009),py=.066-lash*.012;tube(eyes,makeup,[[px,py,.286],[px+side*.012,py+.017,.287]],.0025);}
  }
  const lip=mat('#bd7780',.58);lip.name='lip';ellipsoid(head,lip,-.018,-.187,.263,.026,.009,.008);ellipsoid(head,lip,.018,-.187,.263,.026,.009,.008);ellipsoid(head,lip,0,-.202,.261,.035,.009,.007);
  // Soft bridge and tip break up the flat anime nose silhouette.
@@ -104,7 +105,7 @@ export function createAnime():AnimeRig{
   ellipsoid(knee,shoe,0,-1.18,.09,.14,.13,.255);ellipsoid(knee,dark,0,-1.32,.095,.145,.035,.26);
  }
  const materials=new Set<T.Material>();const geometries=new Set<T.BufferGeometry>();root.traverse(o=>{if(o instanceof T.Mesh){geometries.add(o.geometry);(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m));}});
- return {root,apply(s){skin.color.set(s.skin);hair.color.set(s.hair);hairLight.color.set(s.hair).lerp(new T.Color('#e4c7ef'),.18);cloth.color.set(s.clothing);accent.color.set(s.accent);dark.color.set(s.outfit==='street'?'#454353':'#34314d');
+ return {root,apply(s){skin.color.set(s.skin);hair.color.set(s.hair);hairLight.color.set(s.hair).lerp(new T.Color('#d8c1e2'),.24);cloth.color.set(s.clothing);accent.color.set(s.accent);dark.color.set(s.outfit==='street'?'#454353':'#34314d');
   Object.entries(outfits).forEach(([id,g])=>g.visible=id===s.outfit);Object.entries(hairstyles).forEach(([id,g])=>g.visible=id===s.hairStyle);pants.forEach(p=>p.visible=s.outfit==='street');sleeves.forEach(p=>p.scale.x=s.outfit==='street'?1.2:1);
   if(eyeColor!==s.eyes){eyeColor=s.eyes;iris.color.set(s.eyes);}
  },animate(time,walk,action,reduced){
