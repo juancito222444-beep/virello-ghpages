@@ -96,7 +96,7 @@ public sealed class EditorWindow : Window
         var up = Text("Arriba", c.UpKey); var left = Text("Izquierda", c.LeftKey); var down = Text("Abajo", c.DownKey); var right = Text("Derecha", c.RightKey);
         settings.Children.Add(Button("Guardar teclas", () =>
         {
-            if (new[] { up, left, down, right }.Any(b => !Enum.TryParse<Key>(b.Text, true, out _))) { MessageBox.Show("Escribe nombres de teclas: W, A, S, D, Up, Left, Down, Right…"); return; }
+            if (new[] { up, left, down, right }.Any(b => !MovementKeys.TryGet(b.Text, out _))) { MessageBox.Show("Escribe nombres de teclas: W, A, S, D, Up, Left, Down, Right…"); return; }
             Change(() => { app.Config.UpKey = up.Text; app.Config.LeftKey = left.Text; app.Config.DownKey = down.Text; app.Config.RightKey = right.Text; });
         }));
         Toggle("Movimiento automático", c.Automatic, v => app.Config.Automatic = v);

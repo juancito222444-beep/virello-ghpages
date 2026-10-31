@@ -110,7 +110,7 @@ public sealed class AvatarWindow : Window
         double x = 0, y = 0;
         if (IsActive && dragStart is null)
         {
-            bool Down(string name) => Enum.TryParse<Key>(name, true, out var key) && Keyboard.IsKeyDown(key);
+            bool Down(string name) => MovementKeys.TryGet(name, out var key) && Keyboard.IsKeyDown(key);
             x = (Down(c.RightKey) ? 1 : 0) - (Down(c.LeftKey) ? 1 : 0); y = (Down(c.DownKey) ? 1 : 0) - (Down(c.UpKey) ? 1 : 0);
         }
         var cursor = native?.Cursor(); motion.Tick(c, dt, Desktop, x, y, cursor?.X, cursor?.Y);

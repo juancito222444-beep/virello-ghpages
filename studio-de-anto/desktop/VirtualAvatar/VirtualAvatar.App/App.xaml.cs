@@ -89,6 +89,7 @@ public partial class App : Application
         var exit = 0; object report;
         try
         {
+            if (!MovementKeys.TryGet("W", out _) || MovementKeys.TryGet("None", out _) || MovementKeys.TryGet("99999", out _)) throw new InvalidDataException("Movement key validation failed.");
             var pixels = new byte[32 * 32 * 4];
             for (var y = 8; y < 24; y++) for (var x = 8; x < 24; x++) for (var channel = 0; channel < 4; channel++) pixels[(y * 32 + x) * 4 + channel] = 255;
             var bitmap = System.Windows.Media.Imaging.BitmapSource.Create(32, 32, 96, 96, System.Windows.Media.PixelFormats.Pbgra32, null, pixels, 128);
