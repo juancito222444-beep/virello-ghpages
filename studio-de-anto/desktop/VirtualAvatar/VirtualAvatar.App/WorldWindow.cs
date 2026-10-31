@@ -22,6 +22,7 @@ public sealed class WorldWindow : Window
     public WorldWindow()
     {
         Title = "Virtual Avatar · Mundo interactivo"; Width = 1100; Height = 750; MinWidth = 700; MinHeight = 500;
+        Background = new SolidColorBrush(Color.FromRgb(17, 23, 39)); Foreground = Brushes.White; FontFamily = new FontFamily("Segoe UI");
         local = app.Config.Clone(); local.Size = 130; local.X = 250; local.Y = 400; local.Automatic = false; local.Locked = false;
         var root = new DockPanel(); Content = root;
         var toolbar = new WrapPanel { Margin = new Thickness(8) }; DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar);
@@ -35,6 +36,7 @@ public sealed class WorldWindow : Window
         foreach (var item in app.Config.World) DrawObject(item);
         try { avatar.Source = app.Assets.Animation(app.Config)[0]; } catch { avatar.Source = app.Assets.Default; }
         scene.Children.Add(avatar);
+        Canvas.SetLeft(avatar, local.X); Canvas.SetTop(avatar, local.Y);
         avatar.MouseLeftButtonDown += (_, e) => { target = null; motion.SetState(AvatarState.Jump, .65); e.Handled = true; };
         scene.MouseLeftButtonDown += (_, e) => { var point = e.GetPosition(scene); target = new Point(Math.Clamp(point.X - local.Size / 2, 0, 1070), Math.Clamp(point.Y - local.Size / 2, 0, 570)); };
         timer.Tick += (_, _) =>

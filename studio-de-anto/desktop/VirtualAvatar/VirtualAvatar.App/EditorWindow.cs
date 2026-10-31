@@ -19,6 +19,7 @@ public sealed class EditorWindow : Window
     public EditorWindow()
     {
         Title = "Virtual Avatar · Avatar Editor"; Width = 1000; Height = 760; MinWidth = 760; MinHeight = 560;
+        Background = new SolidColorBrush(Color.FromRgb(17, 23, 39)); Foreground = Brushes.White; FontFamily = new FontFamily("Segoe UI");
         var grid = new Grid(); grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(370) }); grid.ColumnDefinitions.Add(new ColumnDefinition());
         Content = grid;
         var scroll = new ScrollViewer { Content = settings, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }; grid.Children.Add(scroll);

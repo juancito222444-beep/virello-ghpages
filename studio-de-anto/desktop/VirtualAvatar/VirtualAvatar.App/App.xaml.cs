@@ -111,9 +111,11 @@ public partial class App : Application
             if (!unsafeRejected) throw new InvalidDataException("Unsafe SVG accepted.");
             Save(); if (!Store.Load().Silhouette) throw new InvalidDataException("Persistence failed.");
             var desktopMemory = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
-            Config.Asset = ""; Config.Silhouette = false; Avatar.Apply();
+            Config.Asset = ""; Config.Silhouette = false; Config.Color = "#71B7FF"; Avatar.Apply();
             OpenEditor(); OpenWorld(); editor!.UpdateLayout(); world!.UpdateLayout();
             if (!editor.IsVisible || !world.IsVisible) throw new InvalidDataException("Editor or world did not open.");
+            if (editor.Background is not System.Windows.Media.SolidColorBrush background || background.Color.R != 17 || background.Color.G != 23 || background.Color.B != 39)
+                throw new InvalidDataException("Editor dark theme did not apply.");
             var destination = Array.IndexOf(args, "--verify-report");
             if (destination >= 0 && destination + 1 < args.Length)
             {
