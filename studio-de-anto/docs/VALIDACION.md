@@ -1,4 +1,20 @@
-# Validación — versión 1.6.0
+# Validación de Studio de Anto
+
+## Antigravity · 1.12.0
+
+**704 pruebas Python** y compilación TypeScript/Vite superadas. Chromium verificó
+el panel de Antigravity (estado sin inferencia, consentimiento obligatorio,
+conservación del prompt después de error y respuesta como texto), además de
+regresiones de autonomía, tutor y lector/búsqueda PDF. La CLI simulada comprobó
+stdin privado, permisos restrictivos por sesión, exclusión de claves API,
+desconexión, parada, tiempo límite y liberación del supervisor. La instalación
+existente se conservó al repetir el instalador.
+
+La CLI real instalada informa 1.4.12 con `--version`. **No se inició sesión ni se
+consultó ningún modelo real de Antigravity durante la validación.** El acceso a
+Google queda sin verificar; la primera consulta requiere la cuenta del usuario
+y su autorización de cuota. Las pruebas simuladas no certifican la calidad de IA.
+
 
 ## Documentos y Virtual Avatar · 1.11.0
 

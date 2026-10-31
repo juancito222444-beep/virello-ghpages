@@ -16,7 +16,7 @@ from .data_tools import load,inspect
 from .access import access_error
 from .planning import propose_plan
 from . import conversation,project_context,director,tutor
-from . import system_status,run_views,message_history,office_growth,autonomy
+from . import system_status,run_views,message_history,office_growth,autonomy,antigravity
 
 @asynccontextmanager
 async def lifespan(app):
@@ -35,7 +35,7 @@ async def lifespan(app):
 app=FastAPI(title='STUDIO DE ANTO',lifespan=lifespan)
 LOADED_CODE_VERSION=runtime.code_version()
 SETUP_LOCK=asyncio.Lock()
-APP_RELEASE='1.11.0'
+APP_RELEASE='1.12.0'
 API_VERSION='1'
 
 
@@ -46,6 +46,7 @@ def registered_feature(path,method):
 @app.get('/api/health')
 def health():
     supported=[feature for feature,path,method in (
+        ('antigravity-v1','/api/antigravity','GET'),
         ('autonomy-v1','/api/projects/{pid}/autonomy','GET'),
         ('codex-backlog-v1','/api/autonomy/codex','GET'),
         ('tutor-v1','/api/projects/{pid}/tutor','GET'),
@@ -60,6 +61,28 @@ def health():
     ) if registered_feature(path,method)]
     return {'app':'STUDIO DE ANTO','code_version':LOADED_CODE_VERSION,'pid':os.getpid(),
             'release':APP_RELEASE,'api_version':API_VERSION,'features':supported}
+
+
+class AntigravityRequest(Strict):
+    prompt: str = Field(min_length=1, max_length=4000)
+    authorize: Literal[True]
+
+
+@app.get('/api/antigravity')
+def antigravity_status():
+    return antigravity.status()
+
+
+@app.post('/api/antigravity/ask')
+async def antigravity_ask(body: AntigravityRequest, request: Request):
+    if not body.prompt.strip():
+        raise HTTPException(422, 'Escribe una solicitud para Antigravity.')
+    return await antigravity.ask(body.prompt.strip(), request)
+
+
+@app.post('/api/antigravity/stop')
+def antigravity_stop():
+    return antigravity.stop()
 
 
 @app.get('/api/system/status')

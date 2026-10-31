@@ -1,5 +1,8 @@
 # STUDIO DE ANTO
 
+**1.12.0:** [Google Antigravity en Configuración](docs/ANTIGRAVITY.md), con
+consultas de texto autorizadas, parada y estado separado de la autenticación.
+
 **1.11.0:** búsqueda entre páginas PDF, con resultados, cobertura y continuación
 por bloques. Se añade [Virtual Avatar para Windows](desktop/VirtualAvatar/README.md):
 personaje transparente independiente, editor, accesorios, presets y escenario 2D.

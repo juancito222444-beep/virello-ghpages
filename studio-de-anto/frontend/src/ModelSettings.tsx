@@ -1,3 +1,4 @@
+import AntigravityPanel from './AntigravityPanel';
 import {fetchApi,readApiResponse} from './api';
 import {useEffect,useState} from 'react';
 import {Check,RefreshCw,FlaskConical} from 'lucide-react';
@@ -62,5 +63,5 @@ export default function ModelSettings(p:Props){
   {probe&&<div className="probe-result" role="status"><strong>Respuesta recibida del proveedor</strong><p>{probe.response}</p><small>{probe.model} · {probe.latency_ms} ms</small></div>}
   <p className="muted">Para volver a entrar, abre el mismo Codespace y el puerto 8765. No necesitas reinstalar. Los proveedores mantienen su infraestructura; puedes actualizar el catálogo y elegir nuevos modelos. Las correcciones guardadas aportan contexto, sin reentrenar el modelo.</p>
   <label className="checkbox"><input type="checkbox" checked={p.reduced} onChange={e=>p.onReduced(e.target.checked)}/>Reducir movimiento</label>
- </fieldset></section>;
+ </fieldset><AntigravityPanel active={p.active}/></section>;
 }

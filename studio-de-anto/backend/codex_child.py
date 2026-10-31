@@ -1,6 +1,6 @@
 """Linux process guardian: a dead supervisor must not leave a coding agent alive.
 
-Invoked only by codex_runner in a fresh session; all descendants share this group.
+Invoked by supervised CLI adapters in a fresh session; all descendants share this group.
 It inherits stdin/stdout but never reads prompts or credentials itself.
 """
 import ctypes
