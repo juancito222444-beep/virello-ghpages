@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "alphaCorner": 0,
+  "silhouetteRed": 255,
+  "hotkeyRegistered": true,
+  "clickThroughStyleAndRecovery": true,
+  "svgLoaded": true,
+  "unsafeSvgRejected": true,
+  "editorAndWorldOpened": true,
+  "workingSetBytes": 90955776,
+  "editorAndWorldWorkingSetBytes": 135876608,
+  "note": "Does not simulate clicks reaching a second application or measure long-running memory.",
+  "commit": "abe93aced03b2db947481a712abff99f4269eeb9",
+  "workflow": "https://github.com/juancito222444-beep/virello-ghpages/actions/runs/41161056380",
+  "platform": "Windows GitHub Actions runner",
+  "date": "2026-10-31"
+}

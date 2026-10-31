@@ -2,6 +2,23 @@
 
 ## Documentos y Virtual Avatar · 1.11.0
 
+La comprobación nativa final pasó en [Windows Actions 41161056380](https://github.com/juancito222444-beep/virello-ghpages/actions/runs/41161056380),
+con [informe](virtual-avatar/windows-verification.json), [captura del editor](virtual-avatar/editor-windows.png)
+y [captura del mundo](virtual-avatar/world-windows.png). Se verificaron alfa cero
+en el borde, silueta roja, importación SVG y rechazo de script, atajo registrado,
+activación/recuperación del estilo click-through y apertura de editor y escenario.
+Se corrigió el tema de ventanas derivadas después de revisar las capturas reales.
+La memoria instantánea registrada fue 90955776 bytes con el avatar y 135876608
+con editor y mundo; no es una medición prolongada ni un máximo garantizado.
+
+La revisión final pasó también [Studio checks 41161056432](https://github.com/juancito222444-beep/virello-ghpages/actions/runs/41161056432).
+La regresión del arranque eleva el total a **695 pruebas Python**: el servidor
+desprende su copia del descriptor del actualizador, sin desbloquear al padre ni
+retenerlo durante toda su vida. El bloqueo heredado anterior se liberó deteniendo
+únicamente el servidor propio identificado, sin trabajos o llamadas activas.
+Se reinstaló y comprobó por túnel autenticado el mismo Codespace: 1.11.0, huella,
+entorno, interfaz, registros anteriores y bloqueo del actualizador disponible.
+
 **694 pruebas Python**, compilación TypeScript/Vite y recorrido Chromium PDF
 superados con datos temporales y APIs simuladas. La búsqueda entre páginas se
 comprueba con PDF reales sintéticos: bloques, tildes, símbolos literales,
