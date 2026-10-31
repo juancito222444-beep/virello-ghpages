@@ -8,6 +8,7 @@ Entorno objetivo del propietario: [IDE del mismo Codespace](https://improved-tri
 
 - Colas persistentes de objetivos de Anto y backlog de Codex, con autorización explícita, presupuesto finito, checkpoints, pausa, parada y reintentos revisados. Codex verifica cambios y guarda commits locales sin push automático. Ver [autonomía 1.9.0](AUTONOMIA.md).
 - Tutor por proyecto con ejercicios autoevaluados y memoria revisada con fuentes; guarda explícitamente y conserva las ediciones al plegar el panel o fallar el guardado. Ver [modo tutor](TUTOR.md).
+- Búsqueda literal en todo el historial guardado del proyecto, entre todos los agentes, con filtros de autor, extractos y páginas sin consumir IA. Ver [búsqueda](BUSQUEDA.md).
 
 - Cuatro alas 3D con hitos verificables y autorización explícita por proyecto, persistencia, repliegue sin borrar datos y accesos a las herramientas actuales. No implica reentrenamiento ni crecimiento ilimitado. Ver [expansión 1.8.0](EXPANSION.md).
 
@@ -54,4 +55,4 @@ Las cuotas del proveedor, GitHub Codespaces y Codex son independientes. No se ga
 
 Guía: [archivos y continuidad](ARCHIVOS_Y_CONTINUIDAD.md). Evidencia: [validación](VALIDACION.md).
 
-La versión 1.6.1 corrige la validación estructural de PDF y el tratamiento de políticas de uso dañadas, y permite retomar un encargo tras un bloqueo local sin agotar intentos que no llegaron al proveedor. La reserva del presupuesto local y la carga agrupada de trabajos se incorporan en 1.7.0; la paginación de conversaciones se incorpora en 1.7.1. La búsqueda global del historial sin cargarlo y su resumen semántico siguen pendientes.
+La versión 1.6.1 corrige la validación estructural de PDF y el tratamiento de políticas de uso dañadas, y permite retomar un encargo tras un bloqueo local sin agotar intentos que no llegaron al proveedor. La reserva del presupuesto local y la carga agrupada de trabajos se incorporan en 1.7.0; la paginación de conversaciones se incorpora en 1.7.1. La búsqueda global del historial sin cargarlo se incorpora en 1.9.0; su resumen semántico sigue pendiente.

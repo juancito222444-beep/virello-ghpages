@@ -563,6 +563,13 @@ def file_content(fid:str,download:bool=False):
     if not f:raise HTTPException(404,'Archivo inexistente')
     f=attachments.resolve(f['project'],[fid])[0]
     return attachments.content(f,download=download)
+@app.get('/api/projects/{pid}/messages/search')
+def search_messages(pid:str,q:Annotated[str,Query(min_length=1,max_length=200)],
+                    role:Literal['all','user','assistant']='all',
+                    page_size:Annotated[int,Query(ge=1,le=50)]=20,before:str|None=None):
+    need_project(pid)
+    return message_history.search(pid,q,role,page_size,before)
+
 @app.get('/api/messages')
 def messages(project:str,agent:str,page_size:Annotated[int|None,Query(ge=1,le=100)]=None,before:str|None=None):
     need_project(project)

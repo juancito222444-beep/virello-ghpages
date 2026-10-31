@@ -15,6 +15,10 @@ quedan mensajes anteriores, la interfaz y la exportación lo indican. Cárgalos
 para ampliar la búsqueda o la descarga. El historial completo permanece guardado
 en el servidor y en las copias del proyecto; no se borran mensajes ni adjuntos.
 
+Desde 1.9.0 hay además un panel independiente de [búsqueda en todo el historial
+guardado del proyecto](BUSQUEDA.md#buscar-en-todo-el-historial-guardado--190),
+con extractos y páginas, sin cambiar los mensajes cargados del chat ni su descarga.
+
 Estas acciones no llaman a Gemini/Groq ni cambian el contexto que recibe el
 modelo en una conversación normal. Una interfaz nueva admite también las
 respuestas de servidores anteriores, aunque la carga por páginas necesita el

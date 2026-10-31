@@ -2,6 +2,9 @@
 
 **1.9.0:** [autonomía de Anto y backlog de Codex](docs/AUTONOMIA.md), con colas persistentes, límites y parada visible.
 
+También puedes [buscar en todo el historial guardado del proyecto](docs/BUSQUEDA.md),
+incluidos los mensajes antiguos sin cargar, con extractos y páginas y sin consumir IA.
+
 [Modo tutor](docs/TUTOR.md): explicaciones adaptadas, ejercicios, progreso autoevaluado por proyecto y memoria revisable con fuentes.
 
 **1.8.0:** [oficina con salas desbloqueables y expansión autorizada por proyecto](docs/EXPANSION.md), sin llamadas adicionales de IA.

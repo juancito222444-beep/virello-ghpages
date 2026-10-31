@@ -26,6 +26,13 @@ const initial=()=>({enabled:false,level:'inicial',goal:'',exercises:[],memories:
    if(!p.startsWith('/api/'))return route.continue();
    calls.push({p,method,body:req.postDataJSON()});
    const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+   const history=p.match(/^\/api\/projects\/([^/]+)\/messages\/search$/);
+   if(history){
+    await new Promise(done=>setTimeout(done,150));
+    if(url.searchParams.get('q')==='error')return json({detail:'MOCK: búsqueda fallida'},503);
+    const older=url.searchParams.has('before');
+    return json({messages:[{id:older?'older':'old',agent:'vera',role:'assistant',created:'2026-10-01T00:00:00Z',excerpt:older?'Coincidencia anterior':'Acción antigua: 20% _ [x]'}],has_more:!older,before_cursor:older?null:'old'});
+   }
    const tutor=p.match(/^\/api\/projects\/([^/]+)\/tutor$/);
    if(tutor){
     if(method==='PUT'){
@@ -74,7 +81,22 @@ const initial=()=>({enabled:false,level:'inicial',goal:'',exercises:[],memories:
   await page.reload();await toggle.click();await goal.waitFor();
   assert.equal(await goal.inputValue(),'Aprender porcentajes','Explicit save survives reload');
   assert.equal(calls.filter(c=>c.method==='PUT').length,2,'No implicit saves');
+  const history=page.locator('.history-search'),searchInput=history.getByRole('textbox',{name:'Texto del historial',exact:true});
+  assert.equal(calls.filter(c=>c.p.endsWith('/messages/search')).length,0,'History search requires explicit submit');
+  await history.locator('summary').click();await searchInput.fill('20% _ [x]');
+  await history.getByRole('button',{name:'Buscar historial guardado',exact:true}).evaluate(b=>{b.click();b.click();});
+  await history.getByText('Acción antigua: 20% _ [x]',{exact:true}).waitFor();
+  assert.equal(calls.filter(c=>c.p.endsWith('/messages/search')).length,1,'History double click sends one request');
+  await history.getByRole('button',{name:'Cargar más coincidencias',exact:true}).click();
+  await history.getByText('Coincidencia anterior',{exact:true}).waitFor();
+  assert.equal(await history.locator('li').count(),2);
+  await searchInput.fill('error');await history.getByRole('button',{name:'Buscar historial guardado',exact:true}).click();
+  await history.getByRole('alert').getByText('MOCK: búsqueda fallida',{exact:true}).waitFor();
+  assert.equal(await searchInput.inputValue(),'error');
+  await page.getByLabel('Proyecto activo').selectOption('b');
+  await history.locator('summary').click();assert.equal(await searchInput.inputValue(),'');
+  assert.equal(await history.locator('li').count(),0,'Project switch clears history results');
   assert.deepEqual(errors,[]);
-  console.log('PASS tutor browser: lazy load, preserved edits on collapse and errors, single save, project isolation, explicit persistence, no model calls');
+  console.log('PASS tutor and history browser: preserved edits, single save, project isolation, persistence, explicit history search, pagination and errors, no model calls');
  }finally{await browser?.close();await new Promise(done=>server.close(done));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

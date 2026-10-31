@@ -1,5 +1,27 @@
 # Validación — versión 1.6.0
 
+## Publicación, Codespace y búsqueda global · 31 de octubre de 2026
+
+Se publicaron los cambios de autonomía y tutor en `codex/studio-de-anto-mejoras`.
+La ejecución [Studio checks 41155339852](https://github.com/juancito222444-beep/virello-ghpages/actions/runs/41155339852)
+pasó en GitHub, incluidos Chromium y ambos recorridos. Se fijó Ubuntu 24.04 para
+que la versión bloqueada de Playwright no dependa del cambio de `ubuntu-latest`
+a Ubuntu 26.04, que provocó el fallo anterior de instalación del navegador.
+
+Se confirmó por el túnel autenticado de Codespaces que la aplicación remota sirve
+los mismos archivos de este checkout: una marca temporal única coincidió y se
+retiró inmediatamente; también coincidió el HTML compilado. `/api/health` informó
+1.9.0 y se comprobó que proceso, entorno y huella del backend coincidían. Esto
+verifica esta instancia, sin inferir la instalación a partir de un push.
+
+La búsqueda global añadida después pasó **683 pruebas Python** con red externa
+bloqueada, compilación y los recorridos Chromium de autonomía y tutor/historial.
+Las cuatro pruebas nuevas comprueban mensajes fuera de la primera página de 40,
+todos los agentes del proyecto, Unicode y símbolos literales, extractos acotados,
+cursores estables ante inserciones, límites y aislamiento sin modificar mensajes.
+El navegador verifica envío explícito, doble clic, páginas y errores recuperables.
+No se usaron APIs de IA reales, micrófono ni voces físicas del propietario.
+
 ## Autonomía y continuidad del tutor · 1.9.0 · 31 de octubre de 2026
 
 En este checkout pasaron las **679 pruebas Python** con
