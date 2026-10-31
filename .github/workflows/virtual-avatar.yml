@@ -1,0 +1,42 @@
+name: Virtual Avatar Windows
+on:
+  push:
+    paths: ['studio-de-anto/desktop/VirtualAvatar/**', '.github/workflows/virtual-avatar.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: virtual-avatar-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: studio-de-anto/desktop/VirtualAvatar
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: ./Publish-Windows.ps1 -Destination '${{ runner.temp }}/VirtualAvatar'
+      - name: Verify native window and rendering
+        shell: pwsh
+        run: |
+          $process = Start-Process '${{ runner.temp }}/VirtualAvatar/VirtualAvatar.App.exe' -ArgumentList @('--verify','--verify-report','${{ runner.temp }}/avatar-verification.json') -PassThru
+          if (-not $process.WaitForExit(60000)) { $process.Kill(); throw 'Native verification timed out.' }
+          if ($process.ExitCode -ne 0) { throw "Native verification failed: $($process.ExitCode)" }
+          $report = Get-Content '${{ runner.temp }}/avatar-verification.json' -Raw | ConvertFrom-Json
+          if (-not $report.passed) { throw 'Native checks failed.' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: VirtualAvatar-native-report
+          path: ${{ runner.temp }}/avatar-verification.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VirtualAvatar-win-x64
+          path: ${{ runner.temp }}/VirtualAvatar/
